@@ -3,9 +3,13 @@
 Each Work card points at one file here. Replace a file with a better take and
 the card picks it up, no code changes needed.
 
-| File | Card | Slide | Source |
+| File | Card | Slide | Status |
 |---|---|---|---|
-| `vex-worlds.mp4` | VEX U World Championship Robots | only | IMG_7703.MOV |
+| `vex-worlds.mp4` | VEX U World Championship | only | IMG_7703.MOV |
+| `vex-shooter.mp4` | Shooting & Catching Robots | 1 of 2 | **needed** |
+| `vex-over-under.mp4` | Shooting & Catching Robots | 2 of 2 | c400591b....mov, 40s-55s |
+| `vex-ring-stacker.mp4` | Ring Stacking Robot | only | **needed** |
+| `vex-climber.mp4` | Climbing Robot | only | **needed** |
 | `line-follower.mp4` | Line Following Robot | 1 of 2 | IMG_8224.MOV |
 | `line-follower-electronics.jpg` | Line Following Robot | 2 of 2 | IMG_8215.HEIC |
 | `rc-car.mp4` | Custom RC Car | only | 15bcedb2....MP4 |

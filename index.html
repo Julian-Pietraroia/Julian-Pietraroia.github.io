@@ -37,8 +37,13 @@
       <li><a href="#contact">Contact</a></li>
     </ul>
     <button class="themetoggle" type="button" aria-label="Switch colour theme">
-      <span class="themetoggle__sun" aria-hidden="true">☀</span>
-      <span class="themetoggle__moon" aria-hidden="true">☾</span>
+      <svg class="themetoggle__sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.4"/>
+        <path d="M12 1.8v3M12 19.2v3M1.8 12h3M19.2 12h3M4.8 4.8l2.1 2.1M17.1 17.1l2.1 2.1M19.2 4.8l-2.1 2.1M6.9 17.1l-2.1 2.1"/>
+      </svg>
+      <svg class="themetoggle__moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1z"/>
+      </svg>
     </button>
   </nav>
 </header>
@@ -83,7 +88,7 @@
 
       <div class="hero__actions reveal">
         <a class="btn btn--primary" href="#work">See my work</a>
-        <a class="btn" href="assets/Julian_Pietraroia_Resume.pdf" target="_blank" rel="noopener">Resume ↗</a>
+        <a class="btn" href="assets/Julian_Pietraroia_Resume.pdf" target="_blank" rel="noopener">Resume</a>
       </div>
 
       <ul class="bubbles reveal">
@@ -106,12 +111,49 @@
         <article class="work reveal">
           <div class="work__frame" style="--ratio: 3 / 4">
             <video class="slide work__video" data-src="assets/projects/vex-worlds.mp4" muted loop playsinline preload="none"></video>
-            <div class="work__fallback"><span class="work__play" aria-hidden="true">▶</span><span>Add a video</span></div>
+            <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add a video</span></div>
             <span class="work__tag">Competition</span>
           </div>
           <div class="work__caption">
-            <h3>VEX U World Championship Robots</h3>
-            <p>I led the mechanical design of this two-robot system. 2025 World Champions and back-to-back Skills World Champions against 300+ university teams.</p>
+            <h3>VEX U World Championship</h3>
+            <p>Mechanical lead of Ten Ton Robotics. 2025 World Champions and back-to-back Skills World Champions against 300+ university teams. Every robot below came out of that programme.</p>
+          </div>
+        </article>
+
+        <article class="work reveal">
+          <div class="work__frame" style="--ratio: 16 / 9">
+            <video class="slide work__video" data-src="assets/projects/vex-shooter.mp4" muted playsinline preload="none"></video>
+            <video class="slide work__video" data-src="assets/projects/vex-over-under.mp4" muted playsinline preload="none"></video>
+            <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add a video</span></div>
+            <span class="work__tag">Competition</span>
+          </div>
+          <div class="work__caption">
+            <h3>Shooting &amp; Catching Robots</h3>
+            <p>Two generations of launcher, built to score game elements at range and take them back out of the air. The Over Under machine ran a flywheel shooter alongside a net intake.</p>
+          </div>
+        </article>
+
+        <article class="work reveal">
+          <div class="work__frame" style="--ratio: 16 / 9">
+            <video class="slide work__video" data-src="assets/projects/vex-ring-stacker.mp4" muted loop playsinline preload="none"></video>
+            <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add a video</span></div>
+            <span class="work__tag">Competition</span>
+          </div>
+          <div class="work__caption">
+            <h3>Ring Stacking Robot</h3>
+            <p>Built for High Stakes: collecting rings off the field and stacking them onto goals, with a shooter for scoring at distance.</p>
+          </div>
+        </article>
+
+        <article class="work reveal">
+          <div class="work__frame" style="--ratio: 16 / 9">
+            <video class="slide work__video" data-src="assets/projects/vex-climber.mp4" muted loop playsinline preload="none"></video>
+            <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add a video</span></div>
+            <span class="work__tag">Competition</span>
+          </div>
+          <div class="work__caption">
+            <h3>Climbing Robot</h3>
+            <p>An endgame machine that lifts its own weight off the field, where the mechanism has to be light enough to carry all match and strong enough to matter for ten seconds.</p>
           </div>
         </article>
 
@@ -121,7 +163,7 @@
             <video class="slide work__video" data-src="assets/projects/line-follower.mp4" muted playsinline preload="none"></video>
             <img class="slide work__img" data-src="assets/projects/line-follower-electronics.jpg"
                  alt="Hand-wired perfboard, motor drivers and microcontroller inside the line follower's 3D printed chassis">
-            <div class="work__fallback"><span class="work__play" aria-hidden="true">▶</span><span>Add a video</span></div>
+            <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add a video</span></div>
             <span class="work__tag">Autonomy</span>
           </div>
           <div class="work__caption">
@@ -133,7 +175,7 @@
         <article class="work reveal">
           <div class="work__frame" style="--ratio: 3 / 4">
             <video class="slide work__video" data-src="assets/projects/rc-car.mp4" muted loop playsinline preload="none"></video>
-            <div class="work__fallback"><span class="work__play" aria-hidden="true">▶</span><span>Add a video</span></div>
+            <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add a video</span></div>
             <span class="work__tag">Personal</span>
           </div>
           <div class="work__caption">
@@ -255,31 +297,31 @@
 
       <div class="skillwall">
         <section class="skillcard reveal">
-          <h3><span aria-hidden="true">⚙️</span> Mechanical</h3>
+          <h3>Mechanical</h3>
           <ul class="pills">
             <li>Robotics</li><li>Mechatronics</li><li>GD&amp;T</li><li>Design for Manufacturing</li>
           </ul>
         </section>
         <section class="skillcard reveal">
-          <h3><span aria-hidden="true">🏭</span> Manufacturing</h3>
+          <h3>Manufacturing</h3>
           <ul class="pills">
             <li>Injection Molding</li><li>Thermoforming</li><li>CAM</li><li>SPC</li><li>CNC</li><li>3D Printing</li>
           </ul>
         </section>
         <section class="skillcard reveal">
-          <h3><span aria-hidden="true">✏️</span> Design &amp; CAD</h3>
+          <h3>Design &amp; CAD</h3>
           <ul class="pills">
             <li>SolidWorks</li><li>Onshape</li><li>Fusion 360</li><li>Ansys (FEA)</li>
           </ul>
         </section>
         <section class="skillcard reveal">
-          <h3><span aria-hidden="true">⚡</span> Electrical &amp; Controls</h3>
+          <h3>Electrical &amp; Controls</h3>
           <ul class="pills">
             <li>PLC</li><li>Microcontrollers</li><li>Firmware / Embedded</li><li>Control Systems (PID)</li><li>Soldering</li><li>Oscilloscope</li>
           </ul>
         </section>
         <section class="skillcard reveal">
-          <h3><span aria-hidden="true">💻</span> Software</h3>
+          <h3>Software</h3>
           <ul class="pills">
             <li>Python</li><li>C / C++ / C#</li><li>MATLAB</li><li>Git</li><li>Ladder Logic</li><li>Minitab</li><li>Excel</li><li>LaTeX</li>
           </ul>
@@ -287,7 +329,7 @@
       </div>
 
       <div class="awards reveal">
-        <h3 class="awards__head"><span aria-hidden="true">🏆</span> Awards</h3>
+        <h3 class="awards__head">Awards</h3>
         <ul class="awards__list">
           <li><b>2025</b> VEX Robotics World Champions</li>
           <li><b>2025</b> VEX Robotics Excellence Award</li>
@@ -308,22 +350,18 @@
            Email is the fastest way to reach me.</p>
         <div class="contact__grid">
           <a class="contact__card" href="mailto:julianp9181@gmail.com">
-            <span class="contact__icon" aria-hidden="true">✉️</span>
             <span class="contact__k">Email</span>
             <span class="contact__v">julianp9181@gmail.com</span>
           </a>
           <a class="contact__card" href="https://www.linkedin.com/in/julian-pietraroia" target="_blank" rel="noopener">
-            <span class="contact__icon" aria-hidden="true">💼</span>
             <span class="contact__k">LinkedIn</span>
             <span class="contact__v">/in/julian-pietraroia</span>
           </a>
           <a class="contact__card" href="https://github.com/Julian-Pietraroia" target="_blank" rel="noopener">
-            <span class="contact__icon" aria-hidden="true">🐙</span>
             <span class="contact__k">GitHub</span>
             <span class="contact__v">@Julian-Pietraroia</span>
           </a>
           <a class="contact__card" href="assets/Julian_Pietraroia_Resume.pdf" target="_blank" rel="noopener">
-            <span class="contact__icon" aria-hidden="true">📄</span>
             <span class="contact__k">Resume</span>
             <span class="contact__v">Download PDF</span>
           </a>

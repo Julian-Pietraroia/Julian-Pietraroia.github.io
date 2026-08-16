@@ -197,7 +197,16 @@ b, strong { font-weight: 800; }
   transition: transform 0.35s var(--spring), background 0.25s var(--ease);
 }
 .themetoggle:hover { transform: scale(1.12) rotate(12deg); }
+.themetoggle svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
 .themetoggle__moon { display: none; }
+.themetoggle__moon path { fill: currentColor; stroke: none; }
 :root[data-theme="dark"] .themetoggle__sun { display: none; }
 :root[data-theme="dark"] .themetoggle__moon { display: block; }
 
@@ -485,6 +494,9 @@ b, strong { font-weight: 800; }
   transition: opacity 0.4s var(--ease);
 }
 .work.has-media .work__dots { opacity: 1; }
+/* An explicit display would otherwise beat the browser's [hidden] rule, so a
+   deck that drops to a single usable slide would keep showing one dot */
+.work__dots[hidden] { display: none; }
 
 .work__dot {
   width: 7px;
@@ -523,8 +535,14 @@ b, strong { font-weight: 800; }
   border-radius: var(--r-full);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
-  font-size: 17px;
   transition: transform 0.4s var(--spring);
+}
+/* Triangle drawn from borders, so there is no glyph to render */
+.work__play::before {
+  content: "";
+  border-style: solid;
+  border-width: 7px 0 7px 12px;
+  border-color: transparent transparent transparent var(--red);
 }
 .work:hover .work__play { transform: scale(1.12); }
 
@@ -619,7 +637,16 @@ b, strong { font-weight: 800; }
 
 .stars { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
 .stars li { position: relative; padding-left: 26px; font-size: 16px; color: var(--text-2); }
-.stars li::before { content: "⭐"; position: absolute; left: 0; top: -1px; font-size: 14px; }
+.stars li::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 0.62em;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--sun);
+}
 
 .edu__label {
   margin-bottom: 12px;
@@ -712,7 +739,6 @@ b, strong { font-weight: 800; }
   transition: transform 0.4s var(--spring), box-shadow 0.3s var(--ease);
 }
 .contact__card:hover { transform: translateY(-5px) scale(1.02); box-shadow: var(--shadow-md); }
-.contact__icon { font-size: 22px; margin-bottom: 6px; }
 .contact__k { font-size: 13px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
 .contact__v { font-size: 15.5px; font-weight: 700; color: var(--text); word-break: break-word; }
 

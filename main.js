@@ -85,9 +85,21 @@
     card.loaded = true;
 
     card.slides.forEach(function (slide, i) {
-      var ok = function () { card.el.classList.add('has-media'); };
+      /* Nothing is shown until a file actually decodes, so a slot still waiting
+         on footage never becomes a blank frame in the rotation */
+      var ok = function () {
+        card.el.classList.add('has-media');
+        if (!card.el.querySelector('.slide.is-active')) show(card, i);
+      };
       slide.addEventListener('load', ok);
       slide.addEventListener('loadeddata', ok);
+
+      slide.addEventListener('error', function () {
+        slide.dataset.failed = '1';
+        if (card.dots && card.dots[i]) card.dots[i].hidden = true;
+        if (card.dotsEl && usable(card).length < 2) card.dotsEl.hidden = true;
+        if (slide.classList.contains('is-active')) advance(card);
+      });
 
       if (isVideo(slide)) {
         slide.preload = 'metadata';
@@ -96,17 +108,24 @@
       } else {
         slide.src = slide.dataset.src;
       }
-
-      if (i === 0) slide.classList.add('is-active');
     });
+  };
+
+  var usable = function (card) {
+    return card.slides.filter(function (s) { return s.dataset.failed !== '1'; });
   };
 
   var clearTimer = function (card) {
     if (card.timer) { window.clearTimeout(card.timer); card.timer = null; }
   };
 
+  /* Step to the next slide that actually loaded, wrapping around */
   var advance = function (card) {
-    show(card, (card.index + 1) % card.slides.length);
+    var n = card.slides.length;
+    for (var step = 1; step <= n; step++) {
+      var next = (card.index + step) % n;
+      if (card.slides[next].dataset.failed !== '1') { show(card, next); return; }
+    }
   };
 
   /* Declared with var so `advance` above can reference it before assignment */
@@ -170,6 +189,7 @@
         dots.appendChild(dot);
       });
       card.el.querySelector('.work__frame').appendChild(dots);
+      card.dotsEl = dots;
       card.dots = Array.prototype.slice.call(dots.children);
     }
   });
