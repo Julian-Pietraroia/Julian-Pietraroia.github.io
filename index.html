@@ -6,7 +6,7 @@
 <title>Julian Pietraroia — Hardware &amp; Manufacturing Engineer</title>
 <meta name="description" content="Julian Pietraroia — hardware and manufacturing engineer. Robot grippers, teleoperation hardware, fuel cell production, and championship competition robotics. Manufacturing Engineering at UBC.">
 <meta name="author" content="Julian Pietraroia">
-<meta name="theme-color" content="#0b0d10">
+<meta name="theme-color" content="#f2f8f2">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="Julian Pietraroia — Hardware &amp; Manufacturing Engineer">
@@ -15,136 +15,235 @@
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="https://julian-pietraroia.github.io/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%230b0d10'/%3E%3Ctext x='50' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%234da3ff' text-anchor='middle'%3EJP%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='30' fill='%2314b877'/%3E%3Ctext x='50' y='68' font-family='Nunito,Verdana,sans-serif' font-size='50' font-weight='800' fill='%23ffffff' text-anchor='middle'%3EJP%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <a class="skip-link" href="#main">Skip to content</a>
 
-<nav class="sidenav" aria-label="Section navigation">
-  <a class="sidenav__mark" href="#top" aria-label="Back to top">JP</a>
-  <ol class="sidenav__list">
-    <li><a href="#experience"><span class="num">01</span><span class="label">Experience</span></a></li>
-    <li><a href="#projects"><span class="num">02</span><span class="label">Projects</span></a></li>
-    <li><a href="#education"><span class="num">03</span><span class="label">Education</span></a></li>
-    <li><a href="#skills"><span class="num">04</span><span class="label">Skills</span></a></li>
-    <li><a href="#awards"><span class="num">05</span><span class="label">Awards</span></a></li>
-    <li><a href="#contact"><span class="num">06</span><span class="label">Contact</span></a></li>
-  </ol>
-</nav>
+<header class="topbar">
+  <nav class="pillnav" aria-label="Main navigation">
+    <a class="pillnav__mark" href="#top">JP</a>
+    <ul class="pillnav__list">
+      <li><a href="#work">Work</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#education">Education</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="themetoggle" type="button" aria-label="Switch colour theme">
+      <span class="themetoggle__sun" aria-hidden="true">☀</span>
+      <span class="themetoggle__moon" aria-hidden="true">☾</span>
+    </button>
+  </nav>
+</header>
 
 <main id="main">
 
   <!-- ── HERO ────────────────────────────────────────────── -->
-  <header class="hero" id="top">
-    <div class="hero__grid" aria-hidden="true"></div>
-    <div class="wrap hero__inner">
-      <p class="hero__eyebrow reveal">
-        <span class="dot" aria-hidden="true"></span>
-        San Francisco, CA &nbsp;/&nbsp; Vancouver, BC
-      </p>
-      <h1 class="hero__name reveal">Julian<br>Pietraroia</h1>
-      <p class="hero__role reveal">Hardware &amp; Manufacturing Engineer</p>
-      <p class="hero__blurb reveal">
-        I design and manufacture hardware for robot learning — grippers, gloves, and
-        teleoperation rigs that turn human hands into training data. Before that,
-        fuel cell production lines and a VEX U World Championship robot.
-        Most of what I care about lives in the gap between a CAD model and a part
-        that actually survives.
-      </p>
-      <div class="hero__actions reveal">
-        <a class="btn btn--primary" href="#experience">View work</a>
-        <a class="btn" href="assets/Julian_Pietraroia_Resume.pdf" target="_blank" rel="noopener">
-          Resume <span class="btn__meta">PDF</span>
-        </a>
-      </div>
-      <dl class="hero__stats reveal">
-        <div><dt>Data collectors on my gripper</dt><dd>200<span>+</span></dd></div>
-        <div><dt>Hours of manipulation data</dt><dd>1,000<span>+</span></dd></div>
-        <div><dt>World championships</dt><dd>3</dd></div>
-        <div><dt>GPA</dt><dd>3.9</dd></div>
-      </dl>
+  <section class="hero" id="top">
+    <div class="blobs" aria-hidden="true">
+      <span class="blob blob--1"></span>
+      <span class="blob blob--2"></span>
+      <span class="blob blob--3"></span>
     </div>
-    <div class="hero__scroll" aria-hidden="true"><span></span></div>
-  </header>
+
+    <div class="wrap hero__inner">
+      <p class="hero__hello reveal">
+        <span class="wave" aria-hidden="true">👋</span>
+        Hey, I'm Julian
+      </p>
+
+      <h1 class="hero__name reveal">
+        I build hardware that<br>
+        teaches robots to <em>use their hands</em>.
+      </h1>
+
+      <p class="hero__blurb reveal">
+        Grippers, gloves, and teleoperation rigs that turn human hands into training
+        data. Before that, fuel cell production lines and a VEX&nbsp;U World
+        Championship robot. Most of what I care about lives in the gap between a CAD
+        model and a part that actually survives.
+      </p>
+
+      <p class="hero__where reveal">
+        <span class="chip chip--live"><span class="pulse" aria-hidden="true"></span> San Francisco, CA</span>
+        <span class="chip">Manufacturing Engineering @ UBC</span>
+      </p>
+
+      <div class="hero__actions reveal">
+        <a class="btn btn--primary" href="#work">See my work</a>
+        <a class="btn" href="assets/Julian_Pietraroia_Resume.pdf" target="_blank" rel="noopener">Resume ↗</a>
+      </div>
+
+      <ul class="bubbles reveal">
+        <li><strong>200+</strong><span>data collectors<br>use my gripper</span></li>
+        <li><strong>1,000</strong><span>hours of manipulation<br>data gathered</span></li>
+        <li><strong>3</strong><span>world championships<br>won</span></li>
+        <li><strong>3.9</strong><span>GPA, Dean's<br>Honour List</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── WORK ────────────────────────────────────────────── -->
+  <section id="work" class="section">
+    <div class="wrap">
+      <div class="section__head reveal">
+        <span class="badge">01</span>
+        <h2>Work</h2>
+        <p class="section__hint">Hover a card to play it <span aria-hidden="true">▸</span></p>
+      </div>
+
+      <div class="masonry">
+
+        <article class="work reveal" data-src="assets/projects/umi-gripper.mp4">
+          <div class="work__frame" style="--ratio: 4 / 3">
+            <video class="work__video" muted loop playsinline preload="none"></video>
+            <div class="work__fallback"><span class="work__play" aria-hidden="true">▶</span><span>Add a video</span></div>
+            <span class="work__tag">Robot data</span>
+          </div>
+          <div class="work__caption">
+            <h3>1-DOF UMI Gripper</h3>
+            <p>A Universal Manipulation Interface gripper now in the hands of 200+ data collectors, capturing robot manipulation demonstrations at scale.</p>
+          </div>
+        </article>
+
+        <article class="work reveal" data-src="assets/projects/articulating-glove.mp4">
+          <div class="work__frame" style="--ratio: 3 / 4">
+            <video class="work__video" muted loop playsinline preload="none"></video>
+            <div class="work__fallback"><span class="work__play" aria-hidden="true">▶</span><span>Add a video</span></div>
+            <span class="work__tag">Teleoperation</span>
+          </div>
+          <div class="work__caption">
+            <h3>22-DOF Articulating Glove</h3>
+            <p>A full hand exoskeleton that tracks every finger joint individually, for high-fidelity hand-pose and teleoperation data.</p>
+          </div>
+        </article>
+
+        <article class="work reveal" data-src="assets/projects/vex-worlds.mp4">
+          <div class="work__frame" style="--ratio: 16 / 9">
+            <video class="work__video" muted loop playsinline preload="none"></video>
+            <div class="work__fallback"><span class="work__play" aria-hidden="true">▶</span><span>Add a video</span></div>
+            <span class="work__tag">Competition</span>
+          </div>
+          <div class="work__caption">
+            <h3>VEX U World Championship Robots</h3>
+            <p>The two-robot system I led the mechanical design of — 2025 World Champions and back-to-back Skills World Champions against 300+ university teams.</p>
+          </div>
+        </article>
+
+        <article class="work reveal" data-src="assets/projects/actuated-gripper.mp4">
+          <div class="work__frame" style="--ratio: 1 / 1">
+            <video class="work__video" muted loop playsinline preload="none"></video>
+            <div class="work__fallback"><span class="work__play" aria-hidden="true">▶</span><span>Add a video</span></div>
+            <span class="work__tag">Hardware</span>
+          </div>
+          <div class="work__caption">
+            <h3>Actuated Teleop Gripper</h3>
+            <p>Custom 1- and 2-DOF actuated grippers deployed across teleoperated collection stations, together gathering 1,000 hours of manipulation data.</p>
+          </div>
+        </article>
+
+        <article class="work reveal" data-src="assets/projects/line-follower.mp4">
+          <div class="work__frame" style="--ratio: 3 / 4">
+            <video class="work__video" muted loop playsinline preload="none"></video>
+            <div class="work__fallback"><span class="work__play" aria-hidden="true">▶</span><span>Add a video</span></div>
+            <span class="work__tag">Autonomy</span>
+          </div>
+          <div class="work__caption">
+            <h3>Line Following Robot</h3>
+            <p>Fully autonomous, with obstacle avoidance and encoder + IMU sensor fusion — and it draws a heat map of everywhere it's been.</p>
+          </div>
+        </article>
+
+        <article class="work reveal" data-src="assets/projects/combat-robot.mp4">
+          <div class="work__frame" style="--ratio: 16 / 9">
+            <video class="work__video" muted loop playsinline preload="none"></video>
+            <div class="work__fallback"><span class="work__play" aria-hidden="true">▶</span><span>Add a video</span></div>
+            <span class="work__tag">Personal</span>
+          </div>
+          <div class="work__caption">
+            <h3>One Pound Combat Robot</h3>
+            <p>An antweight built in Fusion 360 from carbon-fiber nylon, TPU, titanium and AR-500 steel, tuned around gyroscopic motion and centre of gravity.</p>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
 
   <!-- ── EXPERIENCE ──────────────────────────────────────── -->
-  <section id="experience" class="section">
+  <section id="experience" class="section section--tint">
     <div class="wrap">
-      <h2 class="section__head reveal"><span class="section__num">01</span> Experience</h2>
+      <div class="section__head reveal">
+        <span class="badge">02</span>
+        <h2>Experience</h2>
+      </div>
 
-      <ol class="entries">
+      <ol class="timeline">
 
-        <li class="entry reveal">
-          <div class="entry__meta">
-            <p class="entry__date">Jun 2026 — Present</p>
-            <p class="entry__place">San Francisco, CA</p>
-          </div>
-          <div class="entry__body">
-            <h3 class="entry__title">Hardware Engineer</h3>
-            <p class="entry__org">Stealth Startup <span class="entry__note">$25M raised</span></p>
-            <ul class="bullets">
-              <li>Designed and manufactured a <strong>1-DOF UMI gripper</strong> (Universal Manipulation Interface) now used by 200+ data collectors to scalably capture robot manipulation demonstrations.</li>
-              <li>Designed a full <strong>22-DOF articulating glove</strong> that individually tracks every finger joint for high-fidelity hand-pose and teleoperation data.</li>
-              <li>Developed and deployed a custom 1- and 2-DOF actuated gripper across teleoperated data collection stations, gathering <strong>1,000 hours</strong> of manipulation data.</li>
+        <li class="job reveal">
+          <div class="job__when"><span class="chip">Jun 2026 — now</span></div>
+          <div class="job__card">
+            <h3>Hardware Engineer</h3>
+            <p class="job__org">Stealth Startup <span>· $25M raised · San Francisco</span></p>
+            <ul class="dots">
+              <li>Designed and manufactured a <b>1-DOF UMI gripper</b> now used by 200+ data collectors to scalably capture robot manipulation demonstrations.</li>
+              <li>Designed a full <b>22-DOF articulating glove</b> that individually tracks every finger joint for high-fidelity hand-pose and teleoperation data.</li>
+              <li>Developed and deployed custom 1- and 2-DOF actuated grippers across teleoperated collection stations, gathering <b>1,000 hours</b> of manipulation data.</li>
             </ul>
-            <ul class="tags">
+            <ul class="pills">
               <li>Robot manipulation</li><li>Teleoperation</li><li>DFM</li><li>Rapid prototyping</li>
             </ul>
           </div>
         </li>
 
-        <li class="entry reveal">
-          <div class="entry__meta">
-            <p class="entry__date">May 2024 — Aug 2025</p>
-            <p class="entry__place">Burnaby, BC</p>
-          </div>
-          <div class="entry__body">
-            <h3 class="entry__title">Manufacturing Engineering Intern</h3>
-            <p class="entry__org">cellcentric <span class="entry__note">Toyota, Volvo &amp; Daimler Truck</span></p>
-            <ul class="bullets">
-              <li>Applied Lean Manufacturing to optimize a state-of-the-art fuel cell production process, reducing cost and improving <strong>cycle times by 40%</strong>.</li>
-              <li>Led Value Stream Mapping to identify bottlenecks and calculate process capacities, driving continuous-improvement initiatives.</li>
-              <li>Performed data analysis and root cause analysis on production data to surface trends and predict failure points.</li>
+        <li class="job reveal">
+          <div class="job__when"><span class="chip">May 2024 — Aug 2025</span></div>
+          <div class="job__card">
+            <h3>Manufacturing Engineering Intern</h3>
+            <p class="job__org">cellcentric <span>· Toyota, Volvo &amp; Daimler Truck · Burnaby, BC</span></p>
+            <ul class="dots">
+              <li>Applied Lean Manufacturing to a state-of-the-art fuel cell production process, cutting cost and improving <b>cycle times by 40%</b>.</li>
+              <li>Led Value Stream Mapping to find bottlenecks and calculate process capacities, driving continuous-improvement initiatives.</li>
+              <li>Ran data and root cause analysis on production data to surface trends and predict failure points.</li>
               <li>Built company-wide Power BI dashboards for production and budget reporting, cutting reporting time.</li>
             </ul>
-            <ul class="tags">
+            <ul class="pills">
               <li>Lean</li><li>Value Stream Mapping</li><li>SPC</li><li>Power BI</li><li>Root cause analysis</li>
             </ul>
           </div>
         </li>
 
-        <li class="entry reveal">
-          <div class="entry__meta">
-            <p class="entry__date">Aug 2023 — Present</p>
-            <p class="entry__place">West Vancouver, BC</p>
-          </div>
-          <div class="entry__body">
-            <h3 class="entry__title">Mechanical Lead</h3>
-            <p class="entry__org">Ten Ton Robotics <span class="entry__note">VEX U Competitive Robotics</span></p>
-            <ul class="bullets">
-              <li>Led mechanical design of a two-robot VEX U system that won the <strong>2025 World Championship</strong> and back-to-back Skills World Championships against 300+ university teams.</li>
-              <li>Guided a <strong>14-member team</strong> through the full design cycle — concept, CAD, fabrication, iteration.</li>
-              <li>Applied both subtractive (CNC) and additive (3D printing) manufacturing to produce unique, high-performance components.</li>
-              <li>Conducted FEA in Ansys on custom parts to optimize structural integrity and performance.</li>
+        <li class="job reveal">
+          <div class="job__when"><span class="chip">Aug 2023 — now</span></div>
+          <div class="job__card">
+            <h3>Mechanical Lead</h3>
+            <p class="job__org">Ten Ton Robotics <span>· VEX U Competitive Robotics · West Vancouver</span></p>
+            <ul class="dots">
+              <li>Led mechanical design of a two-robot VEX U system that won the <b>2025 World Championship</b> and back-to-back Skills World Championships against 300+ university teams.</li>
+              <li>Guided a <b>14-member team</b> through the full design cycle — concept, CAD, fabrication, iteration.</li>
+              <li>Used subtractive (CNC) and additive (3D printing) manufacturing to produce unique, high-performance components.</li>
+              <li>Ran FEA in Ansys on custom parts to optimize structural integrity and performance.</li>
             </ul>
-            <ul class="tags">
+            <ul class="pills">
               <li>Mechanical design</li><li>CNC</li><li>Ansys FEA</li><li>Team leadership</li>
             </ul>
           </div>
         </li>
 
-        <li class="entry entry--minor reveal">
-          <div class="entry__meta">
-            <p class="entry__date">Sep 2022 — Present</p>
-            <p class="entry__place">Richmond, BC</p>
-          </div>
-          <div class="entry__body">
-            <h3 class="entry__title">Head Referee <span class="entry__kind">Volunteer</span></h3>
-            <p class="entry__org">Penguin Robotics</p>
-            <ul class="bullets">
-              <li>Referee VEX Robotics competitions across British Columbia, keeping the environment competitive and fair for every team.</li>
+        <li class="job job--small reveal">
+          <div class="job__when"><span class="chip">Sep 2022 — now</span></div>
+          <div class="job__card">
+            <h3>Head Referee <span class="tagline">volunteer</span></h3>
+            <p class="job__org">Penguin Robotics <span>· Richmond, BC</span></p>
+            <ul class="dots">
+              <li>Referee VEX Robotics competitions across British Columbia, keeping things competitive and fair for every team.</li>
             </ul>
           </div>
         </li>
@@ -153,70 +252,24 @@
     </div>
   </section>
 
-  <!-- ── PROJECTS ────────────────────────────────────────── -->
-  <section id="projects" class="section section--alt">
-    <div class="wrap">
-      <h2 class="section__head reveal"><span class="section__num">02</span> Projects</h2>
-
-      <div class="cards">
-
-        <article class="card reveal">
-          <header class="card__head">
-            <h3 class="card__title">Line Following Robot</h3>
-            <p class="card__date">Apr — May 2026</p>
-          </header>
-          <p class="card__lede">
-            A fully autonomous line-following robot with obstacle avoidance that builds a
-            heat map of the environment it drives through.
-          </p>
-          <ul class="specs">
-            <li><span>Localization</span><span>Encoder + IMU sensor fusion for position and heading</span></li>
-            <li><span>Sensing</span><span>IR line detection and proximity ranging</span></li>
-            <li><span>Output</span><span>Environment heat map generated on the fly</span></li>
-          </ul>
-          <ul class="tags">
-            <li>Sensor fusion</li><li>Odometry</li><li>Embedded C</li><li>Autonomy</li>
-          </ul>
-        </article>
-
-        <article class="card reveal">
-          <header class="card__head">
-            <h3 class="card__title">One Pound Combat Robot</h3>
-            <p class="card__date">Apr 2023 — Jun 2025</p>
-          </header>
-          <p class="card__lede">
-            A competitive antweight combat robot, engineered end-to-end in Fusion 360 and
-            built to take hits from things designed to break it.
-          </p>
-          <ul class="specs">
-            <li><span>Materials</span><span>Carbon-fiber nylon, TPU, titanium, AR-500 steel</span></li>
-            <li><span>Dynamics</span><span>Gyroscopic motion and CG studies for smooth, controllable movement</span></li>
-            <li><span>Process</span><span>Rapid prototyping across many build-and-break cycles</span></li>
-          </ul>
-          <ul class="tags">
-            <li>Fusion 360</li><li>Material selection</li><li>Impact design</li><li>3D printing</li>
-          </ul>
-        </article>
-
-      </div>
-    </div>
-  </section>
-
   <!-- ── EDUCATION ───────────────────────────────────────── -->
   <section id="education" class="section">
     <div class="wrap">
-      <h2 class="section__head reveal"><span class="section__num">03</span> Education</h2>
+      <div class="section__head reveal">
+        <span class="badge">03</span>
+        <h2>Education</h2>
+      </div>
 
       <div class="edu reveal">
-        <div class="edu__main">
-          <h3 class="edu__school">University of British Columbia</h3>
+        <div class="edu__body">
+          <h3>University of British Columbia</h3>
           <p class="edu__degree">B.A.Sc. Manufacturing Engineering</p>
-          <ul class="honours">
+          <ul class="stars">
             <li>Dean's Honour List</li>
             <li>Top 10% of the Faculty of Applied Science</li>
           </ul>
-          <p class="edu__courseslabel">Relevant coursework</p>
-          <ul class="tags">
+          <p class="edu__label">Relevant coursework</p>
+          <ul class="pills">
             <li>Industrial Automation</li>
             <li>Manufacturing Processes</li>
             <li>Mechanics of Materials</li>
@@ -226,90 +279,105 @@
             <li>Software Design for Engineers</li>
           </ul>
         </div>
-        <dl class="edu__facts">
-          <div><dt>Expected</dt><dd>April 2027</dd></div>
-          <div><dt>GPA</dt><dd>3.9</dd></div>
-        </dl>
+        <ul class="edu__facts">
+          <li><strong>April 2027</strong><span>expected</span></li>
+          <li><strong>3.9</strong><span>GPA</span></li>
+        </ul>
       </div>
     </div>
   </section>
 
   <!-- ── SKILLS ──────────────────────────────────────────── -->
-  <section id="skills" class="section section--alt">
+  <section id="skills" class="section section--tint">
     <div class="wrap">
-      <h2 class="section__head reveal"><span class="section__num">04</span> Skills</h2>
+      <div class="section__head reveal">
+        <span class="badge">04</span>
+        <h2>Skills</h2>
+      </div>
 
-      <div class="skills">
-        <section class="skillgroup reveal">
-          <h3>Mechanical</h3>
-          <ul class="tags">
+      <div class="skillwall">
+        <section class="skillcard reveal">
+          <h3><span aria-hidden="true">⚙️</span> Mechanical</h3>
+          <ul class="pills">
             <li>Robotics</li><li>Mechatronics</li><li>GD&amp;T</li><li>Design for Manufacturing</li>
           </ul>
         </section>
-        <section class="skillgroup reveal">
-          <h3>Manufacturing</h3>
-          <ul class="tags">
+        <section class="skillcard reveal">
+          <h3><span aria-hidden="true">🏭</span> Manufacturing</h3>
+          <ul class="pills">
             <li>Injection Molding</li><li>Thermoforming</li><li>CAM</li><li>SPC</li><li>CNC</li><li>3D Printing</li>
           </ul>
         </section>
-        <section class="skillgroup reveal">
-          <h3>Design / CAD</h3>
-          <ul class="tags">
+        <section class="skillcard reveal">
+          <h3><span aria-hidden="true">✏️</span> Design &amp; CAD</h3>
+          <ul class="pills">
             <li>SolidWorks</li><li>Onshape</li><li>Fusion 360</li><li>Ansys (FEA)</li>
           </ul>
         </section>
-        <section class="skillgroup reveal">
-          <h3>Electrical / Controls</h3>
-          <ul class="tags">
+        <section class="skillcard reveal">
+          <h3><span aria-hidden="true">⚡</span> Electrical &amp; Controls</h3>
+          <ul class="pills">
             <li>PLC</li><li>Microcontrollers</li><li>Firmware / Embedded</li><li>Control Systems (PID)</li><li>Soldering</li><li>Oscilloscope</li>
           </ul>
         </section>
-        <section class="skillgroup reveal">
-          <h3>Software</h3>
-          <ul class="tags">
+        <section class="skillcard reveal">
+          <h3><span aria-hidden="true">💻</span> Software</h3>
+          <ul class="pills">
             <li>Python</li><li>C / C++ / C#</li><li>MATLAB</li><li>Git</li><li>Ladder Logic</li><li>Minitab</li><li>Excel</li><li>LaTeX</li>
           </ul>
         </section>
       </div>
-    </div>
-  </section>
 
-  <!-- ── AWARDS ──────────────────────────────────────────── -->
-  <section id="awards" class="section">
-    <div class="wrap">
-      <h2 class="section__head reveal"><span class="section__num">05</span> Awards</h2>
-
-      <ol class="awards">
-        <li class="reveal"><span class="awards__year">2025</span><span class="awards__name">VEX Robotics World Champions</span></li>
-        <li class="reveal"><span class="awards__year">2025</span><span class="awards__name">VEX Robotics Excellence Award</span></li>
-        <li class="reveal"><span class="awards__year">2024 &amp; 2025</span><span class="awards__name">VEX Robotics Skills Challenge World Champions</span></li>
-        <li class="reveal"><span class="awards__year">2022</span><span class="awards__name">A.E. Coleman Leadership Award</span></li>
-        <li class="reveal"><span class="awards__year">2022</span><span class="awards__name">Schulich Leader Nominee</span></li>
-      </ol>
+      <div class="awards reveal">
+        <h3 class="awards__head"><span aria-hidden="true">🏆</span> Awards</h3>
+        <ul class="awards__list">
+          <li><b>2025</b> VEX Robotics World Champions</li>
+          <li><b>2025</b> VEX Robotics Excellence Award</li>
+          <li><b>2024 &amp; 2025</b> VEX Robotics Skills Challenge World Champions</li>
+          <li><b>2022</b> A.E. Coleman Leadership Award</li>
+          <li><b>2022</b> Schulich Leader Nominee</li>
+        </ul>
+      </div>
     </div>
   </section>
 
   <!-- ── CONTACT ─────────────────────────────────────────── -->
   <section id="contact" class="section section--contact">
     <div class="wrap">
-      <h2 class="section__head reveal"><span class="section__num">06</span> Contact</h2>
-      <p class="contact__lede reveal">
-        Open to hardware, robotics, and manufacturing engineering conversations.
-        The fastest way to reach me is email.
-      </p>
-      <ul class="contact__links">
-        <li class="reveal"><a href="mailto:julianp9181@gmail.com"><span class="contact__k">Email</span><span class="contact__v">julianp9181@gmail.com</span></a></li>
-        <li class="reveal"><a href="https://www.linkedin.com/in/julian-pietraroia" target="_blank" rel="noopener"><span class="contact__k">LinkedIn</span><span class="contact__v">/in/julian-pietraroia</span></a></li>
-        <li class="reveal"><a href="https://github.com/Julian-Pietraroia" target="_blank" rel="noopener"><span class="contact__k">GitHub</span><span class="contact__v">@Julian-Pietraroia</span></a></li>
-        <li class="reveal"><a href="assets/Julian_Pietraroia_Resume.pdf" target="_blank" rel="noopener"><span class="contact__k">Resume</span><span class="contact__v">Download PDF</span></a></li>
-      </ul>
+      <div class="contact reveal">
+        <h2>Let's build something</h2>
+        <p>Open to hardware, robotics, and manufacturing engineering conversations.
+           Email is the fastest way to reach me.</p>
+        <div class="contact__grid">
+          <a class="contact__card" href="mailto:julianp9181@gmail.com">
+            <span class="contact__icon" aria-hidden="true">✉️</span>
+            <span class="contact__k">Email</span>
+            <span class="contact__v">julianp9181@gmail.com</span>
+          </a>
+          <a class="contact__card" href="https://www.linkedin.com/in/julian-pietraroia" target="_blank" rel="noopener">
+            <span class="contact__icon" aria-hidden="true">💼</span>
+            <span class="contact__k">LinkedIn</span>
+            <span class="contact__v">/in/julian-pietraroia</span>
+          </a>
+          <a class="contact__card" href="https://github.com/Julian-Pietraroia" target="_blank" rel="noopener">
+            <span class="contact__icon" aria-hidden="true">🐙</span>
+            <span class="contact__k">GitHub</span>
+            <span class="contact__v">@Julian-Pietraroia</span>
+          </a>
+          <a class="contact__card" href="assets/Julian_Pietraroia_Resume.pdf" target="_blank" rel="noopener">
+            <span class="contact__icon" aria-hidden="true">📄</span>
+            <span class="contact__k">Resume</span>
+            <span class="contact__v">Download PDF</span>
+          </a>
+        </div>
+      </div>
     </div>
   </section>
 
   <footer class="footer">
     <div class="wrap footer__inner">
-      <p>&copy; <span id="year">2026</span> Julian Pietraroia</p>
-      <p class="footer__built">Built by hand · hosted on GitHub Pages</p>
+      <p>© <span id="year">2026</span> Julian Pietraroia</p>
+      <p>Made with care · hosted on GitHub Pages</p>
     </div>
   </footer>
 
