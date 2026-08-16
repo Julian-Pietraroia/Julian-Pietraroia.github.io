@@ -341,20 +341,6 @@ b, strong { font-weight: 800; }
   object-position: center 55%;
 }
 
-.banner__caption {
-  position: absolute;
-  left: 16px;
-  bottom: 14px;
-  padding: 7px 16px;
-  border-radius: var(--r-full);
-  background: color-mix(in srgb, var(--surface) 84%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  font-size: 13.5px;
-  font-weight: 800;
-  color: var(--green-deep);
-}
-
 .hero__hello {
   display: inline-flex;
   align-items: center;

@@ -29,8 +29,6 @@ Two knobs in `styles.css`, both on `.banner`:
 - `object-position` on `.banner__img` (`center 55%`) picks which horizontal band
   of the photo survives the crop. Lower percentages keep more of the top.
 
-The caption text is in `index.html` on `.banner__caption`.
-
 ## Adding project videos
 
 Drop an `.mp4` into `assets/projects/` using the filenames listed in
