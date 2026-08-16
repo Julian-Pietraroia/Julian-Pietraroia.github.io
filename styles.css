@@ -342,27 +342,6 @@ b, strong { font-weight: 800; }
   object-position: center 74%;
 }
 
-.hero__hello {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 22px;
-  padding: 9px 20px;
-  border-radius: var(--r-full);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-2);
-}
-.wave { display: inline-block; font-size: 18px; animation: wave 3.4s var(--ease) infinite; transform-origin: 70% 80%; }
-@keyframes wave {
-  0%, 60%, 100% { transform: rotate(0deg); }
-  70% { transform: rotate(16deg); }
-  80% { transform: rotate(-8deg); }
-  90% { transform: rotate(12deg); }
-}
-
 .hero__name {
   font-size: clamp(2.7rem, 7.4vw, 5.2rem);
   font-weight: 800;
@@ -452,16 +431,6 @@ b, strong { font-weight: 800; }
   box-shadow: 0 6px 16px var(--red-glow);
 }
 
-.section__hint {
-  margin-left: auto;
-  padding: 8px 18px;
-  border-radius: var(--r-full);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
-  font-size: 14.5px;
-  font-weight: 700;
-  color: var(--muted);
-}
 
 /* ── Work: masonry of video cards ────────────────────────── */
 
@@ -485,8 +454,7 @@ b, strong { font-weight: 800; }
   background: linear-gradient(140deg, var(--red-soft), var(--surface-2));
 }
 
-.work__video,
-.work__img {
+.slide {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -494,14 +462,44 @@ b, strong { font-weight: 800; }
   object-fit: cover;
   display: block;
   opacity: 0;
-  transition: opacity 0.4s var(--ease), transform 0.6s var(--ease);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
 }
-/* Only shown once a real file has decoded. See main.js */
-.work.has-media .work__video,
-.work.has-media .work__img { opacity: 1; }
-.work.has-media:hover .work__video,
-.work.has-media:hover .work__img { transform: scale(1.04); }
+/* Only the active slide shows, and only once a real file has decoded */
+.work.has-media .slide.is-active { opacity: 1; }
+.work.has-media:hover .slide.is-active { transform: scale(1.04); }
 .work.has-media .work__fallback { opacity: 0; pointer-events: none; }
+
+/* Slideshow dots */
+.work__dots {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.4s var(--ease);
+}
+.work.has-media .work__dots { opacity: 1; }
+
+.work__dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: 0.45;
+  cursor: pointer;
+  transition: opacity 0.3s var(--ease), background 0.3s var(--ease),
+              transform 0.3s var(--spring);
+}
+.work__dot:hover { opacity: 0.8; transform: scale(1.2); }
+.work__dot.is-on { background: var(--red); opacity: 1; transform: scale(1.15); }
 
 .work__fallback {
   position: absolute;
@@ -762,7 +760,6 @@ b, strong { font-weight: 800; }
   .banner { aspect-ratio: 16 / 9; margin-bottom: 26px; }
 
   .section { padding: 64px 0; }
-  .section__hint { margin-left: 0; }
 
   .masonry { column-count: 1; }
 
@@ -794,7 +791,7 @@ b, strong { font-weight: 800; }
 
 @media print {
   body { background: #fff; color: #000; }
-  .topbar, .blobs, .hero__actions, .work__frame, .footer, .section__hint { display: none; }
+  .topbar, .blobs, .hero__actions, .work__frame, .footer { display: none; }
   .section, .hero { padding: 16px 0; background: #fff; }
   .work, .job__card, .edu, .skillcard, .awards, .contact { box-shadow: none; border: 1px solid #ccc; }
   .reveal { opacity: 1; transform: none; }

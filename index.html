@@ -60,11 +60,6 @@
         <img class="banner__img" alt="Ten Ton Robotics on the field at the VEX U World Championship">
       </div>
 
-      <p class="hero__hello reveal">
-        <span class="wave" aria-hidden="true">👋</span>
-        hey, I'm
-      </p>
-
       <h1 class="hero__name reveal">Julian <em>Pietraroia</em></h1>
 
       <p class="hero__disciplines reveal">
@@ -104,14 +99,13 @@
       <div class="section__head reveal">
         <span class="badge">01</span>
         <h2>Work</h2>
-        <p class="section__hint">Hover a card to play it <span aria-hidden="true">▸</span></p>
       </div>
 
       <div class="masonry">
 
-        <article class="work reveal" data-src="assets/projects/vex-worlds.mp4">
+        <article class="work reveal">
           <div class="work__frame" style="--ratio: 3 / 4">
-            <video class="work__video" muted loop playsinline preload="none"></video>
+            <video class="slide work__video" data-src="assets/projects/vex-worlds.mp4" muted loop playsinline preload="none"></video>
             <div class="work__fallback"><span class="work__play" aria-hidden="true">▶</span><span>Add a video</span></div>
             <span class="work__tag">Competition</span>
           </div>
@@ -121,39 +115,30 @@
           </div>
         </article>
 
-        <article class="work reveal" data-src="assets/projects/line-follower.mp4">
-          <div class="work__frame" style="--ratio: 16 / 9">
-            <video class="work__video" muted loop playsinline preload="none"></video>
+        <!-- Two slides: the robot running, then what is inside it -->
+        <article class="work reveal">
+          <div class="work__frame" style="--ratio: 4 / 3">
+            <video class="slide work__video" data-src="assets/projects/line-follower.mp4" muted playsinline preload="none"></video>
+            <img class="slide work__img" data-src="assets/projects/line-follower-electronics.jpg"
+                 alt="Hand-wired perfboard, motor drivers and microcontroller inside the line follower's 3D printed chassis">
             <div class="work__fallback"><span class="work__play" aria-hidden="true">▶</span><span>Add a video</span></div>
             <span class="work__tag">Autonomy</span>
           </div>
           <div class="work__caption">
             <h3>Line Following Robot</h3>
-            <p>Fully autonomous, with obstacle avoidance and encoder + IMU sensor fusion. It also draws a heat map of everywhere it's been.</p>
+            <p>Fully autonomous, with obstacle avoidance and encoder + IMU sensor fusion. It also draws a heat map of everywhere it's been. Underneath: hand-wired perfboard, motor drivers and encoder-equipped gearmotors, packed into a 3D printed chassis with nothing to spare.</p>
           </div>
         </article>
 
-        <article class="work reveal" data-img="assets/projects/line-follower-electronics.jpg">
+        <article class="work reveal">
           <div class="work__frame" style="--ratio: 3 / 4">
-            <img class="work__img" alt="Hand-wired perfboard, motor drivers and microcontroller inside the line follower's 3D printed chassis" loading="lazy">
-            <div class="work__fallback"><span class="work__play" aria-hidden="true">▦</span><span>Add an image</span></div>
-            <span class="work__tag">Electronics</span>
-          </div>
-          <div class="work__caption">
-            <h3>Line Follower Internals</h3>
-            <p>Hand-wired perfboard, motor drivers and encoder-equipped gearmotors, packed into a 3D printed chassis with nothing to spare.</p>
-          </div>
-        </article>
-
-        <article class="work reveal" data-src="assets/projects/combat-robot.mp4">
-          <div class="work__frame" style="--ratio: 3 / 4">
-            <video class="work__video" muted loop playsinline preload="none"></video>
+            <video class="slide work__video" data-src="assets/projects/rc-car.mp4" muted loop playsinline preload="none"></video>
             <div class="work__fallback"><span class="work__play" aria-hidden="true">▶</span><span>Add a video</span></div>
             <span class="work__tag">Personal</span>
           </div>
           <div class="work__caption">
-            <h3>One Pound Combat Robot</h3>
-            <p>An antweight built in Fusion 360 from carbon-fiber nylon, TPU, titanium and AR-500 steel, tuned around gyroscopic motion and centre of gravity.</p>
+            <h3>Custom RC Car</h3>
+            <p>Built around a glass fibre chassis and a 3D printed roll cage, running cast aluminium rims under a thermoformed ABS shell.</p>
           </div>
         </article>
 
@@ -217,17 +202,6 @@
             </ul>
             <ul class="pills">
               <li>Mechanical design</li><li>CNC</li><li>Ansys FEA</li><li>Team leadership</li>
-            </ul>
-          </div>
-        </li>
-
-        <li class="job job--small reveal">
-          <div class="job__when"><span class="chip">Sep 2022 - now</span></div>
-          <div class="job__card">
-            <h3>Head Referee <span class="tagline">volunteer</span></h3>
-            <p class="job__org">Penguin Robotics <span>· Richmond, BC</span></p>
-            <ul class="dots">
-              <li>Referee VEX Robotics competitions across British Columbia, keeping things competitive and fair for every team.</li>
             </ul>
           </div>
         </li>

@@ -57,81 +57,170 @@
 
   /* ── Work videos ───────────────────────────────────────── */
 
-  /* Cards carry data-src (video) or data-img (still) rather than a real src, so
-     nothing downloads until the card is near the viewport. A card only loses its
-     placeholder once a real file has decoded, so empty slots stay presentable. */
-  var cards = Array.prototype.slice.call(
-    document.querySelectorAll('.work[data-src], .work[data-img]')
-  );
+  /* Slides carry data-src rather than a real src, so nothing downloads until the
+     card is near the viewport. A card only loses its placeholder once the first
+     file has decoded, so empty slots stay presentable. Cards with more than one
+     slide run as a slideshow: a video slide holds until it finishes, a still
+     holds for STILL_MS. */
+  var STILL_MS = 4500;
+  var VIDEO_CAP_MS = 14000;   /* backstop if a video never fires 'ended' */
+
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.work'))
+    .map(function (card) {
+      return {
+        el: card,
+        slides: Array.prototype.slice.call(card.querySelectorAll('.slide[data-src]')),
+        index: 0,
+        timer: null,
+        loaded: false,
+        inView: false
+      };
+    })
+    .filter(function (card) { return card.slides.length; });
+
+  var isVideo = function (el) { return el.tagName === 'VIDEO'; };
 
   var loadCard = function (card) {
-    if (card.dataset.loaded) return;
-    card.dataset.loaded = '1';
+    if (card.loaded) return;
+    card.loaded = true;
 
-    var media = card.querySelector('.work__video, .work__img');
-    if (!media) return;
+    card.slides.forEach(function (slide, i) {
+      var ok = function () { card.el.classList.add('has-media'); };
+      slide.addEventListener('load', ok);
+      slide.addEventListener('loadeddata', ok);
 
-    media.addEventListener('load', function () { card.classList.add('has-media'); });
-    media.addEventListener('loadeddata', function () { card.classList.add('has-media'); });
-    media.addEventListener('error', function () { card.classList.remove('has-media'); });
+      if (isVideo(slide)) {
+        slide.preload = 'metadata';
+        /* The media fragment nudges browsers into painting a first frame */
+        slide.src = slide.dataset.src + '#t=0.1';
+      } else {
+        slide.src = slide.dataset.src;
+      }
 
-    if (card.dataset.img) {
-      media.src = card.dataset.img;
-      return;
+      if (i === 0) slide.classList.add('is-active');
+    });
+  };
+
+  var clearTimer = function (card) {
+    if (card.timer) { window.clearTimeout(card.timer); card.timer = null; }
+  };
+
+  var advance = function (card) {
+    show(card, (card.index + 1) % card.slides.length);
+  };
+
+  /* Declared with var so `advance` above can reference it before assignment */
+  var show = function (card, next) {
+    clearTimer(card);
+
+    var current = card.slides[card.index];
+    if (current && isVideo(current)) current.pause();
+
+    card.index = next;
+    card.slides.forEach(function (slide, i) {
+      slide.classList.toggle('is-active', i === next);
+    });
+
+    var slide = card.slides[next];
+    if (!card.inView) return;
+
+    if (isVideo(slide)) {
+      slide.currentTime = 0;
+      var p = slide.play();
+      if (p && p.catch) p.catch(function () {});
+      /* Single-slide cards loop forever; a slideshow moves on when it ends */
+      if (card.slides.length > 1) {
+        card.timer = window.setTimeout(function () { advance(card); }, VIDEO_CAP_MS);
+      }
+    } else if (card.slides.length > 1) {
+      card.timer = window.setTimeout(function () { advance(card); }, STILL_MS);
     }
-
-    media.preload = 'metadata';
-    /* The media fragment nudges browsers into painting a first frame as a still */
-    media.src = card.dataset.src + '#t=0.1';
   };
 
-  var play = function (card) {
-    if (!card.classList.contains('has-media')) return;
-    var v = card.querySelector('.work__video');
-    if (v) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+  var enter = function (card) {
+    card.inView = true;
+    loadCard(card);
+    show(card, card.index);
   };
 
-  var pause = function (card) {
-    var v = card.querySelector('.work__video');
-    if (v && !v.paused) { v.pause(); v.currentTime = 0.1; }
+  var leave = function (card) {
+    card.inView = false;
+    clearTimer(card);
+    var slide = card.slides[card.index];
+    if (slide && isVideo(slide)) slide.pause();
   };
+
+  cards.forEach(function (card) {
+    card.slides.forEach(function (slide) {
+      if (!isVideo(slide) || card.slides.length < 2) return;
+      slide.addEventListener('ended', function () { advance(card); });
+    });
+
+    /* Dots for multi-slide cards, so the card reads as a slideshow and can be
+       driven by hand rather than only on the timer */
+    if (card.slides.length > 1) {
+      var dots = document.createElement('div');
+      dots.className = 'work__dots';
+      card.slides.forEach(function (slide, i) {
+        var dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'work__dot';
+        dot.setAttribute('aria-label', 'Show item ' + (i + 1) + ' of ' + card.slides.length);
+        dot.addEventListener('click', function () { show(card, i); });
+        dots.appendChild(dot);
+      });
+      card.el.querySelector('.work__frame').appendChild(dots);
+      card.dots = Array.prototype.slice.call(dots.children);
+    }
+  });
+
+  /* Keep the dots in step with whatever is showing */
+  var syncDots = function (card) {
+    if (!card.dots) return;
+    card.dots.forEach(function (dot, i) {
+      dot.classList.toggle('is-on', i === card.index);
+    });
+  };
+  var rawShow = show;
+  show = function (card, next) { rawShow(card, next); syncDots(card); };
 
   if ('IntersectionObserver' in window) {
-    /* Load a little before the card arrives so the still is ready on screen */
+    /* Load a little before the card arrives so the first frame is ready */
     var loader = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (!entry.isIntersecting) return;
-        loadCard(entry.target);
+        var card = entry.target._card;
+        loadCard(card);
         loader.unobserve(entry.target);
       });
     }, { rootMargin: '300px 0px' });
 
-    cards.forEach(function (card) { loader.observe(card); });
+    /* Playback follows visibility: autoplay on the way in, stop on the way out
+       so offscreen cards aren't burning battery */
+    var player = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var card = entry.target._card;
+        if (entry.isIntersecting) enter(card);
+        else leave(card);
+      });
+    }, { threshold: 0.25 });
 
-    /* Touch devices have no hover, so play whatever is centred on screen */
-    if (coarse && !reduceMotion) {
-      var player = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) play(entry.target);
-          else pause(entry.target);
-        });
-      }, { threshold: 0.6 });
-
-      cards.forEach(function (card) { player.observe(card); });
-    }
-  } else {
-    cards.forEach(loadCard);
-  }
-
-  if (!coarse) {
     cards.forEach(function (card) {
-      card.addEventListener('mouseenter', function () { loadCard(card); play(card); });
-      card.addEventListener('mouseleave', function () { pause(card); });
-      /* Keyboard users get the same preview when the card's links take focus */
-      card.addEventListener('focusin', function () { loadCard(card); play(card); });
-      card.addEventListener('focusout', function () { pause(card); });
+      card.el._card = card;
+      loader.observe(card.el);
+      if (!reduceMotion) player.observe(card.el);
     });
+
+    /* Reduced motion: load the media and hold the first slide, no autoplay */
+    if (reduceMotion) cards.forEach(loadCard);
+  } else {
+    cards.forEach(function (card) { loadCard(card); enter(card); });
   }
+
+  /* A backgrounded tab keeps firing timers; pause everything until it returns */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) cards.forEach(leave);
+  });
 
   /* ── Reveal on scroll ──────────────────────────────────── */
 

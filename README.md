@@ -12,7 +12,7 @@ GitHub Pages serves it. The only external request is the Nunito webfont.
 ```
 index.html          all content
 styles.css          soft red theme, light + dark, responsive, print styles
-main.js             theme toggle, hover-to-play videos, reveal, scroll-spy
+main.js             theme toggle, autoplay slideshows, reveal, scroll-spy
 assets/projects/    project videos and stills (see the README in there)
 assets/*.pdf        resume
 ```
@@ -36,9 +36,10 @@ Drop an `.mp4` into `assets/projects/` using the filenames listed in
 picks it up with no code changes. Cards with no file yet show a placeholder,
 so the page never looks broken.
 
-Videos load only when a card nears the viewport, play on hover (muted, looping),
-and reset when the pointer leaves. On touch devices, where there is no hover,
-whichever card is centred on screen plays instead.
+Videos load only when a card nears the viewport, then autoplay muted and pause
+again once the card scrolls away, so nothing offscreen is burning battery. A
+card holding more than one file runs as a slideshow with dots you can click.
+Visitors who ask for reduced motion get the first frame and no autoplay.
 
 ## Local preview
 
