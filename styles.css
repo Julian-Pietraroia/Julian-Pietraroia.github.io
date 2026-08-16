@@ -337,8 +337,9 @@ b, strong { font-weight: 800; }
   height: 100%;
   display: block;
   object-fit: cover;
-  /* Biased below centre: in an arena shot the action sits under the roof */
-  object-position: center 55%;
+  /* Well below centre: keeps the field, the team and the carpet, and trims the
+     roof rather than cutting people off at the waist */
+  object-position: center 74%;
 }
 
 .hero__hello {
