@@ -358,11 +358,12 @@ b, strong { font-weight: 800; }
 
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 56px; }
 
+/* Capped tracks rather than 1fr, so a short row of stats stays bubble-sized
+   instead of stretching each one across the page */
 .bubbles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 240px));
   gap: 14px;
-  max-width: 880px;
 }
 .bubbles li {
   display: flex;

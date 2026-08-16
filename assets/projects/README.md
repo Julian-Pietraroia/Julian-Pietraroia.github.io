@@ -5,10 +5,7 @@ up automatically — no code changes needed.
 
 | File | Card | Frame shape |
 |---|---|---|
-| `umi-gripper.mp4` | 1-DOF UMI Gripper | landscape (4:3) |
-| `articulating-glove.mp4` | 22-DOF Articulating Glove | portrait (3:4) |
 | `vex-worlds.mp4` | VEX U World Championship Robots | wide (16:9) |
-| `actuated-gripper.mp4` | Actuated Teleop Gripper | square (1:1) |
 | `line-follower.mp4` | Line Following Robot | portrait (3:4) |
 | `combat-robot.mp4` | One Pound Combat Robot | wide (16:9) |
 
@@ -29,15 +26,16 @@ looks broken with slots empty.
 ## Converting with ffmpeg
 
 ```bash
-ffmpeg -i input.mov -an -vf "scale='min(1280,iw)':-2" -c:v libx264 -crf 26 -preset slow -movflags +faststart umi-gripper.mp4
+ffmpeg -i input.mov -an -vf "scale='min(1280,iw)':-2" -c:v libx264 -crf 26 -preset slow -movflags +faststart vex-worlds.mp4
 ```
 
 `-an` drops audio, `-crf 26` trades a little quality for a much smaller file
 (lower = better quality), and `+faststart` lets playback begin before the whole
 file arrives.
 
-## Changing the cards themselves
+## Adding a card
 
-Titles, descriptions, tags, and frame shapes live in `index.html` in the
-`<section id="work">` block. Each card's `data-src` is the path used here, and
-`--ratio` on `.work__frame` sets the frame shape.
+Cards live in `index.html` in the `<section id="work">` block. Copy an existing
+`<article class="work">`, change its `data-src` to a new filename here, set
+`--ratio` on `.work__frame` to match the footage, and edit the title, blurb, and
+tag. Nothing else needs wiring up.
