@@ -131,21 +131,6 @@
         </article>
 
         <article class="work reveal">
-          <div class="work__frame" style="--ratio: 4 / 3">
-            <img class="slide work__img" data-src="assets/projects/rc-rollcage-drawing.jpg"
-                 alt="Dimensioned third-angle engineering drawing of the RC car roll cage base, drawn by Julian Pietraroia">
-            <img class="slide work__img" data-src="assets/projects/rc-halo-mold.jpg"
-                 alt="Engineering drawing of the injection mould for the roll cage halo, with ejector pins and a section detail">
-            <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add an image</span></div>
-            <span class="work__tag">Manufacturing</span>
-          </div>
-          <div class="work__caption">
-            <h3>RC Car, Designed for 20,000 Units</h3>
-            <p>A production study taking an RC car from concept to costed tooling: sand-cast A356 rims at $2.50 each, an injection-moulded ABS roll cage at $3.20 on a 9:50 cycle, a vacuum-thermoformed shell at $5.65, and a printed glass-fibre chassis extension at $4.42. Six-person team; I owned the roll cage, its injection mould, and the aeroshell design analysis and material selection.</p>
-          </div>
-        </article>
-
-        <article class="work reveal">
           <div class="work__frame" style="--ratio: 16 / 9">
             <video class="slide work__video" data-src="assets/projects/vex-over-under.mp4" muted loop playsinline preload="none"
                    aria-label="The Over Under robot in the loading zone, triballs being handed in"></video>
@@ -198,15 +183,22 @@
         </article>
 
         <article class="work reveal">
-          <div class="work__frame" style="--ratio: 3 / 4">
+          <!-- Square frame: the only ratio that holds portrait phone video and
+               landscape drawings without cropping either badly. The drawings are
+               padded to square on white so the pad is invisible. -->
+          <div class="work__frame" style="--ratio: 1 / 1">
             <video class="slide work__video" data-src="assets/projects/rc-car-driving.mp4" aria-label="The custom RC car driving a hallway and hitting a ramp" muted playsinline preload="none"></video>
             <video class="slide work__video" data-src="assets/projects/rc-car.mp4" aria-label="The custom RC car held up, showing chassis, roll cage and shell" muted playsinline preload="none"></video>
+            <img class="slide work__img" data-src="assets/projects/rc-rollcage-drawing.jpg"
+                 alt="Dimensioned third-angle engineering drawing of the RC car roll cage base, drawn by Julian Pietraroia">
+            <img class="slide work__img" data-src="assets/projects/rc-halo-mold.jpg"
+                 alt="Engineering drawing of the injection mould for the roll cage halo, with ejector pins and a section detail">
             <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add a video</span></div>
-            <span class="work__tag">Personal</span>
+            <span class="work__tag">Manufacturing</span>
           </div>
           <div class="work__caption">
-            <h3>Custom RC Car</h3>
-            <p>Built around a glass fibre chassis and a 3D printed roll cage, running cast aluminium rims under a thermoformed ABS shell.</p>
+            <h3>RC Car, Designed for 20,000 Units</h3>
+            <p>A glass fibre chassis, 3D printed roll cage, cast aluminium rims and a thermoformed ABS shell, then costed for a production run of 20,000: sand-cast A356 rims at $2.50 each, an injection-moulded ABS roll cage at $3.20 on a 9:50 cycle, a vacuum-thermoformed shell at $5.65, and a printed glass-fibre chassis extension at $4.42. Six-person team; I owned the roll cage, its injection mould, and the aeroshell design analysis and material selection.</p>
           </div>
         </article>
 

@@ -12,15 +12,20 @@ the card picks it up, no code changes needed.
 | `vex-climber.mp4` | Climbing Robot | only | IMG_6574.MOV |
 | `line-follower.mp4` | Line Following Robot | 1 of 2 | IMG_8224.MOV |
 | `line-follower-electronics.jpg` | Line Following Robot | 2 of 2 | IMG_8215.HEIC |
-| `rc-car-driving.mp4` | Custom RC Car | 1 of 2 | 460f0c72....MP4 |
-| `rc-car.mp4` | Custom RC Car | 2 of 2 | 15bcedb2....MP4 |
-| `rc-rollcage-drawing.jpg` | RC Car, Designed for 20,000 Units | 1 of 2 | MANU 330 SP2, p33 |
-| `rc-halo-mold.jpg` | RC Car, Designed for 20,000 Units | 2 of 2 | MANU 330 SP2, p35 |
+| `rc-car-driving.mp4` | RC Car, Designed for 20,000 Units | 1 of 4 | 460f0c72....MP4 |
+| `rc-car.mp4` | RC Car, Designed for 20,000 Units | 2 of 4 | 15bcedb2....MP4 |
+| `rc-rollcage-drawing.jpg` | RC Car, Designed for 20,000 Units | 3 of 4 | MANU 330 SP2, p33 |
+| `rc-halo-mold.jpg` | RC Car, Designed for 20,000 Units | 4 of 4 | MANU 330 SP2, p35 |
 
 The two drawings are extracted from the MANU 330 sub-project reports with
-`pdfimages`, then padded to 4:3 on white so they share one card frame. Only
-figures whose title block reads JULIAN PIETRAROIA are used; the reports also
-contain teammates' drawings and FMEAs, which are theirs, not his.
+`pdfimages`, then padded to **square** on white. That card mixes portrait phone
+video with landscape drawings, and a 1:1 frame is the only ratio that holds both
+without wrecking one of them: square drawings fill it exactly, and the portrait
+clips crop top and bottom where the subject is centred anyway. The white pad is
+invisible against the drawings' own white background.
+
+Only figures whose title block reads JULIAN PIETRAROIA are used; the reports
+also contain teammates' drawings and FMEAs, which are theirs, not his.
 
 **Do not publish the source PDFs.** Their title pages carry six students' full
 names and student numbers.
