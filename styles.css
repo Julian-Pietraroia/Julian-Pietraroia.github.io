@@ -1,5 +1,5 @@
 /* ============================================================
-   Julian Pietraroia — portfolio
+   Julian Pietraroia portfolio
    Soft, rounded, green. Light by default, dark on request.
    ============================================================ */
 
@@ -162,7 +162,7 @@ b, strong { font-weight: 800; }
   gap: 2px;
   overflow-x: auto;
   scrollbar-width: none;
-  /* Links overflow on narrow phones — fade the edge so it reads as scrollable */
+  /* Links overflow on narrow phones, so fade the edge to signal scrolling */
   mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent);
   -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent);
 }
@@ -453,7 +453,8 @@ b, strong { font-weight: 800; }
   background: linear-gradient(140deg, var(--green-soft), var(--surface-2));
 }
 
-.work__video {
+.work__video,
+.work__img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -463,10 +464,12 @@ b, strong { font-weight: 800; }
   opacity: 0;
   transition: opacity 0.4s var(--ease), transform 0.6s var(--ease);
 }
-/* Only shown once a real file has loaded — see main.js */
-.work.has-video .work__video { opacity: 1; }
-.work.has-video:hover .work__video { transform: scale(1.04); }
-.work.has-video .work__fallback { opacity: 0; pointer-events: none; }
+/* Only shown once a real file has decoded. See main.js */
+.work.has-media .work__video,
+.work.has-media .work__img { opacity: 1; }
+.work.has-media:hover .work__video,
+.work.has-media:hover .work__img { transform: scale(1.04); }
+.work.has-media .work__fallback { opacity: 0; pointer-events: none; }
 
 .work__fallback {
   position: absolute;

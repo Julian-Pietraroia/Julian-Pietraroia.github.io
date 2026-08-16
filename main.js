@@ -1,4 +1,4 @@
-/* Julian Pietraroia — portfolio interactions.
+/* Julian Pietraroia portfolio interactions.
    Theme toggle, hover-to-play work videos, reveal, scroll-spy. No dependencies. */
 
 (function () {
@@ -43,28 +43,36 @@
 
   /* ── Work videos ───────────────────────────────────────── */
 
-  /* Cards carry data-src rather than a <source> so nothing downloads until
-     the card is near the viewport. A card only loses its placeholder once a
-     real file has decoded, so empty slots stay presentable. */
-  var cards = Array.prototype.slice.call(document.querySelectorAll('.work[data-src]'));
+  /* Cards carry data-src (video) or data-img (still) rather than a real src, so
+     nothing downloads until the card is near the viewport. A card only loses its
+     placeholder once a real file has decoded, so empty slots stay presentable. */
+  var cards = Array.prototype.slice.call(
+    document.querySelectorAll('.work[data-src], .work[data-img]')
+  );
 
   var loadCard = function (card) {
     if (card.dataset.loaded) return;
     card.dataset.loaded = '1';
 
-    var video = card.querySelector('.work__video');
-    if (!video) return;
+    var media = card.querySelector('.work__video, .work__img');
+    if (!media) return;
 
-    video.addEventListener('loadeddata', function () { card.classList.add('has-video'); });
-    video.addEventListener('error', function () { card.classList.remove('has-video'); });
+    media.addEventListener('load', function () { card.classList.add('has-media'); });
+    media.addEventListener('loadeddata', function () { card.classList.add('has-media'); });
+    media.addEventListener('error', function () { card.classList.remove('has-media'); });
 
-    video.preload = 'metadata';
+    if (card.dataset.img) {
+      media.src = card.dataset.img;
+      return;
+    }
+
+    media.preload = 'metadata';
     /* The media fragment nudges browsers into painting a first frame as a still */
-    video.src = card.dataset.src + '#t=0.1';
+    media.src = card.dataset.src + '#t=0.1';
   };
 
   var play = function (card) {
-    if (!card.classList.contains('has-video')) return;
+    if (!card.classList.contains('has-media')) return;
     var v = card.querySelector('.work__video');
     if (v) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
   };
@@ -133,9 +141,9 @@
     });
 
     /* Fail open. Observer callbacks don't run while a document is hidden, so a
-       tab restored in the background — or any browser that withholds them —
-       would otherwise sit at opacity 0. If nothing has revealed by now, the
-       observer isn't delivering: show everything rather than serve a blank page. */
+       tab restored in the background (or any browser that withholds them) would
+       otherwise sit at opacity 0. If nothing has revealed by now, the observer
+       isn't delivering: show everything rather than serve a blank page. */
     window.setTimeout(function () {
       if (document.querySelector('.reveal.is-visible')) return;
       revealables.forEach(function (el) {

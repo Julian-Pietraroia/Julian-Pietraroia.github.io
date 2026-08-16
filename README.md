@@ -1,19 +1,19 @@
 # julian-pietraroia.github.io
 
-Personal portfolio — hardware &amp; manufacturing engineering.
+Personal portfolio for hardware and manufacturing engineering.
 
 **Live:** https://julian-pietraroia.github.io
 
 ## Stack
 
-Plain HTML, CSS, and JavaScript. No build step, no framework — push to `main` and
+Plain HTML, CSS, and JavaScript. No build step and no framework. Push to `main` and
 GitHub Pages serves it. The only external request is the Nunito webfont.
 
 ```
 index.html          all content
 styles.css          soft green theme, light + dark, responsive, print styles
 main.js             theme toggle, hover-to-play videos, reveal, scroll-spy
-assets/projects/    project videos (see the README in there)
+assets/projects/    project videos and stills (see the README in there)
 assets/*.pdf        resume
 ```
 
@@ -21,7 +21,7 @@ assets/*.pdf        resume
 
 Drop an `.mp4` into `assets/projects/` using the filenames listed in
 [`assets/projects/README.md`](assets/projects/README.md) and the matching card
-picks it up — no code changes. Cards with no file yet show a green placeholder,
+picks it up with no code changes. Cards with no file yet show a placeholder,
 so the page never looks broken.
 
 Videos load only when a card nears the viewport, play on hover (muted, looping),
@@ -38,9 +38,9 @@ Then open http://localhost:8000.
 
 ## Updating
 
-- **Content** — edit `index.html`; sections are commented and in page order.
-- **Colors** — both palettes are in the `:root` blocks at the top of `styles.css`.
+- **Content** lives in `index.html`; sections are commented and in page order.
+- **Colors** are the `:root` blocks at the top of `styles.css`.
   Light is the default; `[data-theme="dark"]` overrides it.
-- **Roundness** — the `--r-*` variables control every corner radius at once.
-- **Resume** — replace `assets/Julian_Pietraroia_Resume.pdf`; the filename is
+- **Roundness** is the `--r-*` variables, which control every corner at once.
+- **Resume**: replace `assets/Julian_Pietraroia_Resume.pdf`. The filename is
   referenced in the hero and the contact section.
