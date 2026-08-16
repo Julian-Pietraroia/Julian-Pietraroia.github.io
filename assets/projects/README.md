@@ -3,19 +3,22 @@
 Each Work card points at one file here. Replace a file with a better take and
 the card picks it up, no code changes needed.
 
-| File | Card | Slide | Status |
+| File | Card | Slide | Source |
 |---|---|---|---|
 | `vex-worlds.mp4` | VEX U World Championship | only | IMG_7703.MOV |
 | `vex-shooter.mp4` | Shooting & Catching Robots | 1 of 2 | **needed** |
-| `vex-over-under.mp4` | Shooting & Catching Robots | 2 of 2 | c400591b....mov, 40s-55s |
-| `vex-ring-stacker.mp4` | Ring Stacking Robot | only | **needed** |
-| `vex-climber.mp4` | Climbing Robot | only | **needed** |
+| `vex-over-under.mp4` | Shooting & Catching Robots | 2 of 2 | c400591b....mov, 2s-17s |
+| `vex-ring-stacker.mp4` | Ring Stacking & Shooting Robot | only | IMG_1754.MOV |
+| `vex-climber.mp4` | Climbing Robot | only | IMG_6574.MOV |
 | `line-follower.mp4` | Line Following Robot | 1 of 2 | IMG_8224.MOV |
 | `line-follower-electronics.jpg` | Line Following Robot | 2 of 2 | IMG_8215.HEIC |
-| `rc-car.mp4` | Custom RC Car | only | 15bcedb2....MP4 |
+| `rc-car-driving.mp4` | Custom RC Car | 1 of 2 | 460f0c72....MP4 |
+| `rc-car.mp4` | Custom RC Car | 2 of 2 | 15bcedb2....MP4 |
 
-If a file is missing, its card falls back to a placeholder rather than
-breaking the page.
+A card whose files are all missing shows a placeholder instead of breaking. In a
+slideshow a single missing file is skipped: the deck runs on the slides that did
+load and hides the dot for the one that did not, so the slot marked **needed**
+can be filled in whenever the footage exists.
 
 ## What works best
 
