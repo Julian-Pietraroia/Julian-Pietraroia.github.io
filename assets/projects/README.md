@@ -14,6 +14,16 @@ the card picks it up, no code changes needed.
 | `line-follower-electronics.jpg` | Line Following Robot | 2 of 2 | IMG_8215.HEIC |
 | `rc-car-driving.mp4` | Custom RC Car | 1 of 2 | 460f0c72....MP4 |
 | `rc-car.mp4` | Custom RC Car | 2 of 2 | 15bcedb2....MP4 |
+| `rc-rollcage-drawing.jpg` | RC Car, Designed for 20,000 Units | 1 of 2 | MANU 330 SP2, p33 |
+| `rc-halo-mold.jpg` | RC Car, Designed for 20,000 Units | 2 of 2 | MANU 330 SP2, p35 |
+
+The two drawings are extracted from the MANU 330 sub-project reports with
+`pdfimages`, then padded to 4:3 on white so they share one card frame. Only
+figures whose title block reads JULIAN PIETRAROIA are used; the reports also
+contain teammates' drawings and FMEAs, which are theirs, not his.
+
+**Do not publish the source PDFs.** Their title pages carry six students' full
+names and student numbers.
 
 A card whose files are all missing shows a placeholder instead of breaking. In a
 slideshow a single missing file is skipped: the deck runs on the slides that did
