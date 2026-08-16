@@ -10,7 +10,7 @@ the card picks it up, no code changes needed.
 | `line-follower-electronics.jpg` | Line Follower Internals | portrait (3:4) | IMG_8215.HEIC |
 | `combat-robot.mp4` | One Pound Combat Robot | portrait (3:4) | 15bcedb2....MP4 |
 
-If a file is missing, its card falls back to a green placeholder rather than
+If a file is missing, its card falls back to a placeholder rather than
 breaking the page.
 
 ## What works best

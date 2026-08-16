@@ -11,7 +11,7 @@ GitHub Pages serves it. The only external request is the Nunito webfont.
 
 ```
 index.html          all content
-styles.css          soft green theme, light + dark, responsive, print styles
+styles.css          soft red theme, light + dark, responsive, print styles
 main.js             theme toggle, hover-to-play videos, reveal, scroll-spy
 assets/projects/    project videos and stills (see the README in there)
 assets/*.pdf        resume
