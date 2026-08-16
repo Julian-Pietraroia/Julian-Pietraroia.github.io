@@ -332,12 +332,11 @@ b, strong { font-weight: 800; }
 }
 
 .hero__name {
-  max-width: 17ch;
-  font-size: clamp(2.4rem, 6.4vw, 4.5rem);
+  font-size: clamp(2.7rem, 7.4vw, 5.2rem);
   font-weight: 800;
-  letter-spacing: -0.035em;
-  line-height: 1.08;
-  margin-bottom: 24px;
+  letter-spacing: -0.04em;
+  line-height: 1.04;
+  margin-bottom: 14px;
 }
 .hero__name em {
   font-style: normal;
@@ -346,6 +345,15 @@ b, strong { font-weight: 800; }
   background-clip: text;
   color: transparent;
 }
+
+.hero__disciplines {
+  margin-bottom: 22px;
+  font-size: clamp(1.05rem, 2.3vw, 1.42rem);
+  font-weight: 700;
+  color: var(--text-2);
+  letter-spacing: -0.01em;
+}
+.hero__disciplines span { margin: 0 4px; color: var(--green); }
 
 .hero__blurb {
   max-width: 58ch;
