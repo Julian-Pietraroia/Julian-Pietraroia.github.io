@@ -41,6 +41,20 @@
   var yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
+  /* ── Hero banner ───────────────────────────────────────── */
+
+  /* Loaded eagerly rather than through the observers below: it is display:none
+     until the file decodes, and observers never fire on a zero-size element.
+     No file means no banner, which is the intended empty state. */
+  var banner = document.querySelector('.banner[data-img]');
+  if (banner) {
+    var bannerImg = banner.querySelector('.banner__img');
+    if (bannerImg) {
+      bannerImg.addEventListener('load', function () { banner.classList.add('has-media'); });
+      bannerImg.src = banner.dataset.img;
+    }
+  }
+
   /* ── Work videos ───────────────────────────────────────── */
 
   /* Cards carry data-src (video) or data-img (still) rather than a real src, so

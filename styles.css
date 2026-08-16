@@ -310,6 +310,51 @@ b, strong { font-weight: 800; }
 
 .hero__inner { position: relative; }
 
+/* Banner. Hidden until its image decodes, so the hero looks deliberate whether
+   or not a photo is in place. It sits outside the .reveal system on purpose:
+   observers never fire on a display:none element, which would strand it. */
+.banner {
+  display: none;
+  position: relative;
+  margin: 0 0 32px;
+  /* Wide enough to read as a banner, tall enough to survive cropping a 3:2
+     photo. Pair with object-position below to choose which band is kept. */
+  aspect-ratio: 1000 / 280;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  background: var(--green-soft);
+  box-shadow: var(--shadow-md);
+}
+.banner.has-media { display: block; animation: bannerIn 0.7s var(--ease) both; }
+
+@keyframes bannerIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.99); }
+  to   { opacity: 1; transform: none; }
+}
+
+.banner__img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  /* Biased below centre: in an arena shot the action sits under the roof */
+  object-position: center 55%;
+}
+
+.banner__caption {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  padding: 7px 16px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--green-deep);
+}
+
 .hero__hello {
   display: inline-flex;
   align-items: center;
@@ -725,6 +770,9 @@ b, strong { font-weight: 800; }
 
   .hero { padding: 60px 0 74px; }
   .hero__actions { margin-bottom: 40px; }
+
+  /* A 4:1 strip is only ~90px tall on a phone, too short to read as a photo */
+  .banner { aspect-ratio: 16 / 9; margin-bottom: 26px; }
 
   .section { padding: 64px 0; }
   .section__hint { margin-left: 0; }

@@ -17,6 +17,20 @@ assets/projects/    project videos and stills (see the README in there)
 assets/*.pdf        resume
 ```
 
+## Adding the hero banner
+
+Save a wide photo as `assets/banner.jpg` and it appears across the top of the
+hero. No file means no banner: the strip stays hidden rather than showing an
+empty box, so the page looks deliberate either way.
+
+Two knobs in `styles.css`, both on `.banner`:
+
+- `aspect-ratio` (`1000 / 280`) sets how tall the strip is.
+- `object-position` on `.banner__img` (`center 55%`) picks which horizontal band
+  of the photo survives the crop. Lower percentages keep more of the top.
+
+The caption text is in `index.html` on `.banner__caption`.
+
 ## Adding project videos
 
 Drop an `.mp4` into `assets/projects/` using the filenames listed in
