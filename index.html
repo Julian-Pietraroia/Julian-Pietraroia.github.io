@@ -20,6 +20,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+<script>
+  document.documentElement.className += ' js';
+  /* If main.js never runs, or throws before it reveals anything, drop the gate
+     so the page is readable rather than a blank grid of invisible elements. */
+  setTimeout(function () {
+    if (!document.querySelector('.reveal.is-visible')) {
+      document.documentElement.classList.remove('js');
+    }
+  }, 2500);
+</script>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -110,7 +120,7 @@
 
         <article class="work reveal">
           <div class="work__frame" style="--ratio: 3 / 4">
-            <video class="slide work__video" data-src="assets/projects/vex-worlds.mp4" muted loop playsinline preload="none"></video>
+            <video class="slide work__video" data-src="assets/projects/vex-worlds.mp4" aria-label="Ten Ton Robotics on the field at the VEX U World Championship" muted loop playsinline preload="none"></video>
             <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add a video</span></div>
             <span class="work__tag">Competition</span>
           </div>
@@ -122,8 +132,8 @@
 
         <article class="work reveal">
           <div class="work__frame" style="--ratio: 16 / 9">
-            <video class="slide work__video" data-src="assets/projects/vex-shooter.mp4" muted playsinline preload="none"></video>
-            <video class="slide work__video" data-src="assets/projects/vex-over-under.mp4" muted playsinline preload="none"></video>
+            <video class="slide work__video" data-src="assets/projects/vex-over-under.mp4" muted loop playsinline preload="none"
+                   aria-label="The Over Under robot in the loading zone, triballs being handed in"></video>
             <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add a video</span></div>
             <span class="work__tag">Competition</span>
           </div>
@@ -135,7 +145,7 @@
 
         <article class="work reveal">
           <div class="work__frame" style="--ratio: 16 / 9">
-            <video class="slide work__video" data-src="assets/projects/vex-ring-stacker.mp4" muted loop playsinline preload="none"></video>
+            <video class="slide work__video" data-src="assets/projects/vex-ring-stacker.mp4" aria-label="The ring stacking robot running on a High Stakes practice field" muted loop playsinline preload="none"></video>
             <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add a video</span></div>
             <span class="work__tag">High Stakes</span>
           </div>
@@ -147,7 +157,7 @@
 
         <article class="work reveal">
           <div class="work__frame" style="--ratio: 16 / 9">
-            <video class="slide work__video" data-src="assets/projects/vex-climber.mp4" muted loop playsinline preload="none"></video>
+            <video class="slide work__video" data-src="assets/projects/vex-climber.mp4" aria-label="The climbing robot lifted onto the High Stakes ladder" muted loop playsinline preload="none"></video>
             <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add a video</span></div>
             <span class="work__tag">High Stakes</span>
           </div>
@@ -160,7 +170,7 @@
         <!-- Two slides: the robot running, then what is inside it -->
         <article class="work reveal">
           <div class="work__frame" style="--ratio: 4 / 3">
-            <video class="slide work__video" data-src="assets/projects/line-follower.mp4" muted playsinline preload="none"></video>
+            <video class="slide work__video" data-src="assets/projects/line-follower.mp4" aria-label="The line following robot tracking a taped course and avoiding an obstacle" muted playsinline preload="none"></video>
             <img class="slide work__img" data-src="assets/projects/line-follower-electronics.jpg"
                  alt="Hand-wired perfboard, motor drivers and microcontroller inside the line follower's 3D printed chassis">
             <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add a video</span></div>
@@ -174,8 +184,8 @@
 
         <article class="work reveal">
           <div class="work__frame" style="--ratio: 3 / 4">
-            <video class="slide work__video" data-src="assets/projects/rc-car-driving.mp4" muted playsinline preload="none"></video>
-            <video class="slide work__video" data-src="assets/projects/rc-car.mp4" muted playsinline preload="none"></video>
+            <video class="slide work__video" data-src="assets/projects/rc-car-driving.mp4" aria-label="The custom RC car driving a hallway and hitting a ramp" muted playsinline preload="none"></video>
+            <video class="slide work__video" data-src="assets/projects/rc-car.mp4" aria-label="The custom RC car held up, showing chassis, roll cage and shell" muted playsinline preload="none"></video>
             <div class="work__fallback"><span class="work__play" aria-hidden="true"></span><span>Add a video</span></div>
             <span class="work__tag">Personal</span>
           </div>

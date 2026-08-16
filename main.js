@@ -22,10 +22,14 @@
   try { stored = localStorage.getItem('theme'); } catch (e) { /* private mode */ }
   applyTheme(stored || (prefersDark.matches ? 'dark' : 'light'));
 
-  /* Follow the system until the visitor picks a side themselves */
-  prefersDark.addEventListener('change', function (e) {
+  /* Follow the system until the visitor picks a side themselves.
+     addEventListener on a MediaQueryList is Safari 14+; older WebKit only has
+     addListener, and calling the missing one throws and kills everything below. */
+  var onSchemeChange = function (e) {
     if (!stored) applyTheme(e.matches ? 'dark' : 'light');
-  });
+  };
+  if (prefersDark.addEventListener) prefersDark.addEventListener('change', onSchemeChange);
+  else if (prefersDark.addListener) prefersDark.addListener(onSchemeChange);
 
   var toggle = document.querySelector('.themetoggle');
   if (toggle) {
@@ -63,7 +67,7 @@
      slide run as a slideshow: a video slide holds until it finishes, a still
      holds for STILL_MS. */
   var STILL_MS = 4500;
-  var VIDEO_CAP_MS = 14000;   /* backstop if a video never fires 'ended' */
+  var VIDEO_CAP_FALLBACK_MS = 20000;  /* only used when duration is unknown */
 
   var cards = Array.prototype.slice.call(document.querySelectorAll('.work'))
     .map(function (card) {
@@ -147,9 +151,14 @@
       slide.currentTime = 0;
       var p = slide.play();
       if (p && p.catch) p.catch(function () {});
-      /* Single-slide cards loop forever; a slideshow moves on when it ends */
+      /* Single-slide cards loop forever; a slideshow moves on when it ends.
+         The timer is only a backstop for a missing 'ended', so it has to clear
+         the clip's real length or it truncates playback every cycle. */
       if (card.slides.length > 1) {
-        card.timer = window.setTimeout(function () { advance(card); }, VIDEO_CAP_MS);
+        var cap = (isFinite(slide.duration) && slide.duration > 0)
+          ? slide.duration * 1000 + 2000
+          : VIDEO_CAP_FALLBACK_MS;
+        card.timer = window.setTimeout(function () { advance(card); }, cap);
       }
     } else if (card.slides.length > 1) {
       card.timer = window.setTimeout(function () { advance(card); }, STILL_MS);
@@ -237,9 +246,19 @@
     cards.forEach(function (card) { loadCard(card); enter(card); });
   }
 
-  /* A backgrounded tab keeps firing timers; pause everything until it returns */
+  /* A backgrounded tab keeps firing timers, so pause on the way out. Coming
+     back needs an explicit restart: IntersectionObserver only fires when a card
+     crosses the threshold, and one that was visible throughout never crosses,
+     so without this the grid stays frozen. Opening the resume in a new tab hits
+     this every time. */
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) cards.forEach(leave);
+    if (document.hidden) { cards.forEach(leave); return; }
+
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    cards.forEach(function (card) {
+      var r = card.el.getBoundingClientRect();
+      if (r.top < vh * 0.75 && r.bottom > vh * 0.25) enter(card);
+    });
   });
 
   /* ── Reveal on scroll ──────────────────────────────────── */

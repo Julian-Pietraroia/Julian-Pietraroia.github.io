@@ -484,8 +484,8 @@ b, strong { font-weight: 800; }
   right: 12px;
   bottom: 12px;
   display: flex;
-  gap: 6px;
-  padding: 7px 10px;
+  gap: 0;
+  padding: 1px 4px;
   border-radius: var(--r-full);
   background: color-mix(in srgb, var(--surface) 78%, transparent);
   backdrop-filter: blur(8px);
@@ -498,20 +498,29 @@ b, strong { font-weight: 800; }
    deck that drops to a single usable slide would keep showing one dot */
 .work__dots[hidden] { display: none; }
 
+/* 24px button so it is tappable, with the visible mark kept small */
 .work__dot {
-  width: 7px;
-  height: 7px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
   padding: 0;
   border: 0;
+  background: none;
+  cursor: pointer;
+}
+.work__dot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--muted);
   opacity: 0.45;
-  cursor: pointer;
   transition: opacity 0.3s var(--ease), background 0.3s var(--ease),
               transform 0.3s var(--spring);
 }
-.work__dot:hover { opacity: 0.8; transform: scale(1.2); }
-.work__dot.is-on { background: var(--red); opacity: 1; transform: scale(1.15); }
+.work__dot:hover::before { opacity: 0.8; transform: scale(1.2); }
+.work__dot.is-on::before { background: var(--red); opacity: 1; transform: scale(1.15); }
 
 .work__fallback {
   position: absolute;
@@ -706,7 +715,7 @@ b, strong { font-weight: 800; }
 }
 .awards__list li:hover { transform: translateY(-3px) rotate(-1deg); }
 .awards__list b { color: var(--sun); font-weight: 800; font-size: 14px; }
-:root:not([data-theme="dark"]) .awards__list b { color: #c9880c; }
+:root:not([data-theme="dark"]) .awards__list b { color: #8f5e06; }
 
 /* ── Contact ─────────────────────────────────────────────── */
 
@@ -757,12 +766,12 @@ b, strong { font-weight: 800; }
 
 /* ── Reveal ──────────────────────────────────────────────── */
 
-.reveal {
+.js .reveal {
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 0.65s var(--ease), transform 0.65s var(--spring);
 }
-.reveal.is-visible { opacity: 1; transform: none; }
+.js .reveal.is-visible { opacity: 1; transform: none; }
 
 /* ── Responsive ──────────────────────────────────────────── */
 
@@ -810,7 +819,7 @@ b, strong { font-weight: 800; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  .reveal { opacity: 1; transform: none; }
+  .js .reveal { opacity: 1; transform: none; }
 }
 
 /* ── Print ───────────────────────────────────────────────── */
@@ -820,5 +829,5 @@ b, strong { font-weight: 800; }
   .topbar, .blobs, .hero__actions, .work__frame, .footer { display: none; }
   .section, .hero { padding: 16px 0; background: #fff; }
   .work, .job__card, .edu, .skillcard, .awards, .contact { box-shadow: none; border: 1px solid #ccc; }
-  .reveal { opacity: 1; transform: none; }
+  .js .reveal { opacity: 1; transform: none; }
 }
