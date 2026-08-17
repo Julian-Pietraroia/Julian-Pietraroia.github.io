@@ -307,21 +307,25 @@ b, strong { font-weight: 800; }
      rather than empty background. Sits under the blobs and content. Dark mode
      needs a much stronger, redder glow (below): its background is near-black, so
      a faint wash still reads as a black bar. */
-  background: radial-gradient(135% 100% at 50% -18%,
+  /* A vertical fade rather than a radial: a radial glow is an ellipse, so its
+     curved edge always reads as a "cut" somewhere in the hero. Top-to-bottom
+     linear has no side edges — it just eases from warm at the top into the
+     background. Lateral variation comes from the blobs. */
+  background: linear-gradient(180deg,
     var(--red-soft) 0%,
-    color-mix(in srgb, var(--red-soft) 42%, transparent) 44%,
-    transparent 82%);
+    color-mix(in srgb, var(--red-soft) 46%, transparent) 20%,
+    color-mix(in srgb, var(--red-soft) 14%, transparent) 42%,
+    transparent 64%);
 }
 :root[data-theme="dark"] .hero {
-  /* Extra colour stops stretch the falloff over most of the hero so the glow
-     eases into the background instead of ending on a visible edge. */
-  background:
-    radial-gradient(135% 100% at 50% -18%,
-      rgba(217, 45, 32, 0.42) 0%,
-      rgba(217, 45, 32, 0.24) 24%,
-      rgba(232, 81, 47, 0.11) 46%,
-      rgba(232, 81, 47, 0.04) 66%,
-      transparent 88%);
+  /* Dark mode needs a stronger, redder wash: its background is near-black, so a
+     faint one still reads as a black band behind the nav. */
+  background: linear-gradient(180deg,
+    rgba(217, 45, 32, 0.34) 0%,
+    rgba(217, 45, 32, 0.17) 16%,
+    rgba(232, 81, 47, 0.07) 38%,
+    rgba(232, 81, 47, 0.02) 55%,
+    transparent 72%);
 }
 
 .blobs { position: absolute; inset: 0; pointer-events: none; }
