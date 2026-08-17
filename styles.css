@@ -691,7 +691,9 @@ b, strong { font-weight: 800; }
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--sun);
+  /* Match the Experience section's bullets */
+  background: var(--red);
+  opacity: 0.55;
 }
 
 .edu__label {
