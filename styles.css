@@ -303,9 +303,16 @@ b, strong { font-weight: 800; }
      (near-black in dark mode, which read as a bar). */
   padding: 104px 0 100px;
   overflow: hidden;
-  /* A soft warm wash at the top so the area behind the nav reads as part of the
-     hero rather than empty background. Sits under the blobs and content. */
-  background: radial-gradient(135% 72% at 50% -12%, var(--red-soft), transparent 58%);
+  /* A warm wash at the top so the area behind the nav reads as part of the hero
+     rather than empty background. Sits under the blobs and content. Dark mode
+     needs a much stronger, redder glow (below): its background is near-black, so
+     a faint wash still reads as a black bar. */
+  background: radial-gradient(130% 78% at 50% -12%, var(--red-soft), transparent 60%);
+}
+:root[data-theme="dark"] .hero {
+  background:
+    radial-gradient(120% 78% at 50% -12%,
+      rgba(217, 45, 32, 0.42), rgba(232, 81, 47, 0.13) 42%, transparent 64%);
 }
 
 .blobs { position: absolute; inset: 0; pointer-events: none; }
