@@ -261,6 +261,121 @@
     });
   });
 
+  /* ── Lightbox ──────────────────────────────────────────── */
+
+  /* Cards render ~344px wide, which is far too small to read a dimensioned
+     drawing. Clicking one opens it full size. Built on <dialog>.showModal so
+     focus trapping, Esc-to-close and background inerting come from the
+     browser rather than hand-rolled listeners. */
+  var lb = document.querySelector('.lightbox');
+
+  if (lb && typeof lb.showModal === 'function') {
+    var lbStage   = lb.querySelector('.lightbox__stage');
+    var lbCaption = lb.querySelector('.lightbox__caption');
+    var lbPrev    = lb.querySelector('.lightbox__nav--prev');
+    var lbNext    = lb.querySelector('.lightbox__nav--next');
+    var lbClose   = lb.querySelector('.lightbox__close');
+    var lbCard = null;
+    var lbIndex = 0;
+
+    var lbRender = function () {
+      var slide = lbCard.slides[lbIndex];
+      var label = slide.getAttribute('alt') || slide.getAttribute('aria-label') || '';
+      lbStage.innerHTML = '';
+
+      var node;
+      if (isVideo(slide)) {
+        node = document.createElement('video');
+        node.src = slide.dataset.full || slide.dataset.src;
+        node.controls = true;
+        node.autoplay = true;
+        node.loop = true;
+        node.muted = true;
+        node.playsInline = true;
+        node.setAttribute('aria-label', label);
+      } else {
+        node = document.createElement('img');
+        /* data-full is the unpadded, full-resolution original where one exists */
+        node.src = slide.dataset.full || slide.dataset.src;
+        node.alt = label;
+      }
+      lbStage.appendChild(node);
+
+      var title = lbCard.el.querySelector('h3');
+      var count = lbCard.slides.length > 1
+        ? ' (' + (lbIndex + 1) + ' of ' + lbCard.slides.length + ')' : '';
+      lbCaption.textContent = (title ? title.textContent.trim() : '') + count;
+    };
+
+    var lbStep = function (delta) {
+      var n = lbCard.slides.length;
+      for (var i = 1; i <= n; i++) {
+        var next = (lbIndex + delta * i + n * n) % n;
+        if (lbCard.slides[next].dataset.failed !== '1') { lbIndex = next; lbRender(); return; }
+      }
+    };
+
+    var lbOpen = function (card) {
+      lbCard = card;
+      lbIndex = card.index;
+      lb.classList.toggle('lightbox--solo', usable(card).length < 2);
+      lbRender();
+      lb.showModal();
+      /* The card's own deck keeps running behind the dialog otherwise */
+      leave(card);
+    };
+
+    /* Idempotent, and called from every dismissal path rather than only from
+       the dialog's own 'close' event. That event is not reliably delivered
+       everywhere, and missing it would leave the enlarged video decoding
+       behind a closed dialog. */
+    var lbCleanup = function () {
+      if (!lbCard) return;
+      lbStage.innerHTML = '';   /* stops the enlarged video decoding */
+      /* Restart the card only if it is still on screen. The observer will not
+         re-fire for a card that never moved while the dialog was open. */
+      var r = lbCard.el.getBoundingClientRect();
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      if (r.top < vh && r.bottom > 0) enter(lbCard);
+      lbCard = null;
+    };
+
+    var lbDismiss = function () {
+      lbCleanup();
+      if (lb.open) lb.close();
+    };
+
+    lb.addEventListener('close', lbCleanup);
+    lb.addEventListener('cancel', lbCleanup);   /* Esc */
+    lbClose.addEventListener('click', lbDismiss);
+    lbPrev.addEventListener('click', function () { lbStep(-1); });
+    lbNext.addEventListener('click', function () { lbStep(1); });
+
+    /* Clicking the backdrop closes. The dialog fills the viewport, so compare
+       against the stage rather than the dialog box itself. */
+    lb.addEventListener('click', function (e) {
+      if (e.target === lb) lbDismiss();
+    });
+
+    lb.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); lbStep(1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); lbStep(-1); }
+    });
+
+    cards.forEach(function (card) {
+      var frame = card.el.querySelector('.work__frame');
+      if (!frame) return;
+      var title = card.el.querySelector('h3');
+      var zoom = document.createElement('button');
+      zoom.type = 'button';
+      zoom.className = 'work__zoom';
+      zoom.setAttribute('aria-label',
+        'View ' + (title ? title.textContent.trim() : 'this project') + ' larger');
+      zoom.addEventListener('click', function () { lbOpen(card); });
+      frame.appendChild(zoom);
+    });
+  }
+
   /* ── Reveal on scroll ──────────────────────────────────── */
 
   var revealables = document.querySelectorAll('.reveal');

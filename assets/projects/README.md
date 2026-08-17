@@ -16,6 +16,8 @@ the card picks it up, no code changes needed.
 | `rc-car.mp4` | RC Car, Designed for 20,000 Units | 2 of 4 | 15bcedb2....MP4 |
 | `rc-rollcage-drawing.jpg` | RC Car, Designed for 20,000 Units | 3 of 4 | MANU 330 SP2, p33 |
 | `rc-halo-mold.jpg` | RC Car, Designed for 20,000 Units | 4 of 4 | MANU 330 SP2, p35 |
+| `rc-rollcage-drawing-full.jpg` | same slide, enlarged view | - | unpadded 2048px |
+| `rc-halo-mold-full.jpg` | same slide, enlarged view | - | unpadded 2048px |
 
 The two drawings are extracted from the MANU 330 sub-project reports with
 `pdfimages`, then padded to **square** on white. That card mixes portrait phone
@@ -35,6 +37,14 @@ load and hides that slide's dot, so the slot marked **needed** can be filled in
 whenever the footage exists. If none of a card's files load, the frame is left
 showing its own gradient. There is deliberately no "add a video" placeholder:
 it told visitors what the site was missing.
+
+## The enlarged view
+
+Clicking any card opens its media full size, because a drawing at 344px is
+unreadable. A slide can carry `data-full` pointing at a larger file, and the
+viewer uses it in place of `data-src`; that is how the drawings show their
+dimensions and title block. Without `data-full` the viewer just shows the
+card's own file, so it is optional.
 
 ## What works best
 

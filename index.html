@@ -184,9 +184,9 @@
           <div class="work__frame" style="--ratio: 1 / 1">
             <video class="slide work__video" data-src="assets/projects/rc-car-driving.mp4" aria-label="The custom RC car driving a hallway and hitting a ramp" muted playsinline preload="none"></video>
             <video class="slide work__video" data-src="assets/projects/rc-car.mp4" aria-label="The custom RC car held up, showing chassis, roll cage and shell" muted playsinline preload="none"></video>
-            <img class="slide work__img" data-src="assets/projects/rc-rollcage-drawing.jpg"
+            <img class="slide work__img" data-src="assets/projects/rc-rollcage-drawing.jpg" data-full="assets/projects/rc-rollcage-drawing-full.jpg"
                  alt="Dimensioned third-angle engineering drawing of the RC car roll cage base, drawn by Julian Pietraroia">
-            <img class="slide work__img" data-src="assets/projects/rc-halo-mold.jpg"
+            <img class="slide work__img" data-src="assets/projects/rc-halo-mold.jpg" data-full="assets/projects/rc-halo-mold-full.jpg"
                  alt="Engineering drawing of the injection mould for the roll cage halo, with ejector pins and a section detail">
             <span class="work__tag">Manufacturing</span>
           </div>
@@ -390,6 +390,20 @@
   </footer>
 
 </main>
+
+<dialog class="lightbox" aria-label="Media viewer">
+  <button class="lightbox__close" type="button" aria-label="Close viewer">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+  </button>
+  <button class="lightbox__nav lightbox__nav--prev" type="button" aria-label="Previous item">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4L7 12l8 8"/></svg>
+  </button>
+  <figure class="lightbox__stage"></figure>
+  <button class="lightbox__nav lightbox__nav--next" type="button" aria-label="Next item">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8"/></svg>
+  </button>
+  <p class="lightbox__caption"></p>
+</dialog>
 
 <script src="main.js"></script>
 </body>
