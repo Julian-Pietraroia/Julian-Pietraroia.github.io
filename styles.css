@@ -328,7 +328,16 @@ b, strong { font-weight: 800; }
     transparent 72%);
 }
 
-.blobs { position: absolute; inset: 0; pointer-events: none; }
+.blobs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Fade the blob layer out before the hero's bottom edge. Without this, a blob
+     that reaches the edge gets hard-clipped by the hero's overflow:hidden,
+     leaving a straight horizontal line across the section boundary. */
+  -webkit-mask-image: linear-gradient(180deg, #000 58%, transparent 90%);
+          mask-image: linear-gradient(180deg, #000 58%, transparent 90%);
+}
 .blob {
   position: absolute;
   border-radius: 50%;
