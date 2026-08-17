@@ -30,10 +30,11 @@ also contain teammates' drawings and FMEAs, which are theirs, not his.
 **Do not publish the source PDFs.** Their title pages carry six students' full
 names and student numbers.
 
-A card whose files are all missing shows a placeholder instead of breaking. In a
-slideshow a single missing file is skipped: the deck runs on the slides that did
-load and hides the dot for the one that did not, so the slot marked **needed**
-can be filled in whenever the footage exists.
+A slide whose file is missing is skipped: the deck runs on the slides that did
+load and hides that slide's dot, so the slot marked **needed** can be filled in
+whenever the footage exists. If none of a card's files load, the frame is left
+showing its own gradient. There is deliberately no "add a video" placeholder:
+it told visitors what the site was missing.
 
 ## What works best
 
