@@ -446,6 +446,7 @@ b, strong { font-weight: 800; }
 .masonry { column-count: 3; column-gap: 20px; }
 
 .work {
+  position: relative;
   break-inside: avoid;
   margin-bottom: 20px;
   border-radius: var(--r-lg);
@@ -539,9 +540,37 @@ b, strong { font-weight: 800; }
   color: var(--red-deep);
 }
 
-.work__caption { padding: 20px 22px 24px; }
+.work__caption { position: relative; padding: 20px 22px 24px; }
 .work__caption h3 { font-size: 1.24rem; margin-bottom: 7px; }
 .work__caption p { font-size: 15px; font-weight: 500; color: var(--text-2); }
+
+/* "Details" affordance so the card reads as clickable. It keeps its line at all
+   times (only its opacity changes on hover), so revealing it never shifts the
+   layout, and it is click-through so the card's own button handles the click. */
+.work__more {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  margin: 13px 0 0 auto;
+  padding: 5px 13px;
+  border-radius: var(--r-full);
+  background: var(--red-soft);
+  color: var(--red-deep);
+  font-size: 12.5px;
+  font-weight: 800;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--spring);
+}
+.work__more::after { content: "\2192"; font-weight: 800; }
+.work:hover .work__more,
+.work:focus-within .work__more { opacity: 1; transform: none; }
+@media (hover: none) {
+  /* No hover to reveal it on touch, so keep it visible: the card is tappable */
+  .work__more { opacity: 1; transform: none; }
+}
 
 /* ── Experience timeline ─────────────────────────────────── */
 
@@ -796,7 +825,7 @@ b, strong { font-weight: 800; }
 
 @media print {
   body { background: #fff; color: #000; }
-  .topbar, .blobs, .hero__actions, .work__frame, .footer { display: none; }
+  .topbar, .blobs, .hero__actions, .work__frame, .work__more, .work__zoom, .footer { display: none; }
   .section, .hero { padding: 16px 0; background: #fff; }
   .work, .job__card, .edu, .skillcard, .awards, .contact { box-shadow: none; border: 1px solid #ccc; }
   .js .reveal { opacity: 1; transform: none; }
@@ -804,8 +833,9 @@ b, strong { font-weight: 800; }
 
 /* ── Lightbox ────────────────────────────────────────────── */
 
-/* Invisible button covering the frame, so a card opens on click and on
-   Enter from the keyboard. Sits under the tag and dots so those stay usable. */
+/* Invisible button covering the whole card, so it opens on a click anywhere —
+   media or caption — and on Enter from the keyboard. Sits under the tag and
+   dots (z-index 3) so those controls stay usable. */
 .work__zoom {
   position: absolute;
   inset: 0;
@@ -851,7 +881,7 @@ b, strong { font-weight: 800; }
 .lightbox__stage img,
 .lightbox__stage video {
   max-width: 100%;
-  max-height: 82vh;
+  max-height: 68vh;
   width: auto;
   height: auto;
   display: block;
@@ -860,15 +890,42 @@ b, strong { font-weight: 800; }
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
 }
 
-.lightbox__caption {
+/* The write-up panel below the media: title, the full description, and the
+   slide counter. Capped and scrollable so a long description never pushes the
+   media off screen. */
+.lightbox__meta {
   grid-column: 1 / -1;
   grid-row: 2;
-  margin: 0;
-  text-align: center;
-  font-size: 15px;
-  font-weight: 700;
+  width: min(100%, 720px);
+  margin: 0 auto;
+  max-height: 24vh;
+  overflow-y: auto;
+  text-align: left;
+}
+.lightbox__title {
+  margin: 0 0 8px;
+  font-size: 1.22rem;
+  font-weight: 800;
+  color: #fff;
+}
+.lightbox__desc {
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.55;
   color: rgba(255, 255, 255, 0.82);
 }
+.lightbox__desc p { margin: 0 0 8px; }
+.lightbox__desc p:last-child { margin-bottom: 0; }
+
+.lightbox__caption {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.lightbox__caption[hidden] { display: none; }
 
 .lightbox__close,
 .lightbox__nav {
@@ -911,7 +968,8 @@ b, strong { font-weight: 800; }
   .lightbox { width: 96vw; }
   .lightbox__nav { width: 38px; height: 38px; }
   .lightbox__stage img,
-  .lightbox__stage video { max-height: 72vh; }
+  .lightbox__stage video { max-height: 56vh; }
+  .lightbox__meta { max-height: 30vh; }
 }
 
 @media (prefers-reduced-motion: reduce) {

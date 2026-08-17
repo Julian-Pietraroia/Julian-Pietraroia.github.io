@@ -12,7 +12,8 @@ GitHub Pages serves it. The only external request is the Nunito webfont.
 ```
 index.html          all content
 styles.css          soft red theme, light + dark, responsive, print styles
-main.js             theme toggle, autoplay slideshows, reveal, scroll-spy
+main.js             theme toggle, autoplay slideshows, click-to-expand
+                    lightbox, reveal, scroll-spy
 assets/projects/    project videos and stills (see the README in there)
 assets/*.pdf        resume
 ```
@@ -41,6 +42,34 @@ again once the card scrolls away, so nothing offscreen is burning battery. A
 card holding more than one file runs as a slideshow with dots you can click.
 Visitors who ask for reduced motion get the first frame and no autoplay.
 
+## Work cards and their descriptions
+
+Every card in the Work section is one click target: clicking anywhere on it —
+the media or the caption — opens a lightbox with the media at full size and a
+longer write-up beneath it. A hover "Details →" hint signals this. The slideshow
+dots sit above the click layer, so they still switch slides without opening the
+card.
+
+The long write-up for each card lives in a hidden `<div class="work__detail">`
+inside that card's `.work__caption` in `index.html`, right after the short
+paragraph:
+
+```html
+<div class="work__caption">
+  <h3>Climbing Robot</h3>
+  <p>Short caption shown on the card.</p>
+  <div class="work__detail" hidden>
+    <p>First paragraph of the full write-up shown in the lightbox.</p>
+    <p>Second paragraph, and so on.</p>
+  </div>
+</div>
+```
+
+Edit the paragraphs inside `.work__detail` to change what the lightbox shows;
+add or remove `<p>` elements freely. A card with no `.work__detail` falls back
+to its short caption, so the panel is never empty. The `hidden` attribute keeps
+the write-up off the card itself — it only appears in the lightbox.
+
 ## Local preview
 
 ```bash
@@ -52,6 +81,8 @@ Then open http://localhost:8000.
 ## Updating
 
 - **Content** lives in `index.html`; sections are commented and in page order.
+- **Work write-ups** are the `.work__detail` blocks in each card — see
+  "Work cards and their descriptions" above.
 - **Colors** are the `:root` blocks at the top of `styles.css`.
   Light is the default; `[data-theme="dark"]` overrides it.
 - **Roundness** is the `--r-*` variables, which control every corner at once.

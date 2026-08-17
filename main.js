@@ -14,8 +14,6 @@
 
   var applyTheme = function (theme) {
     root.setAttribute('data-theme', theme);
-    var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', theme === 'dark' ? '#17100f' : '#fdf6f5');
   };
 
   var stored = null;
@@ -272,6 +270,8 @@
   if (lb && typeof lb.showModal === 'function') {
     var lbStage   = lb.querySelector('.lightbox__stage');
     var lbCaption = lb.querySelector('.lightbox__caption');
+    var lbTitle   = lb.querySelector('.lightbox__title');
+    var lbDesc    = lb.querySelector('.lightbox__desc');
     var lbPrev    = lb.querySelector('.lightbox__nav--prev');
     var lbNext    = lb.querySelector('.lightbox__nav--next');
     var lbClose   = lb.querySelector('.lightbox__close');
@@ -301,10 +301,26 @@
       }
       lbStage.appendChild(node);
 
+      /* Title and the full write-up. The write-up lives in a hidden
+         .work__detail on the card; cards without one fall back to their short
+         caption so the panel is never empty. */
       var title = lbCard.el.querySelector('h3');
+      if (lbTitle) lbTitle.textContent = title ? title.textContent.trim() : '';
+
+      if (lbDesc) {
+        var detail = lbCard.el.querySelector('.work__detail');
+        if (detail) {
+          lbDesc.innerHTML = detail.innerHTML;
+        } else {
+          var shortP = lbCard.el.querySelector('.work__caption p');
+          lbDesc.innerHTML = shortP ? '<p>' + shortP.innerHTML + '</p>' : '';
+        }
+      }
+
       var count = lbCard.slides.length > 1
-        ? ' (' + (lbIndex + 1) + ' of ' + lbCard.slides.length + ')' : '';
-      lbCaption.textContent = (title ? title.textContent.trim() : '') + count;
+        ? (lbIndex + 1) + ' of ' + lbCard.slides.length : '';
+      lbCaption.textContent = count;
+      lbCaption.hidden = !count;
     };
 
     var lbStep = function (delta) {
@@ -363,16 +379,30 @@
     });
 
     cards.forEach(function (card) {
-      var frame = card.el.querySelector('.work__frame');
-      if (!frame) return;
       var title = card.el.querySelector('h3');
+      var name = title ? title.textContent.trim() : 'this project';
+
+      /* One button covering the whole card, so clicking anywhere — media or
+         caption — opens the full description and media. It sits above the
+         caption text but below the tag and slideshow dots (see the z-index
+         rules in styles.css), so those controls stay usable. */
       var zoom = document.createElement('button');
       zoom.type = 'button';
       zoom.className = 'work__zoom';
-      zoom.setAttribute('aria-label',
-        'View ' + (title ? title.textContent.trim() : 'this project') + ' larger');
+      zoom.setAttribute('aria-label', 'Open ' + name + ' — full description and media');
       zoom.addEventListener('click', function () { lbOpen(card); });
-      frame.appendChild(zoom);
+      card.el.appendChild(zoom);
+
+      /* Hover/focus hint so the card reads as clickable. Purely decorative and
+         click-through, so it never intercepts the button underneath it. */
+      var caption = card.el.querySelector('.work__caption');
+      if (caption) {
+        var more = document.createElement('span');
+        more.className = 'work__more';
+        more.setAttribute('aria-hidden', 'true');
+        more.textContent = 'Details';
+        caption.appendChild(more);
+      }
     });
   }
 

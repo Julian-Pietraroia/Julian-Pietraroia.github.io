@@ -6,7 +6,6 @@
 <title>Julian Pietraroia | Hardware &amp; Manufacturing Engineer</title>
 <meta name="description" content="Julian Pietraroia, hardware and manufacturing engineer. Robot grippers, teleoperation hardware, fuel cell production, and championship competition robotics. Manufacturing Engineering at UBC.">
 <meta name="author" content="Julian Pietraroia">
-<meta name="theme-color" content="#fdf6f5">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="Julian Pietraroia | Hardware &amp; Manufacturing Engineer">
@@ -126,6 +125,10 @@
           <div class="work__caption">
             <h3>VEX U World Championship</h3>
             <p>Mechanical lead of Ten Ton Robotics. 2025 World Champions and back-to-back Skills World Champions against 300+ university teams. Every robot below came out of that programme.</p>
+            <div class="work__detail" hidden>
+              <p>As mechanical lead of Ten Ton Robotics I owned the design of a two-robot system, from blank CAD to a machine that survived a full championship bracket. In 2025 the programme won the VEX U World Championship and took back-to-back Skills World Championships against a field of 300+ university teams.</p>
+              <p>Every robot in this section came out of that programme: the same design cycle of concept, CAD, fabrication, and relentless iteration, run by a fourteen-person team using subtractive (CNC) and additive (3D printing) manufacturing, with FEA in Ansys on the parts that had to carry load.</p>
+            </div>
           </div>
         </article>
 
@@ -138,6 +141,10 @@
           <div class="work__caption">
             <h3>Shooting &amp; Catching Robots</h3>
             <p>Launcher robots built to score game elements at range and take them back out of the air. The Over Under machine paired a flywheel shooter with a net intake.</p>
+            <div class="work__detail" hidden>
+              <p>Launcher robots built to score game elements at range and pull them back out of the air. The Over Under machine paired a flywheel shooter, tuned for a repeatable exit velocity, with a net-style intake that could catch and re-cycle triballs mid-match.</p>
+              <p>The hard part is consistency: a launcher is only as good as its most repeatable shot, so most of the effort went into the feeding, compression, and release geometry that make every shot land the same way.</p>
+            </div>
           </div>
         </article>
 
@@ -149,6 +156,10 @@
           <div class="work__caption">
             <h3>Ring Stacking &amp; Shooting Robot</h3>
             <p>Built for the High Stakes season: collecting rings off the field and stacking them onto goals, with a shooter for scoring at range.</p>
+            <div class="work__detail" hidden>
+              <p>Built for the High Stakes season: collecting rings off the field and stacking them onto goals, with a shooter for scoring at range.</p>
+              <p>One robot had to switch cleanly between two very different tasks — gentle, high-throughput ring handling and a powered scoring shot — without adding the weight or fragility that would cost it later in a match.</p>
+            </div>
           </div>
         </article>
 
@@ -160,6 +171,10 @@
           <div class="work__caption">
             <h3>Climbing Robot</h3>
             <p>The High Stakes endgame: lifting the robot's own weight up the ladder. The mechanism has to be light enough to carry for a whole match and strong enough to matter for the last ten seconds.</p>
+            <div class="work__detail" hidden>
+              <p>The High Stakes endgame is lifting the robot's own weight up the ladder in the final seconds. The mechanism has to be light enough to carry dead for a whole match and strong enough to matter for the last ten seconds — a direct trade between structural mass and lifting force.</p>
+              <p>The design problem is deciding where every gram goes, so the climb is there when it counts without slowing the robot for the three minutes before it.</p>
+            </div>
           </div>
         </article>
 
@@ -174,6 +189,10 @@
           <div class="work__caption">
             <h3>Line Following Robot</h3>
             <p>Fully autonomous, with obstacle avoidance and encoder + IMU sensor fusion. It also draws a heat map of everywhere it's been. Underneath: hand-wired perfboard, motor drivers and encoder-equipped gearmotors, packed into a 3D printed chassis with nothing to spare.</p>
+            <div class="work__detail" hidden>
+              <p>Fully autonomous, with obstacle avoidance and encoder + IMU sensor fusion, and it draws a heat map of everywhere it has been. Underneath the 3D-printed chassis is hand-wired perfboard, motor drivers, and encoder-equipped gearmotors, packed in with nothing to spare.</p>
+              <p>The interesting engineering is in the fusion loop: reconciling wheel odometry with IMU heading so the robot still knows where it is after it leaves the line to avoid an obstacle and has to find its way back.</p>
+            </div>
           </div>
         </article>
 
@@ -193,6 +212,11 @@
           <div class="work__caption">
             <h3>RC Car, Designed for 20,000 Units</h3>
             <p>A glass fibre chassis, 3D printed roll cage, cast aluminium rims and a thermoformed ABS shell, then costed for a production run of 20,000: sand-cast A356 rims at $2.50 each, an injection-moulded ABS roll cage at $3.20 on a 9:50 cycle, a vacuum-thermoformed shell at $5.65, and a printed glass-fibre chassis extension at $4.42. Six-person team; I owned the roll cage, its injection mould, and the aeroshell design analysis and material selection.</p>
+            <div class="work__detail" hidden>
+              <p>A glass-fibre chassis, 3D-printed roll cage, cast-aluminium rims, and a thermoformed ABS shell — then costed for a production run of 20,000 units, where every process and every gram of material has to justify itself.</p>
+              <p>Sand-cast A356 rims at $2.50 each, an injection-moulded ABS roll cage at $3.20 on a 9:50 cycle, a vacuum-thermoformed shell at $5.65, and a printed glass-fibre chassis extension at $4.42. On a six-person team I owned the roll cage, its injection mould, and the aeroshell design analysis and material selection.</p>
+              <p>The engineering drawings in this card are my own dimensioned third-angle work: the roll-cage base and the injection mould for the halo, with ejector pins and a section detail.</p>
+            </div>
           </div>
         </article>
 
@@ -402,7 +426,11 @@
   <button class="lightbox__nav lightbox__nav--next" type="button" aria-label="Next item">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8"/></svg>
   </button>
-  <p class="lightbox__caption"></p>
+  <div class="lightbox__meta">
+    <h3 class="lightbox__title"></h3>
+    <div class="lightbox__desc"></div>
+    <p class="lightbox__caption"></p>
+  </div>
 </dialog>
 
 <script src="main.js"></script>
