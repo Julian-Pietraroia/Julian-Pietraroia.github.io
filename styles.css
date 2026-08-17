@@ -307,12 +307,21 @@ b, strong { font-weight: 800; }
      rather than empty background. Sits under the blobs and content. Dark mode
      needs a much stronger, redder glow (below): its background is near-black, so
      a faint wash still reads as a black bar. */
-  background: radial-gradient(130% 78% at 50% -12%, var(--red-soft), transparent 60%);
+  background: radial-gradient(135% 100% at 50% -18%,
+    var(--red-soft) 0%,
+    color-mix(in srgb, var(--red-soft) 42%, transparent) 44%,
+    transparent 82%);
 }
 :root[data-theme="dark"] .hero {
+  /* Extra colour stops stretch the falloff over most of the hero so the glow
+     eases into the background instead of ending on a visible edge. */
   background:
-    radial-gradient(120% 78% at 50% -12%,
-      rgba(217, 45, 32, 0.42), rgba(232, 81, 47, 0.13) 42%, transparent 64%);
+    radial-gradient(135% 100% at 50% -18%,
+      rgba(217, 45, 32, 0.42) 0%,
+      rgba(217, 45, 32, 0.24) 24%,
+      rgba(232, 81, 47, 0.11) 46%,
+      rgba(232, 81, 47, 0.04) 66%,
+      transparent 88%);
 }
 
 .blobs { position: absolute; inset: 0; pointer-events: none; }
