@@ -123,8 +123,10 @@ b, strong { font-weight: 800; }
 /* ── Floating pill nav ───────────────────────────────────── */
 
 .topbar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 60;
   display: flex;
   justify-content: center;
@@ -295,8 +297,15 @@ b, strong { font-weight: 800; }
 
 .hero {
   position: relative;
-  padding: 86px 0 100px;
+  /* Extra top padding clears the fixed nav. The nav no longer sits in its own
+     block above the page, so the hero — glow and all — runs to the very top
+     edge behind it, instead of leaving a flat band of background colour there
+     (near-black in dark mode, which read as a bar). */
+  padding: 104px 0 100px;
   overflow: hidden;
+  /* A soft warm wash at the top so the area behind the nav reads as part of the
+     hero rather than empty background. Sits under the blobs and content. */
+  background: radial-gradient(135% 72% at 50% -12%, var(--red-soft), transparent 58%);
 }
 
 .blobs { position: absolute; inset: 0; pointer-events: none; }
@@ -787,7 +796,7 @@ b, strong { font-weight: 800; }
   .wrap { padding: 0 18px; }
   .pillnav { width: 100%; padding-right: 6px; }
 
-  .hero { padding: 60px 0 74px; }
+  .hero { padding: 92px 0 74px; }
   .hero__actions { margin-bottom: 40px; }
 
   /* A 4:1 strip is only ~90px tall on a phone, too short to read as a photo */

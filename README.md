@@ -86,5 +86,10 @@ Then open http://localhost:8000.
 - **Colors** are the `:root` blocks at the top of `styles.css`.
   Light is the default; `[data-theme="dark"]` overrides it.
 - **Roundness** is the `--r-*` variables, which control every corner at once.
+- **Top nav** is a fixed, translucent overlay: it floats over the hero rather
+  than sitting in its own strip, so the page has no flat band across the top.
+  `.hero` reserves top padding to clear it, and a soft `background` gradient on
+  `.hero` gives the area behind the nav a warm wash (in place of flat, near-black
+  background that read as a bar in dark mode).
 - **Resume**: replace `assets/Julian_Pietraroia_Resume.pdf`. The filename is
   referenced in the hero and the contact section.
