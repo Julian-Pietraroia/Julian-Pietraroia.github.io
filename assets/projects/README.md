@@ -27,8 +27,8 @@ the card picks it up, no code changes needed.
 | `combat-robot.mp4` | 1 lb Antweight Combat Robot | only | **needed** |
 | `tipping-point.jpg` | Goal Lifting Robot | 1 of 2 | photo |
 | `tipping-point-robot.jpg` | Goal Lifting Robot | 2 of 2 | photo |
-| `tower-takeover.jpg` | Block Stacking Robot | 1 of 2 | photo |
-| `tower-takeover-stack.jpg` | Block Stacking Robot | 2 of 2 | photo |
+| `tower-takeover-stack.jpg` | Block Stacking Robot | 1 of 2 | photo |
+| `tower-takeover.jpg` | Block Stacking Robot | 2 of 2 | photo |
 
 The two drawings are extracted from the MANU 330 sub-project reports with
 `pdfimages`, then padded to **square** on white. That card mixes portrait phone
