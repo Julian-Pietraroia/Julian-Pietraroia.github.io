@@ -1016,3 +1016,129 @@ b, strong { font-weight: 800; }
   .lightbox__close:hover,
   .lightbox__nav:hover { transform: none; }
 }
+
+/* ── Arena hero ──────────────────────────────────────────────
+   The Worlds photo runs full-bleed behind the hero, the way the
+   championship looked from the stands. Everything else on the page
+   keeps the soft, rounded, red system above. The hero stays dark in
+   both themes because it sits on a photo; the bubbles bridge it into
+   the page below. */
+
+.hero--arena {
+  display: flex;
+  align-items: flex-end;
+  min-height: min(100svh, 860px);
+  padding: 0;
+  overflow: visible;
+  isolation: isolate;
+  color: #fff;
+  background: #170e0d;
+}
+:root[data-theme="dark"] .hero--arena { background: #170e0d; }
+
+.hero__photo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+.hero__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 62%;
+  transform: scale(1.06);
+  animation: heroSettle 2.6s var(--ease) forwards;
+}
+/* Dark at the top for the nav, clear through the middle so the team and the
+   field read, then heavy at the bottom where the text sits. */
+.hero__photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg,
+      rgba(23, 14, 13, 0.62) 0%,
+      rgba(23, 14, 13, 0.08) 26%,
+      rgba(23, 14, 13, 0.18) 48%,
+      rgba(23, 14, 13, 0.86) 76%,
+      rgba(23, 14, 13, 0.96) 100%),
+    radial-gradient(80% 60% at 50% 100%, rgba(217, 45, 32, 0.28), transparent 70%);
+}
+@keyframes heroSettle { to { transform: scale(1); } }
+
+.hero--arena .hero__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 18px 56px;
+  align-items: end;
+  width: 100%;
+  padding-top: 150px;
+  /* The bubbles hang half out of the hero, into the page below */
+  padding-bottom: 0;
+}
+
+.hero--arena .hero__name {
+  font-size: clamp(3rem, 8vw, 6.4rem);
+  line-height: 0.98;
+  color: #fff;
+}
+.hero--arena .hero__name em {
+  background: linear-gradient(120deg, #ff6a57, var(--coral) 55%, var(--ember));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.hero--arena .hero__disciplines { color: rgba(255, 255, 255, 0.82); margin-bottom: 6px; }
+.hero--arena .hero__disciplines span { color: #ff6a57; }
+
+.hero--arena .hero__blurb {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: clamp(1rem, 1.3vw, 1.08rem);
+  margin-bottom: 20px;
+}
+.hero--arena .hero__where { margin-bottom: 22px; }
+.hero--arena .hero__actions { margin-bottom: 0; }
+
+/* Chips and the secondary button sit on the photo, so they go frosted */
+.hero--arena .chip {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.hero--arena .chip--live { background: rgba(217, 45, 32, 0.32); border-color: transparent; }
+.hero--arena .btn:not(.btn--primary) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.hero--arena .btn:not(.btn--primary):hover { border-color: #fff; }
+
+.hero--arena .bubbles {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  position: relative;
+  top: 64px;
+  margin-top: 36px;
+}
+.hero--arena .bubbles li { box-shadow: var(--shadow-lg); }
+
+/* Make room for the overhanging bubbles */
+.hero--arena + .section { padding-top: 150px; }
+
+@media (max-width: 900px) {
+  /* Text covers most of the photo on narrow screens, so darken the middle too */
+  .hero__photo::after {
+    background: linear-gradient(180deg, rgba(23,14,13,.7) 0%, rgba(23,14,13,.55) 30%, rgba(23,14,13,.82) 60%, rgba(23,14,13,.96) 100%);
+  }
+  .hero--arena .hero__inner { grid-template-columns: 1fr; padding-top: 128px; }
+  .hero--arena .bubbles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero--arena + .section { padding-top: 190px; }
+}
+@media (max-width: 420px) {
+  .hero--arena .bubbles li { padding: 16px; }
+  .hero--arena .bubbles strong { font-size: 1.6rem; }
+}

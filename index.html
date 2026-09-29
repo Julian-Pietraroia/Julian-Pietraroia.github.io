@@ -60,47 +60,47 @@
 <main id="main">
 
   <!-- ── HERO ────────────────────────────────────────────── -->
-  <section class="hero" id="top">
-    <div class="blobs" aria-hidden="true">
-      <span class="blob blob--1"></span>
-      <span class="blob blob--2"></span>
-      <span class="blob blob--3"></span>
+  <section class="hero hero--arena" id="top">
+    <!-- Full-bleed Worlds photo behind the hero. Decorative: the alt text lives
+         on the content, and the scrim keeps white text readable on any crop. -->
+    <div class="hero__photo" aria-hidden="true">
+      <img src="assets/banner.jpg" alt="" fetchpriority="high">
     </div>
 
     <div class="wrap hero__inner">
-      <!-- Stays hidden until the file decodes, so a missing banner is invisible
-           rather than an empty box. Drop a photo at assets/banner.jpg. -->
-      <div class="banner" data-img="assets/banner.jpg">
-        <img class="banner__img" alt="Ten Ton Robotics on the field at the VEX U World Championship">
+      <div class="hero__lead">
+        <h1 class="hero__name reveal">Julian <em>Pietraroia</em></h1>
+
+        <p class="hero__disciplines reveal">
+          mechanical <span aria-hidden="true">·</span>
+          manufacturing <span aria-hidden="true">·</span>
+          robotics
+        </p>
       </div>
 
-      <h1 class="hero__name reveal">Julian <em>Pietraroia</em></h1>
+      <div class="hero__side">
+        <p class="hero__blurb reveal">
+          I design and manufacture things that move, then find out what breaks.
+          Competition robots, fuel cell production lines, hardware for robot
+          learning. Most of what I care about lives in the gap between a CAD model
+          and a part that actually survives.
+        </p>
 
-      <p class="hero__disciplines reveal">
-        mechanical <span aria-hidden="true">·</span>
-        manufacturing <span aria-hidden="true">·</span>
-        robotics
-      </p>
+        <p class="hero__where reveal">
+          <span class="chip chip--live"><span class="pulse" aria-hidden="true"></span> San Francisco, CA</span>
+          <span class="chip">Manufacturing Engineering @ UBC</span>
+        </p>
 
-      <p class="hero__blurb reveal">
-        I design and manufacture things that move, then find out what breaks.
-        Competition robots, fuel cell production lines, hardware for robot
-        learning. Most of what I care about lives in the gap between a CAD model
-        and a part that actually survives.
-      </p>
-
-      <p class="hero__where reveal">
-        <span class="chip chip--live"><span class="pulse" aria-hidden="true"></span> San Francisco, CA</span>
-        <span class="chip">Manufacturing Engineering @ UBC</span>
-      </p>
-
-      <div class="hero__actions reveal">
-        <a class="btn btn--primary" href="#work">See my work</a>
-        <a class="btn" href="assets/Julian_Pietraroia_Resume.pdf" target="_blank" rel="noopener">Resume</a>
+        <div class="hero__actions reveal">
+          <a class="btn btn--primary" href="#work">See my work</a>
+          <a class="btn" href="assets/Julian_Pietraroia_Resume.pdf" target="_blank" rel="noopener">Resume</a>
+        </div>
       </div>
 
       <ul class="bubbles reveal">
         <li><strong>3</strong><span>world championships<br>won</span></li>
+        <li><strong>300+</strong><span>university teams<br>at Worlds</span></li>
+        <li><strong>1,000</strong><span>hours of teleop<br>data collected</span></li>
         <li><strong>3.9</strong><span>GPA, Dean's<br>Honour List</span></li>
       </ul>
     </div>
