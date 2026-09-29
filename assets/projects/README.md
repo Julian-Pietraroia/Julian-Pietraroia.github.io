@@ -18,6 +18,10 @@ the card picks it up, no code changes needed.
 | `rc-halo-mold.jpg` | RC Car, Designed for 20,000 Units | 4 of 4 | MANU 330 SP2, p35 |
 | `rc-rollcage-drawing-full.jpg` | same slide, enlarged view | - | unpadded 2048px |
 | `rc-halo-mold-full.jpg` | same slide, enlarged view | - | unpadded 2048px |
+| `pingpong-turret.mp4` | Autonomous Ping Pong Turret | only | **needed** |
+| `combat-robot.mp4` | 1 lb Antweight Combat Robot | only | **needed** |
+| `tipping-point.jpg` | Goal Lifting Robot | only | **needed** |
+| `tower-takeover.jpg` | Block Stacking Robot | only | **needed** |
 
 The two drawings are extracted from the MANU 330 sub-project reports with
 `pdfimages`, then padded to **square** on white. That card mixes portrait phone
