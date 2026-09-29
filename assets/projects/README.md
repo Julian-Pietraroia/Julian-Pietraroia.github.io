@@ -5,10 +5,15 @@ the card picks it up, no code changes needed.
 
 | File | Card | Slide | Source |
 |---|---|---|---|
-| `vex-worlds.mp4` | VEX U World Championship | only | IMG_7703.MOV |
+| `vex-worlds.mp4` | VEX U World Championship | 1 of 2 | IMG_7703.MOV |
+| `vex-worlds-trophies.jpg` | VEX U World Championship | 2 of 2 | photo by @Iain05 |
 | `vex-shooter.mp4` | Shooting & Catching Robots | 1 of 2 | **needed** |
-| `vex-over-under.mp4` | Shooting & Catching Robots | 2 of 2 | c400591b....mov, 2s-17s |
-| `vex-ring-stacker.mp4` | Ring Stacking & Shooting Robot | only | IMG_1754.MOV |
+| `vex-over-under.mp4` | Shooting & Catching Robots | 2 of 4 | c400591b....mov, 2s-17s |
+| `vex-net-robot.jpg` | Shooting & Catching Robots | 3 of 4 | photo |
+| `vex-net-robot-match.jpg` | Shooting & Catching Robots | 4 of 4 | photo |
+| `vex-ring-stacker.mp4` | Ring Stacking & Shooting Robot | 1 of 3 | IMG_1754.MOV |
+| `vex-ring-stacker-worlds.jpg` | Ring Stacking & Shooting Robot | 2 of 3 | Worlds photo |
+| `vex-ring-stacker-closeup.jpg` | Ring Stacking & Shooting Robot | 3 of 3 | Worlds photo |
 | `vex-climber.mp4` | Climbing Robot | only | IMG_6574.MOV |
 | `line-follower.mp4` | Line Following Robot | 1 of 2 | IMG_8224.MOV |
 | `line-follower-electronics.jpg` | Line Following Robot | 2 of 2 | IMG_8215.HEIC |
@@ -20,7 +25,8 @@ the card picks it up, no code changes needed.
 | `rc-halo-mold-full.jpg` | same slide, enlarged view | - | unpadded 2048px |
 | `pingpong-turret.mp4` | Autonomous Ping Pong Turret | only | **needed** |
 | `combat-robot.mp4` | 1 lb Antweight Combat Robot | only | **needed** |
-| `tipping-point.jpg` | Goal Lifting Robot | only | **needed** |
+| `tipping-point.jpg` | Goal Lifting Robot | 1 of 2 | photo |
+| `tipping-point-robot.jpg` | Goal Lifting Robot | 2 of 2 | photo |
 | `tower-takeover.jpg` | Block Stacking Robot | only | **needed** |
 
 The two drawings are extracted from the MANU 330 sub-project reports with
