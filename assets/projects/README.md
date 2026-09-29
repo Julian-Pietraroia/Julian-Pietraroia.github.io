@@ -23,8 +23,8 @@ the card picks it up, no code changes needed.
 | `rc-halo-mold.jpg` | RC Car, Designed for 20,000 Units | 4 of 4 | MANU 330 SP2, p35 |
 | `rc-rollcage-drawing-full.jpg` | same slide, enlarged view | - | unpadded 2048px |
 | `rc-halo-mold-full.jpg` | same slide, enlarged view | - | unpadded 2048px |
-| `pingpong-turret.mp4` | Autonomous Ping Pong Turret | only | **needed** |
-| `combat-robot.mp4` | 1 lb Antweight Combat Robot | only | **needed** |
+| `pingpong-turret-cad.jpg` | Autonomous Ping Pong Turret | only | CAD render, cropped to 4:3 on white |
+| `combat-robot-cad.jpg` | 1 lb Antweight Combat Robot | only | CAD render, cropped to 4:3 on white |
 | `tipping-point.jpg` | Goal Lifting Robot | 1 of 2 | photo |
 | `tipping-point-robot.jpg` | Goal Lifting Robot | 2 of 2 | photo |
 | `tower-takeover-stack.jpg` | Block Stacking Robot | 1 of 2 | photo |
