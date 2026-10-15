@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lamp Tinder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+<style>
+  :root {
+    --bg: #ebe7e0; --paper: #f7f4ef; --ink: #1f1c18; --muted: #6f685e; --line: #d6d0c6;
+    --like: #2f7a4f; --nope: #b8433a; --accent: #c9762f; --card-bg: #dcd7cf;
+    --shadow: 0 18px 40px -18px rgba(40, 30, 20, .35), 0 2px 6px rgba(40, 30, 20, .08);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.5 Inter, system-ui, sans-serif; overflow-x: hidden; }
+  button { font: inherit; cursor: pointer; }
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; }
+
+  header.bar { position: fixed; inset: 0 0 auto 0; display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; z-index: 5; }
+  .logo { font-family: Fraunces, serif; font-weight: 700; font-size: 22px; letter-spacing: -.02em; }
+  .logo span { color: var(--accent); }
+
+  /* intro */
+  #intro { flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 16px 40px; gap: 18px; }
+  #intro h1 { font-family: Fraunces, serif; font-size: clamp(40px, 8vw, 76px); line-height: .95; margin: 0; letter-spacing: -.03em; }
+  #intro h1 em { font-style: normal; color: var(--accent); }
+  #intro p { max-width: 460px; color: var(--muted); margin: 0; }
+  .peek { display: flex; gap: 10px; margin: 8px 0 6px; }
+  .peek img { width: 84px; height: 84px; border-radius: 14px; object-fit: cover; box-shadow: var(--shadow); }
+  .peek img:nth-child(odd) { transform: rotate(-4deg); } .peek img:nth-child(even) { transform: rotate(3deg) translateY(6px); }
+  .seg { display: inline-flex; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+  .seg button { border: 0; background: none; padding: 8px 16px; border-radius: 999px; color: var(--muted); }
+  .seg button.on { background: var(--ink); color: var(--paper); }
+  .cta { border: 0; background: var(--ink); color: var(--paper); padding: 14px 28px; border-radius: 999px; font-weight: 600; font-size: 16px; }
+  .cta:hover { background: #000; }
+  .ghost { border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 11px 20px; border-radius: 999px; font-weight: 500; }
+  .err { color: var(--nope); max-width: 520px; }
+
+  /* swipe */
+  #swipe { flex-direction: column; align-items: center; justify-content: center; padding: 70px 16px 24px; gap: 18px; }
+  .progress { width: min(380px, 100%); height: 4px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .progress i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .3s; }
+  .count { font-size: 13px; color: var(--muted); }
+  .deck { position: relative; width: min(380px, 100%); aspect-ratio: 380 / 500; }
+  .card { position: absolute; inset: 0; border-radius: 22px; background: var(--card-bg); box-shadow: var(--shadow);
+    overflow: hidden; touch-action: none; user-select: none; will-change: transform; }
+  .card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; display: block; }
+  .card .meta { position: absolute; inset: auto 0 0 0; padding: 60px 18px 16px;
+    background: linear-gradient(to top, rgba(25, 20, 15, .78), rgba(25, 20, 15, 0)); color: #fff; }
+  .card .meta b { font-family: Fraunces, serif; font-size: 24px; font-weight: 500; }
+  .card .meta div { font-size: 13px; opacity: .9; }
+  .card .stamp { position: absolute; top: 26px; padding: 4px 12px; border: 3px solid; border-radius: 8px;
+    font: 700 28px/1 Inter, sans-serif; letter-spacing: .06em; opacity: 0; }
+  .stamp.like { left: 20px; color: var(--like); transform: rotate(-14deg); }
+  .stamp.nope { right: 20px; color: var(--nope); transform: rotate(14deg); }
+  .card.back1 { transform: scale(.95) translateY(14px); }
+  .card.back2 { transform: scale(.9) translateY(28px); opacity: .7; }
+  .card.top { cursor: grab; } .card.top:active { cursor: grabbing; }
+  .actions { display: flex; gap: 22px; align-items: center; }
+  .round { width: 64px; height: 64px; border-radius: 50%; border: 0; background: var(--paper); box-shadow: var(--shadow);
+    display: grid; place-items: center; transition: transform .12s; }
+  .round:hover { transform: scale(1.07); } .round:active { transform: scale(.95); }
+  .round svg { width: 28px; height: 28px; }
+  .hint { font-size: 12px; color: var(--muted); }
+
+  /* results */
+  #results { flex-direction: column; padding: 76px 20px 48px; gap: 28px; max-width: 1180px; margin: 0 auto; }
+  .res-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+  @media (max-width: 860px) { .res-grid { grid-template-columns: 1fr; } }
+  .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; }
+  h2 { font-family: Fraunces, serif; font-weight: 500; font-size: clamp(28px, 4vw, 40px); margin: 4px 0 0; letter-spacing: -.02em; line-height: 1.05; }
+  .viewer { position: relative; aspect-ratio: 1 / 1; border-radius: 22px; overflow: hidden; background: var(--card-bg); box-shadow: var(--shadow); }
+  .viewer .tip { position: absolute; left: 14px; bottom: 12px; font-size: 12px; color: var(--muted); background: rgba(247,244,239,.8); padding: 4px 10px; border-radius: 999px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .chip { background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,.15); display: inline-block; }
+  .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
+  .match { display: flex; flex-direction: column; gap: 10px; }
+  .match .top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .match .name { font-family: Fraunces, serif; font-size: 26px; font-weight: 500; line-height: 1.1; }
+  .match .brand { color: var(--muted); font-size: 14px; }
+  .pct { font-family: Fraunces, serif; font-size: 34px; color: var(--accent); white-space: nowrap; }
+  .why { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14px; }
+  .buy { align-self: flex-start; text-decoration: none; }
+  .runner { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .runner a { color: var(--ink); font-weight: 500; }
+  .runner span { color: var(--muted); font-size: 13px; }
+  .liked { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+  .liked img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .note { font-size: 13px; color: var(--muted); }
+  code { background: #e3ddd3; padding: 1px 6px; border-radius: 5px; font-size: 12.5px; }
+</style>
+</head>
+<body>
+<header class="bar"><div class="logo">lamp<span>·</span>tinder</div><div id="hdr-right"></div></header>
+
+<section id="intro" class="screen active">
+  <div class="peek" id="peek"></div>
+  <h1>Find the lamp<br>you <em>actually</em> want.</h1>
+  <p>Swipe right on lamps you like, left on the ones you don't. At the end we blend every lamp you liked into one, then find the closest one you can actually buy.</p>
+  <div class="seg" id="len"><button data-n="20">20 lamps</button><button data-n="30" class="on">30 lamps</button><button data-n="50">50 lamps</button></div>
+  <button class="cta" id="start" disabled>Loading lamps…</button>
+  <p class="err" id="err" hidden></p>
+</section>
+
+<section id="swipe" class="screen">
+  <div class="progress"><i id="bar"></i></div>
+  <div class="count" id="count"></div>
+  <div class="deck" id="deck"></div>
+  <div class="actions">
+    <button class="round" id="nope" aria-label="Pass"><svg viewBox="0 0 24 24" fill="none" stroke="#b8433a" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <button class="round" id="like" aria-label="Like"><svg viewBox="0 0 24 24" fill="#2f7a4f"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.1 4.3 2.4.7-1.3 2.2-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg></button>
+  </div>
+  <div class="hint">Drag the card, tap the buttons, or use ← →</div>
+</section>
+
+<section id="results" class="screen"></section>
+
+<script type="module">
+import { showLamp, lampSTL } from './site/lamp3d.js';
+
+// ---- vocab (mirrors gen_lamps.py) --------------------------------------
+const BODY = { black:'#1c1c1c', white:'#f2f0eb', brass:'#c9a25a', copper:'#b8734a', chrome:'#c8ccd0', sage:'#9caf88',
+  terracotta:'#c1694f', navy:'#24345a', mustard:'#d4a72c', walnut:'#5a3b26', oak:'#c49a6c', red:'#b8322a',
+  'forest green':'#2f4a3a', blush:'#e3b5a8', graphite:'#4a4d52' };
+const SHADE = { linen:'#efe8da', white:'#f7f5f0', cream:'#f1e3c4', black:'#202020', sage:'#a9b89a', terracotta:'#c8775c',
+  mustard:'#dcae3d', blush:'#e9c0b4', 'dusty blue':'#8ea7bf', opal:'#f4f4f2', smoke:'#6d6a66', olive:'#6f7442',
+  'burnt orange':'#c75b28', brass:'#c9a25a' };
+const NUMERIC = ['base_radius','base_height','stem_len','stem_thickness','stem_bend','arm_reach','shade_radius',
+  'shade_height','shade_taper','shade_tilt','shade_glow','light_warmth'];
+const CATEG = ['type','base_shape','shade_shape','finish'];
+const hex2rgb = h => [1,3,5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+const rgb2hex = c => '#' + c.map(x => Math.round(Math.max(0, Math.min(1, x)) * 255).toString(16).padStart(2, '0')).join('');
+const dist = (a, b) => Math.hypot(a[0]-b[0], a[1]-b[1], a[2]-b[2]);
+const nearest = (rgb, table) => Object.entries(table).sort((x, y) => dist(rgb, hex2rgb(x[1])) - dist(rgb, hex2rgb(y[1])))[0][0];
+
+function tagsFor(p) {
+  return {
+    type: p.type, shade_shape: p.shade_shape, base_shape: p.type === 'pendant' ? 'canopy' : p.base_shape, finish: p.finish,
+    body_color: nearest(p.body_color, BODY), shade_color: nearest(p.shade_color, SHADE),
+    size: p.shade_radius > .66 ? 'large' : p.shade_radius < .33 ? 'small' : 'medium',
+    glow: p.shade_glow > .6 ? 'bright' : p.shade_glow < .25 ? 'opaque' : 'soft',
+    light: p.light_warmth > .5 ? 'warm' : 'neutral',
+  };
+}
+function mode(arr) { const c = {}; let best, n = 0; for (const x of arr) { c[x] = (c[x] || 0) + 1; if (c[x] > n) { n = c[x]; best = x; } } return best; }
+function combine(list) {
+  const out = {};
+  for (const k of CATEG) out[k] = mode(list.map(p => p[k]));
+  for (const k of NUMERIC) out[k] = list.reduce((s, p) => s + p[k], 0) / list.length;
+  for (const k of ['body_color', 'shade_color']) out[k] = [0,1,2].map(i => list.reduce((s, p) => s + p[k][i], 0) / list.length);
+  return out;
+}
+
+// ---- matching ----------------------------------------------------------
+const ROUND = ['dome', 'globe', 'bell'], STRAIGHT = ['cone', 'drum', 'flare'];
+const TYPE_NEAR = { table: { arm: .4, floor: .3 }, arm: { table: .4 }, floor: { table: .3 }, pendant: {} };
+const GLOW = ['opaque', 'soft', 'bright'];
+function scoreProduct(prod, combined, tags) {
+  const why = []; let s = 0;
+  if (prod.type === tags.type) { s += 3; why.push(`a ${tags.type} lamp, like most of your likes`); }
+  else s += 3 * (TYPE_NEAR[tags.type][prod.type] || 0);
+  if (prod.shade_shape === tags.shade_shape) { s += 3; why.push(`${tags.shade_shape}-shaped shade`); }
+  else if ([ROUND, STRAIGHT].some(g => g.includes(prod.shade_shape) && g.includes(tags.shade_shape))) {
+    s += 1.5; why.push(`${ROUND.includes(tags.shade_shape) ? 'rounded' : 'straight-sided'} shade like yours`);
+  }
+  if (prod.finish === tags.finish) { s += 1; why.push(`${tags.finish} finish`); }
+  else if (prod.finish !== 'matte' && tags.finish !== 'matte') s += .4;
+  const bc = 1 - dist(combined.body_color, hex2rgb(BODY[prod.body_color])) / Math.sqrt(3);
+  const sc = 1 - dist(combined.shade_color, hex2rgb(SHADE[prod.shade_color])) / Math.sqrt(3);
+  s += 1.5 * bc ** 2 + 1.5 * sc ** 2;
+  if (bc > .85) why.push(`${prod.body_color} body, close to your ${tags.body_color}`);
+  if (sc > .85) why.push(`${prod.shade_color} shade, close to your ${tags.shade_color}`);
+  const gd = Math.abs(GLOW.indexOf(prod.glow) - GLOW.indexOf(tags.glow));
+  s += gd === 0 ? 1 : gd === 1 ? .4 : 0;
+  if (gd === 0) why.push(`${tags.glow === 'opaque' ? 'opaque shade that throws light down' : tags.glow + ' glowing shade'}`);
+  if (prod.base_shape === tags.base_shape && prod.type !== 'pendant') { s += .5; why.push(`${tags.base_shape} base`); }
+  return { prod, pct: Math.round(100 * s / 11.5), why };
+}
+
+// ---- state -------------------------------------------------------------
+let LAMPS = [], PRODUCTS = [], deck = [], idx = 0, liked = [], N = 30, disposeViewer = null;
+const $ = s => document.querySelector(s);
+const show = id => { document.querySelectorAll('.screen').forEach(e => e.classList.toggle('active', e.id === id)); window.scrollTo(0, 0); };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pretty = t => `${t.finish} ${t.body_color} ${t.type === 'arm' ? 'arm lamp' : t.type + ' lamp'}`;
+
+async function load() {
+  try {
+    const [l, p] = await Promise.all([fetch('out/lamps.json').then(r => r.json()), fetch('site/products.json').then(r => r.json())]);
+    LAMPS = l.lamps; PRODUCTS = p;
+    $('#peek').innerHTML = shuffle([...LAMPS]).slice(0, 5).map(x => `<img src="out/${x.image}" alt="">`).join('');
+    $('#start').disabled = false; $('#start').textContent = 'Start swiping';
+  } catch (e) {
+    $('#start').textContent = 'Could not load lamps';
+    $('#err').hidden = false;
+    $('#err').innerHTML = location.protocol === 'file:'
+      ? 'Open this site through <code>start-site.bat</code> instead of double-clicking index.html; browsers block loading the lamp data from a file.'
+      : `Couldn't read <code>out/lamps.json</code>. Run <code>run.bat</code> first to generate the lamps. (${e.message})`;
+  }
+}
+
+$('#len').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  N = +b.dataset.n; $('#len').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+});
+$('#start').addEventListener('click', start);
+
+function start() {
+  deck = shuffle([...LAMPS]).slice(0, Math.min(N, LAMPS.length)); idx = 0; liked = [];
+  show('swipe'); renderDeck();
+}
+
+function cardHTML(l, cls) {
+  const t = l.tags, n = +l.id.split('_')[1];
+  return `<div class="card ${cls}" data-id="${l.id}"><img src="out/${l.image}" alt="">
+    <div class="stamp like">LIKE</div><div class="stamp nope">NOPE</div>
+    <div class="meta"><b>Lamp no. ${n}</b><div>${pretty(t)} · ${t.shade_shape} shade · ${t.shade_color}</div></div></div>`;
+}
+
+function renderDeck() {
+  $('#bar').style.width = `${100 * idx / deck.length}%`;
+  $('#count').textContent = `${idx + 1} of ${deck.length} · ${liked.length} liked`;
+  const el = $('#deck');
+  el.innerHTML = deck.slice(idx, idx + 3).map((l, i) => cardHTML(l, ['top', 'back1', 'back2'][i])).reverse().join('');
+  const top = el.querySelector('.card.top');
+  if (top) attachDrag(top);
+}
+
+function attachDrag(card) {
+  let x0 = 0, y0 = 0, dx = 0, dy = 0, dragging = false;
+  const like = card.querySelector('.stamp.like'), nope = card.querySelector('.stamp.nope');
+  card.addEventListener('pointerdown', e => { dragging = true; x0 = e.clientX; y0 = e.clientY; card.setPointerCapture(e.pointerId); card.style.transition = 'none'; });
+  card.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    dx = e.clientX - x0; dy = e.clientY - y0;
+    card.style.transform = `translate(${dx}px, ${dy * .4}px) rotate(${dx / 18}deg)`;
+    like.style.opacity = Math.max(0, Math.min(1, dx / 90)); nope.style.opacity = Math.max(0, Math.min(1, -dx / 90));
+  });
+  const end = () => {
+    if (!dragging) return; dragging = false;
+    if (Math.abs(dx) > 100) decide(dx > 0);
+    else { card.style.transition = 'transform .25s'; card.style.transform = ''; like.style.opacity = nope.style.opacity = 0; }
+    dx = dy = 0;
+  };
+  card.addEventListener('pointerup', end); card.addEventListener('pointercancel', end);
+}
+
+let busy = false;
+function decide(isLike) {
+  if (busy || idx >= deck.length) return;
+  busy = true;
+  const card = $('#deck .card.top');
+  if (isLike) liked.push(deck[idx]);
+  card.style.transition = 'transform .32s ease-in, opacity .32s';
+  card.querySelector(isLike ? '.stamp.like' : '.stamp.nope').style.opacity = 1;
+  card.style.transform = `translate(${isLike ? 140 : -140}%, 10%) rotate(${isLike ? 24 : -24}deg)`;
+  card.style.opacity = 0;
+  setTimeout(() => { idx++; busy = false; idx >= deck.length ? results() : renderDeck(); }, 300);
+}
+$('#like').addEventListener('click', () => decide(true));
+$('#nope').addEventListener('click', () => decide(false));
+addEventListener('keydown', e => {
+  if (!$('#swipe').classList.contains('active')) return;
+  if (e.key === 'ArrowRight') decide(true); if (e.key === 'ArrowLeft') decide(false);
+});
+
+function results() {
+  if (disposeViewer) { disposeViewer(); disposeViewer = null; }
+  show('results');
+  const R = $('#results');
+  if (!liked.length) {
+    R.innerHTML = `<div><div class="eyebrow">No matches</div><h2>You passed on all ${deck.length} lamps.</h2>
+      <p class="note">Picky. Give it another round with a fresh set.</p><button class="cta" id="again">Swipe again</button></div>`;
+    $('#again').onclick = start; return;
+  }
+  const combined = combine(liked.map(l => l.params));
+  const tags = tagsFor(combined);
+  const ranked = PRODUCTS.map(p => scoreProduct(p, combined, tags)).sort((a, b) => b.pct - a.pct);
+  const best = ranked[0];
+  const chip = (label, color) => `<span class="chip">${color ? `<i class="sw" style="background:${color}"></i>` : ''}${label}</span>`;
+
+  R.innerHTML = `
+    <div class="res-grid">
+      <div>
+        <div class="eyebrow">Your lamp · blended from ${liked.length} like${liked.length > 1 ? 's' : ''}</div>
+        <h2>A ${tags.size} ${tags.type === 'arm' ? 'arm' : tags.type} lamp with a ${tags.shade_shape} shade</h2>
+        <div class="chips">
+          ${chip(tags.type)}${chip(tags.shade_shape + ' shade')}${chip(tags.finish + ' finish')}
+          ${chip(tags.body_color + ' body', rgb2hex(combined.body_color))}${chip(tags.shade_color + ' shade', rgb2hex(combined.shade_color))}
+          ${chip(tags.glow + ' glow')}${chip(tags.light + ' light')}
+        </div>
+        <div class="viewer" id="viewer" style="margin-top:16px"><div class="tip">Drag to rotate</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div class="panel match">
+          <div class="eyebrow">Closest lamp you can buy</div>
+          <div class="top"><div><div class="name">${best.prod.name}</div>
+            <div class="brand">${best.prod.brand}${best.prod.designer ? ' · ' + best.prod.designer : ''}</div></div>
+            <div class="pct">${best.pct}%</div></div>
+          <div class="chips" style="margin:0">${chip(best.prod.body_color + ' body', BODY[best.prod.body_color])}${chip(best.prod.shade_color + ' shade', SHADE[best.prod.shade_color])}</div>
+          <ul class="why">${best.why.map(w => `<li>${w}</li>`).join('') || '<li>closest overall shape and colour</li>'}</ul>
+          <a class="cta buy" href="${best.prod.url}" target="_blank" rel="noopener">View at store ↗</a>
+        </div>
+        <div class="panel">
+          <div class="eyebrow" style="margin-bottom:4px">Also worth a look</div>
+          ${ranked.slice(1, 4).map(r => `<div class="runner"><div><a href="${r.prod.url}" target="_blank" rel="noopener">${r.prod.brand} ${r.prod.name}</a><br>
+            <span>${r.prod.type} · ${r.prod.shade_shape} shade · ${r.prod.body_color}</span></div><span>${r.pct}%</span></div>`).join('')}
+        </div>
+        <div class="panel">
+          <div class="eyebrow" style="margin-bottom:10px">The ${liked.length} lamp${liked.length > 1 ? 's' : ''} you liked</div>
+          <div class="liked">${liked.map(l => `<img src="out/${l.image}" alt="${l.id}" title="${l.id}">`).join('')}</div>
+        </div>
+        <div class="row">
+          <button class="cta" id="again">Swipe again</button>
+          <button class="ghost" id="stl">Download STL</button>
+          <button class="ghost" id="dl">Download liked.json</button>
+        </div>
+        <p class="note">The STL is your blended lamp at real size in millimetres (Z-up), with a 2&nbsp;mm shade wall. Parts are separate overlapping bodies; most slicers merge them automatically.</p>
+        <p class="note">For a full-quality Blender render of your lamp, save <code>liked.json</code> into the lamp-tinder folder and run <code>run.bat --combine liked.json</code>.</p>
+      </div>
+    </div>`;
+  disposeViewer = showLamp($('#viewer'), combined);
+  $('#again').onclick = () => { if (disposeViewer) { disposeViewer(); disposeViewer = null; } start(); };
+  $('#stl').onclick = () => {
+    const a = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(lampSTL(combined)),
+      download: `lamp-tinder-${tags.type}-${tags.shade_shape}.stl`,
+    });
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  $('#dl').onclick = () => {
+    const blob = new Blob([JSON.stringify({ liked: liked.map(l => l.id) }, null, 1)], { type: 'application/json' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'liked.json' });
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+}
+
+load();
+</script>
+</body>
+</html>
