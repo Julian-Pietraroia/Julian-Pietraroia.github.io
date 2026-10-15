@@ -72,6 +72,10 @@
   .round:hover { transform: scale(1.07); } .round:active { transform: scale(.95); }
   .round svg { width: 28px; height: 28px; }
   .hint { font-size: 12px; color: var(--muted); }
+  .finish { border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 9px 18px;
+    border-radius: 999px; font-weight: 500; font-size: 14px; }
+  .finish:hover:not(:disabled) { border-color: var(--ink); }
+  .finish:disabled { opacity: .45; cursor: default; }
 
   /* results */
   #results { flex-direction: column; padding: 76px 20px 48px; gap: 28px; max-width: 1180px; margin: 0 auto; }
@@ -122,6 +126,7 @@
     <button class="round" id="nope" aria-label="Pass"><svg viewBox="0 0 24 24" fill="none" stroke="#b8433a" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <button class="round" id="like" aria-label="Like"><svg viewBox="0 0 24 24" fill="#2f7a4f"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.1 4.3 2.4.7-1.3 2.2-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg></button>
   </div>
+  <button class="finish" id="finish" disabled>Like a lamp to finish early</button>
   <div class="hint">Drag the card, tap the buttons, or use ← →</div>
 </section>
 
@@ -232,6 +237,9 @@ function cardHTML(l, cls) {
 function renderDeck() {
   $('#bar').style.width = `${100 * idx / deck.length}%`;
   $('#count').textContent = `${idx + 1} of ${deck.length} · ${liked.length} liked`;
+  const fin = $('#finish');
+  fin.disabled = !liked.length;
+  fin.textContent = liked.length ? `See my lamp now (${liked.length} liked) →` : 'Like a lamp to finish early';
   const el = $('#deck');
   el.innerHTML = deck.slice(idx, idx + 3).map((l, i) => cardHTML(l, ['top', 'back1', 'back2'][i])).reverse().join('');
   const top = el.querySelector('.card.top');
@@ -269,6 +277,7 @@ function decide(isLike) {
   card.style.opacity = 0;
   setTimeout(() => { idx++; busy = false; idx >= deck.length ? results() : renderDeck(); }, 300);
 }
+$('#finish').addEventListener('click', () => { if (liked.length && !busy) results(); });
 $('#like').addEventListener('click', () => decide(true));
 $('#nope').addEventListener('click', () => decide(false));
 addEventListener('keydown', e => {
