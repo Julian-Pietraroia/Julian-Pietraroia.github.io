@@ -4,6 +4,8 @@ Swipe right on lamps you like, left on the ones you don't. At the end, every lam
 
 Live: https://julian-pietraroia.github.io/lamp-tinder/
 
+Built in one session with Claude; the conversation is in [CHAT.md](CHAT.md).
+
 ## How it works
 - **Generation:** `generator/gen_lamps.py` builds random lamps procedurally in Blender (type, base, stem, shade profile, finish, colours, glow) and renders each one with EEVEE. Every parameter is stored normalised to 0–1 in `out/lamps.json`.
 - **Blending:** numeric parameters and colours are averaged across your likes; type, shade shape, base and finish are decided by majority vote.
