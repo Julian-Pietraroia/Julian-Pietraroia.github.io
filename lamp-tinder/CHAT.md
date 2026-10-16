@@ -82,3 +82,11 @@ This project was built in a single session with Claude (Anthropic), working in t
 
 *Claude raised the bar for "confident" (7+ likes, 20+ swipes, and the #1 match unchanged for 6 swipes in a row) and made the stability check stricter so the length depends on how settled your taste is. Simulated users, including ones that swipe inconsistently, now take 20–29 swipes (about 23 on average, up from about 13).*
 
+**Me:** any suggestions for the site?
+
+**Claude:** Suggested: undo and super-like; more and more varied lamps with nicer card angles; better blending; shareable result links; a real-size room preview; a buildable STL kit around real lamp hardware with print estimates; a mobile check; an auto-refreshing catalog; and linking it from the portfolio.
+
+**Me:** lets do all of these. except adding to my portfolio for now. save add more lamps in the background while you work on everything else
+
+*A 1,200-lamp render with new styles (mushroom, saucer and cylinder shades, tall-tripod floor lamps, three-shade cluster pendants, varied backdrops and camera angles) was already running on my PC; Claude fixed three early cluster pendants rendered before a canopy fix and fingerprinted the new set. Meanwhile it added undo, super-like, weighted blending, share links, the "In a room" view and the build-it-yourself kit (checked across 217 lamp combinations: every part watertight, flat on the bed, oversize parts cut into wedges), fixed the mobile layout, and added the weekly catalog workflow. The workflow's first test run could only reach 3 of 10 stores from GitHub's servers and pruned the catalog to 221 products; Claude restored it within minutes and added a per-store fallback and a shrink guard, then re-ran it to confirm the catalog stays intact.*
+
