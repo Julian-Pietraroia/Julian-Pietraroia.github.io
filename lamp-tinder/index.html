@@ -122,7 +122,7 @@
 <section id="intro" class="screen active">
   <div class="peek" id="peek"></div>
   <h1>Find the lamp<br>you <em>actually</em> want.</h1>
-  <p>Swipe right on lamps you like, left on the ones you don't. Keep going until it figures out your taste (usually 10–20 lamps). Then we blend your favourites into a lamp of your own and find the real ones that look most like it.</p>
+  <p>Swipe right on lamps you like, left on the ones you don't. Keep going until it figures out your taste (usually 20–30 lamps). Then we blend your favourites into a lamp of your own and find the real ones that look most like it.</p>
   <div class="opt"><label>Budget</label>
     <div class="seg" id="budget"><button data-b="150">Under $150</button><button data-b="500">Under $500</button><button data-b="1500">Under $1,500</button><button data-b="0" class="on">Any</button></div></div>
   <button class="cta" id="start" disabled>Loading lamps…</button>
@@ -285,11 +285,12 @@ function cardHTML(l, cls) {
 }
 
 // ---------- confidence: keep showing lamps until the recommendation stops changing ----------
-const NEED_LIKES = 4, NEED_SWIPES = 10, NEED_STREAK = 4, HARD_CAP = 60;
-function streak() {           // swipes in a row where the top-3 real lamps barely changed (2 of 3 kept)
+const NEED_LIKES = 7, NEED_SWIPES = 20, NEED_STREAK = 6, HARD_CAP = 80;
+function streak() {           // swipes in a row where the #1 real lamp stayed the same and most of the top 3 did too
   let n = 0;
   for (let i = topHist.length - 1; i > 0; i--) {
-    if (topHist[i].filter(x => topHist[i - 1].includes(x)).length >= 2) n++; else break;
+    const a = topHist[i], b = topHist[i - 1];
+    if (a[0] === b[0] && a.filter(x => b.includes(x)).length >= 2) n++; else break;
   }
   return n;
 }

@@ -78,3 +78,7 @@ This project was built in a single session with Claude (Anthropic), working in t
 
 *Claude removed the 20/30/50 choice. Cards now keep coming until the recommendation is stable (4+ likes, 10+ swipes, and the top-3 real-lamp matches unchanged for 4 swipes in a row), then the site jumps straight to the results; a progress bar shows how close it is. Simulated users finished in 11–16 swipes. The tests also led to stricter style splitting, a stronger lamp-type weight, and cleaner product names.*
 
+**Me:** increase how many lamp it shows you on average, it feels a little small
+
+*Claude raised the bar for "confident" (7+ likes, 20+ swipes, and the #1 match unchanged for 6 swipes in a row) and made the stability check stricter so the length depends on how settled your taste is. Simulated users, including ones that swipe inconsistently, now take 20–29 swipes (about 23 on average, up from about 13).*
+
