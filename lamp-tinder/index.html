@@ -79,7 +79,6 @@
     border-radius: 999px; font-weight: 500; font-size: 14px; transition: background .2s, color .2s; }
   .finish:hover:not(:disabled) { border-color: var(--ink); }
   .finish:disabled { opacity: .45; cursor: default; }
-  .finish.ready { background: var(--accent); border-color: var(--accent); color: #fff; }
 
   /* results */
   #results { flex-direction: column; padding: 76px 20px 56px; gap: 22px; max-width: 1180px; margin: 0 auto; }
@@ -123,11 +122,9 @@
 <section id="intro" class="screen active">
   <div class="peek" id="peek"></div>
   <h1>Find the lamp<br>you <em>actually</em> want.</h1>
-  <p>Swipe right on lamps you like, left on the ones you don't. Then we blend your favourites into a lamp of your own and find the real ones that look most like your taste.</p>
+  <p>Swipe right on lamps you like, left on the ones you don't. Keep going until it figures out your taste (usually 10–20 lamps). Then we blend your favourites into a lamp of your own and find the real ones that look most like it.</p>
   <div class="opt"><label>Budget</label>
     <div class="seg" id="budget"><button data-b="150">Under $150</button><button data-b="500">Under $500</button><button data-b="1500">Under $1,500</button><button data-b="0" class="on">Any</button></div></div>
-  <div class="opt"><label>Up to</label>
-    <div class="seg" id="len"><button data-n="20">20 lamps</button><button data-n="30" class="on">30 lamps</button><button data-n="50">50 lamps</button></div></div>
   <button class="cta" id="start" disabled>Loading lamps…</button>
   <p class="err" id="err" hidden></p>
 </section>
@@ -209,8 +206,8 @@ function centre(items) {
 
 // ---------- data ----------
 let LAMPS = [], BYID = {}, PRODUCTS = [], USD = 1.38;
-let N = 30, BUDGET = 0;
-let shown = [], liked = [], passed = [], current = null, stableTop = [], disposeViewer = null;
+let BUDGET = 0;
+let shown = [], liked = [], passed = [], current = null, topHist = [], disposeViewer = null;
 const $ = s => document.querySelector(s);
 const show = id => { document.querySelectorAll('.screen').forEach(e => e.classList.toggle('active', e.id === id)); window.scrollTo(0, 0); };
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -226,7 +223,8 @@ async function load() {
     USD = c.usd_to_cad || USD;
     LAMPS = l.lamps.filter(x => e.lamps[x.id]).map(x => ({ ...x, emb: decode(e.lamps[x.id]) }));
     LAMPS.forEach(x => { BYID[x.id] = x; });
-    PRODUCTS = c.products.filter(p => e.products[p.id]).map(p => ({ ...p, emb: decode(e.products[p.id]) }));
+    PRODUCTS = c.products.filter(p => e.products[p.id]).map(p => ({ ...p, emb: decode(e.products[p.id]),
+      name: p.name.replace(/\*[^*]*\*/g, '').replace(/\s*[-|–]\s*(showroom|floor) model.*$/i, '').replace(/\s{2,}/g, ' ').trim() }));
     centre(LAMPS); centre(PRODUCTS);
     $('#peek').innerHTML = shuffle([...LAMPS]).slice(0, 5).map(x => `<img src="out/${x.image}" alt="">`).join('');
     $('#start').disabled = false; $('#start').textContent = 'Start swiping';
@@ -239,7 +237,7 @@ async function load() {
   }
 }
 
-for (const [sel, set] of [['#len', b => { N = +b.dataset.n; }], ['#budget', b => { BUDGET = +b.dataset.b; }]]) {
+for (const [sel, set] of [['#budget', b => { BUDGET = +b.dataset.b; }]]) {
   $(sel).addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     set(b); $(sel).querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
@@ -274,7 +272,7 @@ function nextLamp() {
 }
 
 function start() {
-  shown = []; liked = []; passed = []; stableTop = [];
+  shown = []; liked = []; passed = []; topHist = [];
   show('swipe'); current = nextLamp(); shown.push(current.id); renderDeck();
 }
 
@@ -286,18 +284,33 @@ function cardHTML(l, cls) {
     <div class="meta"><b>Lamp no. ${n}</b><div>${t.finish} ${t.body_color} ${kind} · ${t.shade_shape} shade</div></div></div>`;
 }
 
-function renderDeck() {
+// ---------- confidence: keep showing lamps until the recommendation stops changing ----------
+const NEED_LIKES = 4, NEED_SWIPES = 10, NEED_STREAK = 4, HARD_CAP = 60;
+function streak() {           // swipes in a row where the top-3 real lamps barely changed (2 of 3 kept)
+  let n = 0;
+  for (let i = topHist.length - 1; i > 0; i--) {
+    if (topHist[i].filter(x => topHist[i - 1].includes(x)).length >= 2) n++; else break;
+  }
+  return n;
+}
+function confidence() {
   const done = liked.length + passed.length;
-  $('#bar').style.width = `${100 * done / N}%`;
-  $('#count').textContent = `${done + 1} of ${N} · ${liked.length} liked`;
+  const basics = Math.min(1, liked.length / NEED_LIKES, done / NEED_SWIPES);
+  return 0.35 * basics + 0.65 * (liked.length >= NEED_LIKES ? Math.min(1, streak() / NEED_STREAK) : 0);
+}
+const isConfident = () => liked.length >= NEED_LIKES && liked.length + passed.length >= NEED_SWIPES && streak() >= NEED_STREAK;
+
+function renderDeck() {
+  const done = liked.length + passed.length, c = confidence();
+  $('#bar').style.width = `${Math.round(100 * c)}%`;
+  $('#count').textContent = `${done} swiped · ${liked.length} liked · ` + (
+    !liked.length ? (done >= 12 ? 'nothing clicking? like the closest ones' : 'like a few to get started') : c < 0.5 ? 'learning your taste…' : c < 0.85 ? 'getting there…' : 'almost sure');
   // the next card is chosen after this swipe, so the card underneath is a blank placeholder
   $('#deck').innerHTML = '<div class="card under"></div>' + cardHTML(current, 'top');
   attachDrag($('#deck .card.top'));
-  const fin = $('#finish'), settled = stableTop.length >= 4 && stableTop.slice(-4).every(x => x === stableTop[stableTop.length - 1]);
+  const fin = $('#finish');
   fin.disabled = !liked.length;
-  fin.classList.toggle('ready', settled);
-  fin.textContent = !liked.length ? 'Like a lamp to finish early'
-    : settled ? 'Your match has settled. See it →' : `See my lamp now (${liked.length} liked) →`;
+  fin.textContent = !liked.length ? 'Like a lamp to finish early' : `Skip ahead to my lamp (${liked.length} liked) →`;
 }
 
 function attachDrag(card) {
@@ -329,11 +342,18 @@ function decide(isLike) {
   card.querySelector(isLike ? '.stamp.like' : '.stamp.nope').style.opacity = 1;
   card.style.transform = `translate(${isLike ? 140 : -140}%, 10%) rotate(${isLike ? 24 : -24}deg)`;
   card.style.opacity = 0;
-  if (liked.length >= 4) stableTop.push(topPickId());
+  if (liked.length) topHist.push(topPicks());
+  const done = liked.length + passed.length;
+  if (isConfident() || (done >= HARD_CAP && liked.length)) {
+    $('#bar').style.width = '100%';
+    $('#count').textContent = 'Got it. Here’s your lamp…';
+    setTimeout(() => { busy = false; current = null; results(); }, 650);
+    return;
+  }
   setTimeout(() => {
     busy = false;
-    current = liked.length + passed.length < N ? nextLamp() : null;
-    if (!current) return results();
+    current = nextLamp();
+    if (!current) return results();          // ran out of lamps
     shown.push(current.id); renderDeck();
   }, 300);
 }
@@ -375,10 +395,10 @@ function styles() {
   const ids = [...liked], vs = ids.map(id => BYID[id].emb);
   let best = { k: 1, assign: ids.map(() => 0) };
   if (ids.length >= 4) {
-    let bestS = 0.1;
+    let bestS = 0.15;   // only split when the groups are clearly different
     for (let k = 2; k <= Math.min(3, Math.floor(ids.length / 2)); k++) {
       const a = kmeans(vs, k), sizes = [...Array(k).keys()].map(c => a.filter(x => x === c).length);
-      if (Math.min(...sizes) < (ids.length >= 6 ? 3 : 2)) continue;
+      if (Math.min(...sizes) < (ids.length >= 5 ? 3 : 2)) continue;
       const s = silhouette(vs, a, k);
       if (s > bestS) { bestS = s; best = { k, assign: a }; }
     }
@@ -392,7 +412,7 @@ function scorer(memberIds) {
   const cent = mean(members.map(m => m.emb));
   const neg = passed.length ? mean(passed.map(id => BYID[id].emb)) : null;
   const [mtype, mcount] = mode(members.map(m => m.params.type));
-  const typeBonus = 0.1 * mcount / members.length;   // a consistent style (all pendants) weighs type more
+  const typeBonus = 0.15 * mcount / members.length;   // a consistent style (all pendants) weighs type more
   return p => {
     let nn = -1; for (const m of members) nn = Math.max(nn, dot(p.emb, m.emb));
     return 0.6 * dot(p.emb, cent) + 0.4 * nn - (neg ? 0.25 * dot(p.emb, neg) : 0) + (p.type === mtype ? typeBonus : 0);
@@ -410,7 +430,7 @@ function recommend(memberIds) {
   for (const r of pool) { const k = dedupeKey(r.p); if (seen.has(k)) continue; seen.add(k); picks.push(r); if (picks.length === 7) break; }
   return { picks, total: all.length, relaxed };
 }
-function topPickId() { return recommend(liked).picks[0]?.p.id; }
+function topPicks() { return recommend(liked).picks.slice(0, 3).map(r => r.p.id); }
 function closestLiked(p, memberIds, n = 3) {
   return memberIds.map(id => BYID[id]).sort((a, b) => dot(p.emb, b.emb) - dot(p.emb, a.emb)).slice(0, n);
 }

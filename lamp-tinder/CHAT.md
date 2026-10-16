@@ -74,3 +74,7 @@ This project was built in a single session with Claude (Anthropic), working in t
 
 *The product thumbnails were only used to compute fingerprints. Claude deleted them (1,685 files, 49 MB) and made the local server delete them automatically whenever fingerprints are rebuilt.*
 
+**Me:** can you make it so instead of picking an amount of lamps it shows you, it shows you an "infinite" amount until it is confident with its choice, because sometimes it feels like a long process
+
+*Claude removed the 20/30/50 choice. Cards now keep coming until the recommendation is stable (4+ likes, 10+ swipes, and the top-3 real-lamp matches unchanged for 4 swipes in a row), then the site jumps straight to the results; a progress bar shows how close it is. Simulated users finished in 11–16 swipes. The tests also led to stricter style splitting, a stronger lamp-type weight, and cleaner product names.*
+
