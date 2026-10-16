@@ -189,7 +189,8 @@ def thumb_url(item):
 
 def main():
     os.makedirs(DATA, exist_ok=True)
-    os.makedirs(IMG, exist_ok=True)
+    if not os.environ.get("LT_NO_IMAGES"):
+        os.makedirs(IMG, exist_ok=True)
     open(LOG, "w").close()
     items = []
     for key, store, base, cur, pages in SHOPIFY:
@@ -217,6 +218,21 @@ def main():
             best[k] = it
     items = list(best.values())
 
+    if os.environ.get("LT_NO_IMAGES"):
+        # CI mode: tools/embed_new.mjs fetches images into memory itself, nothing is saved here
+        ok = items
+    else:
+        ok = download_thumbs(items)
+
+    counts = {}
+    for it in ok:
+        counts[it["type"]] = counts.get(it["type"], 0) + 1
+    with open(os.path.join(DATA, "catalog.json"), "w", encoding="utf-8") as f:
+        json.dump({"usd_to_cad": USD_TO_CAD, "built": time.strftime("%Y-%m-%d"), "products": ok}, f, indent=0)
+    log(f"DONE: {len(ok)} products {counts}")
+
+
+def download_thumbs(items):
     log(f"Downloading {len(items)} thumbnails (8 at a time) ...")
     from concurrent.futures import ThreadPoolExecutor
 
@@ -241,12 +257,7 @@ def main():
             if (i + 1) % 100 == 0:
                 log(f"  {i + 1}/{len(items)}")
 
-    counts = {}
-    for it in ok:
-        counts[it["type"]] = counts.get(it["type"], 0) + 1
-    with open(os.path.join(DATA, "catalog.json"), "w", encoding="utf-8") as f:
-        json.dump({"usd_to_cad": USD_TO_CAD, "built": time.strftime("%Y-%m-%d"), "products": ok}, f, indent=0)
-    log(f"DONE: {len(ok)} products {counts}")
+    return ok
 
 
 if __name__ == "__main__":

@@ -9,7 +9,9 @@
 <script type="importmap">
 { "imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/",
+    "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.8.3/src/index.js",
+    "three-bvh-csg": "https://cdn.jsdelivr.net/npm/three-bvh-csg@0.0.17/src/index.js"
 } }
 </script>
 <style>
@@ -74,7 +76,33 @@
     display: grid; place-items: center; transition: transform .12s; }
   .round:hover { transform: scale(1.07); } .round:active { transform: scale(.95); }
   .round svg { width: 28px; height: 28px; }
-  .hint { font-size: 12px; color: var(--muted); }
+  .hint { font-size: 12px; color: var(--muted); text-align: center; }
+  .round.small { width: 46px; height: 46px; } .round.small svg { width: 20px; height: 20px; }
+  .round:disabled { opacity: .35; cursor: default; transform: none; }
+  .stamp.super { left: 50%; top: auto; bottom: 120px; color: #2f6fb3; transform: translateX(-50%) rotate(-6deg); }
+  .viewbar { position: absolute; top: 12px; left: 12px; display: inline-flex; background: rgba(247,244,239,.9); border: 1px solid var(--line); border-radius: 999px; padding: 3px; z-index: 2; }
+  .viewbar button { border: 0; background: none; padding: 5px 12px; border-radius: 999px; font-size: 13px; color: var(--muted); }
+  .viewbar button.on { background: var(--ink); color: var(--paper); }
+  .viewer .size { position: absolute; right: 14px; bottom: 12px; font-size: 12px; color: var(--muted); background: rgba(247,244,239,.85); padding: 4px 10px; border-radius: 999px; }
+  .make { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+  .make div { background: var(--bg); border-radius: 12px; padding: 10px 12px; }
+  .make b { display: block; font-family: Fraunces, serif; font-size: 22px; font-weight: 500; }
+  .make span { font-size: 12px; color: var(--muted); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 999px; font-size: 14px; z-index: 20; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.on { opacity: 1; }
+  @media (max-width: 600px) {
+    #swipe { padding-top: 60px; gap: 12px; }
+    .deck { width: min(380px, 100%); max-height: 62vh; aspect-ratio: auto; height: min(500px, 62vh); }
+    .round { width: 58px; height: 58px; } .round.small { width: 44px; height: 44px; }
+    #results { padding: 64px 14px 40px; }
+    .make { grid-template-columns: 1fr 1fr 1fr; } .make b { font-size: 18px; }
+    h2 { font-size: 28px; }
+    header.bar { position: absolute; }                 /* scrolls away instead of covering content */
+    .peek { gap: 6px; } .peek img { width: 58px; height: 58px; border-radius: 11px; }
+    .seg button { padding: 6px 10px; font-size: 13px; }
+    #intro { gap: 14px; }
+    .more { grid-template-columns: repeat(2, 1fr); }
+  }
   .finish { border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 9px 18px;
     border-radius: 999px; font-weight: 500; font-size: 14px; transition: background .2s, color .2s; }
   .finish:hover:not(:disabled) { border-color: var(--ink); }
@@ -97,7 +125,7 @@
   .sw { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,.15); display: inline-block; }
   .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
   .pick { display: grid; grid-template-columns: 170px 1fr; gap: 18px; align-items: start; }
-  @media (max-width: 520px) { .pick { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .pick { grid-template-columns: 110px 1fr; gap: 12px; } .pick .name { font-size: 21px; } }
   .pimg { width: 100%; aspect-ratio: 1; object-fit: contain; background: #fff; border-radius: 14px; border: 1px solid var(--line); display: block; }
   .pick .name { font-family: Fraunces, serif; font-size: 26px; font-weight: 500; line-height: 1.1; }
   .pick .brand, .small { color: var(--muted); font-size: 14px; }
@@ -134,17 +162,21 @@
   <div class="count" id="count"></div>
   <div class="deck" id="deck"></div>
   <div class="actions">
+    <button class="round small" id="undo" aria-label="Undo last swipe" title="Undo (Backspace)" disabled><svg viewBox="0 0 24 24" fill="none" stroke="#6f685e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg></button>
     <button class="round" id="nope" aria-label="Pass"><svg viewBox="0 0 24 24" fill="none" stroke="#b8433a" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <button class="round small" id="super" aria-label="Super like" title="Super like (↑)"><svg viewBox="0 0 24 24" fill="#2f6fb3"><path d="M12 2.8l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 16.8 6.6 19.7l1-6.1-4.4-4.3 6.1-.9z"/></svg></button>
     <button class="round" id="like" aria-label="Like"><svg viewBox="0 0 24 24" fill="#2f7a4f"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.1 4.3 2.4.7-1.3 2.2-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg></button>
   </div>
   <button class="finish" id="finish" disabled>Like a lamp to finish early</button>
-  <div class="hint">Drag the card, tap the buttons, or use ← →</div>
+  <div class="hint">Swipe right to like, left to pass, up to super-like. Keys: ← → ↑, Backspace to undo.</div>
 </section>
 
 <section id="results" class="screen"></section>
+<div class="toast" id="toast"></div>
 
 <script type="module">
-import { showLamp, lampSTL } from './site/lamp3d.js';
+import { showLamp, lampSTL, realHeightCm } from './site/lamp3d.js';
+import { buildKit, kitZip } from './site/kit.js';
 
 // ---------- vocabulary (mirrors gen_lamps.py) ----------
 const BODY = { black:'#1c1c1c', white:'#f2f0eb', brass:'#c9a25a', copper:'#b8734a', chrome:'#c8ccd0', sage:'#9caf88',
@@ -155,7 +187,7 @@ const SHADE = { linen:'#efe8da', white:'#f7f5f0', cream:'#f1e3c4', black:'#20202
   'burnt orange':'#c75b28', brass:'#c9a25a' };
 const NUMERIC = ['base_radius','base_height','stem_len','stem_thickness','stem_bend','arm_reach','shade_radius',
   'shade_height','shade_taper','shade_tilt','shade_glow','light_warmth'];
-const CATEG = ['type','base_shape','shade_shape','finish'];
+const CATEG = ['type','base_shape','shade_shape','finish','shade_count'];
 const TYPE_PLURAL = { table: 'table lamps', floor: 'floor lamps', arm: 'desk lamps', pendant: 'pendants' };
 const hex2rgb = h => [1,3,5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
 const rgb2hex = c => '#' + c.map(x => Math.round(Math.max(0, Math.min(1, x)) * 255).toString(16).padStart(2, '0')).join('');
@@ -172,11 +204,23 @@ function tagsFor(p) {
     light: p.light_warmth > .5 ? 'warm' : 'neutral',
   };
 }
-function blend(list) {
+// Blend a style into one lamp. A plain average drifts to a bland "middle of everything" lamp, so:
+// each liked lamp is weighted by how typical it is of the style (close to the centre in look-space)
+// and super-likes count double; categories are a weighted vote; numbers and colours are pulled
+// halfway from the weighted average toward the most representative lamp, to keep some character.
+function blend(ids) {
+  const items = ids.map(id => BYID[id]), cent = wmean(ids);
+  const w = items.map(l => weight(l.id) * Math.exp(4 * dot(l.emb, cent)));
+  const W = w.reduce((a, b) => a + b, 0), medoid = items[w.indexOf(Math.max(...w))].params;
   const out = {};
-  for (const k of CATEG) out[k] = mode(list.map(p => p[k]))[0];
-  for (const k of NUMERIC) out[k] = list.reduce((s, p) => s + p[k], 0) / list.length;
-  for (const k of ['body_color', 'shade_color']) out[k] = [0,1,2].map(i => list.reduce((s, p) => s + p[k][i], 0) / list.length);
+  for (const k of CATEG) {
+    const votes = {}; items.forEach((l, i) => { const v = l.params[k] ?? (k === 'shade_count' ? 1 : undefined); votes[v] = (votes[v] || 0) + w[i]; });
+    out[k] = Object.entries(votes).sort((a, b) => b[1] - a[1])[0][0];
+    if (k === 'shade_count') out[k] = +out[k];
+  }
+  const mix = (avg, m) => 0.5 * avg + 0.5 * m;
+  for (const k of NUMERIC) out[k] = mix(items.reduce((s, l, i) => s + w[i] * l.params[k], 0) / W, medoid[k]);
+  for (const k of ['body_color', 'shade_color']) out[k] = [0, 1, 2].map(c => mix(items.reduce((s, l, i) => s + w[i] * l.params[k][c], 0) / W, medoid[k][c]));
   return out;
 }
 
@@ -208,6 +252,14 @@ function centre(items) {
 let LAMPS = [], BYID = {}, PRODUCTS = [], USD = 1.38;
 let BUDGET = 0;
 let shown = [], liked = [], passed = [], current = null, topHist = [], disposeViewer = null;
+let superIds = new Set(), history = [];          // history: {id, kind, pushedTop} for undo
+const weight = id => superIds.has(id) ? 2 : 1;   // super-likes count double everywhere
+function wmean(ids) {
+  const m = new Float32Array(BYID[ids[0]].emb.length);
+  for (const id of ids) { const v = BYID[id].emb, k = weight(id); for (let i = 0; i < m.length; i++) m[i] += k * v[i]; }
+  return normalize(m);
+}
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 1800); }
 const $ = s => document.querySelector(s);
 const show = id => { document.querySelectorAll('.screen').forEach(e => e.classList.toggle('active', e.id === id)); window.scrollTo(0, 0); };
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -228,6 +280,7 @@ async function load() {
     centre(LAMPS); centre(PRODUCTS);
     $('#peek').innerHTML = shuffle([...LAMPS]).slice(0, 5).map(x => `<img src="out/${x.image}" alt="">`).join('');
     $('#start').disabled = false; $('#start').textContent = 'Start swiping';
+    if (location.hash.includes('l=')) openShared();
   } catch (err) {
     $('#start').textContent = 'Could not load lamps';
     $('#err').hidden = false;
@@ -258,7 +311,7 @@ function nextLamp() {
   const pool = LAMPS.filter(l => !shown.includes(l.id));
   if (!pool.length) return null;
   if (shown.length < 6 || !liked.length || !passed.length) return diversePick(pool);
-  const w = sub(mean(liked.map(id => BYID[id].emb)), mean(passed.map(id => BYID[id].emb)));
+  const w = sub(wmean(liked), mean(passed.map(id => BYID[id].emb)));
   const score = l => dot(w, l.emb);
   const avg = ids => ids.reduce((s, id) => s + score(BYID[id]), 0) / ids.length;
   const t = (avg(liked) + avg(passed)) / 2;
@@ -272,15 +325,23 @@ function nextLamp() {
 }
 
 function start() {
-  shown = []; liked = []; passed = []; topHist = [];
+  shown = []; liked = []; passed = []; topHist = []; history = []; superIds = new Set();
+  if (location.hash) history_replace('');
   show('swipe'); current = nextLamp(); shown.push(current.id); renderDeck();
+}
+function history_replace(h) { window.history.replaceState(null, '', location.pathname + location.search + h); }
+// back to swiping from the results, keeping everything so far (the confidence streak restarts)
+function keepSwiping() {
+  if (disposeViewer) { disposeViewer(); disposeViewer = null; }
+  topHist = []; history_replace('');
+  show('swipe'); current = nextLamp(); if (!current) return results(); shown.push(current.id); renderDeck();
 }
 
 function cardHTML(l, cls) {
   const t = l.tags, n = +l.id.split('_')[1];
   const kind = t.type === 'arm' ? 'desk lamp' : t.type === 'pendant' ? 'pendant' : `${t.type} lamp`;
   return `<div class="card ${cls}" data-id="${l.id}"><img src="out/${l.image}" alt="">
-    <div class="stamp like">LIKE</div><div class="stamp nope">NOPE</div>
+    <div class="stamp like">LIKE</div><div class="stamp nope">NOPE</div><div class="stamp super">SUPER</div>
     <div class="meta"><b>Lamp no. ${n}</b><div>${t.finish} ${t.body_color} ${kind} · ${t.shade_shape} shade</div></div></div>`;
 }
 
@@ -309,6 +370,7 @@ function renderDeck() {
   // the next card is chosen after this swipe, so the card underneath is a blank placeholder
   $('#deck').innerHTML = '<div class="card under"></div>' + cardHTML(current, 'top');
   attachDrag($('#deck .card.top'));
+  $('#undo').disabled = !history.length;
   const fin = $('#finish');
   fin.disabled = !liked.length;
   fin.textContent = !liked.length ? 'Like a lamp to finish early' : `Skip ahead to my lamp (${liked.length} liked) →`;
@@ -316,34 +378,41 @@ function renderDeck() {
 
 function attachDrag(card) {
   let x0 = 0, y0 = 0, dx = 0, dy = 0, dragging = false;
-  const like = card.querySelector('.stamp.like'), nope = card.querySelector('.stamp.nope');
+  const like = card.querySelector('.stamp.like'), nope = card.querySelector('.stamp.nope'), sup = card.querySelector('.stamp.super');
   card.addEventListener('pointerdown', e => { dragging = true; x0 = e.clientX; y0 = e.clientY; card.setPointerCapture(e.pointerId); card.style.transition = 'none'; });
   card.addEventListener('pointermove', e => {
     if (!dragging) return;
     dx = e.clientX - x0; dy = e.clientY - y0;
-    card.style.transform = `translate(${dx}px, ${dy * .4}px) rotate(${dx / 18}deg)`;
-    like.style.opacity = Math.max(0, Math.min(1, dx / 90)); nope.style.opacity = Math.max(0, Math.min(1, -dx / 90));
+    const up = -dy > Math.abs(dx);
+    card.style.transform = `translate(${dx}px, ${up ? dy * .7 : dy * .4}px) rotate(${dx / 18}deg)`;
+    like.style.opacity = up ? 0 : Math.max(0, Math.min(1, dx / 90)); nope.style.opacity = up ? 0 : Math.max(0, Math.min(1, -dx / 90));
+    sup.style.opacity = up ? Math.max(0, Math.min(1, -dy / 90)) : 0;
   });
   const end = () => {
     if (!dragging) return; dragging = false;
-    if (Math.abs(dx) > 100) decide(dx > 0);
-    else { card.style.transition = 'transform .25s'; card.style.transform = ''; like.style.opacity = nope.style.opacity = 0; }
+    if (-dy > 100 && -dy > Math.abs(dx)) decide('super');
+    else if (Math.abs(dx) > 100) decide(dx > 0 ? 'like' : 'pass');
+    else { card.style.transition = 'transform .25s'; card.style.transform = ''; like.style.opacity = nope.style.opacity = sup.style.opacity = 0; }
     dx = dy = 0;
   };
   card.addEventListener('pointerup', end); card.addEventListener('pointercancel', end);
 }
 
 let busy = false;
-function decide(isLike) {
+function decide(kind) {               // 'like' | 'pass' | 'super'
   if (busy || !current) return;
   busy = true;
+  const isLike = kind !== 'pass';
   (isLike ? liked : passed).push(current.id);
+  if (kind === 'super') superIds.add(current.id);
   const card = $('#deck .card.top');
   card.style.transition = 'transform .32s ease-in, opacity .32s';
-  card.querySelector(isLike ? '.stamp.like' : '.stamp.nope').style.opacity = 1;
-  card.style.transform = `translate(${isLike ? 140 : -140}%, 10%) rotate(${isLike ? 24 : -24}deg)`;
+  card.querySelector(`.stamp.${kind === 'pass' ? 'nope' : kind}`).style.opacity = 1;
+  card.style.transform = kind === 'super' ? 'translate(0, -140%) rotate(-4deg)' : `translate(${isLike ? 140 : -140}%, 10%) rotate(${isLike ? 24 : -24}deg)`;
   card.style.opacity = 0;
-  if (liked.length) topHist.push(topPicks());
+  const pushedTop = liked.length > 0;
+  if (pushedTop) topHist.push(topPicks());
+  history.push({ id: current.id, kind, pushedTop });
   const done = liked.length + passed.length;
   if (isConfident() || (done >= HARD_CAP && liked.length)) {
     $('#bar').style.width = '100%';
@@ -358,12 +427,28 @@ function decide(isLike) {
     shown.push(current.id); renderDeck();
   }, 300);
 }
-$('#like').addEventListener('click', () => decide(true));
-$('#nope').addEventListener('click', () => decide(false));
+function undo() {
+  if (busy || !history.length) return;
+  const last = history.pop();
+  (last.kind === 'pass' ? passed : liked).splice((last.kind === 'pass' ? passed : liked).lastIndexOf(last.id), 1);
+  superIds.delete(last.id);
+  if (last.pushedTop) topHist.pop();
+  if (current) shown.splice(shown.indexOf(current.id), 1);   // the card on screen goes back in the pool
+  current = BYID[last.id];
+  renderDeck();
+  const card = $('#deck .card.top');
+  card.animate([{ transform: `translate(${last.kind === 'pass' ? -60 : last.kind === 'super' ? 0 : 60}%, ${last.kind === 'super' ? -60 : 0}%)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'ease-out' });
+}
+$('#like').addEventListener('click', () => decide('like'));
+$('#nope').addEventListener('click', () => decide('pass'));
+$('#super').addEventListener('click', () => decide('super'));
+$('#undo').addEventListener('click', undo);
 $('#finish').addEventListener('click', () => { if (liked.length && !busy) results(); });
 addEventListener('keydown', e => {
   if (!$('#swipe').classList.contains('active')) return;
-  if (e.key === 'ArrowRight') decide(true); if (e.key === 'ArrowLeft') decide(false);
+  if (e.key === 'ArrowRight') decide('like'); if (e.key === 'ArrowLeft') decide('pass');
+  if (e.key === 'ArrowUp') { e.preventDefault(); decide('super'); }
+  if (e.key === 'Backspace' || (e.key === 'z' && (e.ctrlKey || e.metaKey))) { e.preventDefault(); undo(); }
 });
 
 // ---------- styles (clusters of likes) ----------
@@ -410,7 +495,7 @@ function styles() {
 // ---------- recommendations ----------
 function scorer(memberIds) {
   const members = memberIds.map(id => BYID[id]);
-  const cent = mean(members.map(m => m.emb));
+  const cent = wmean(memberIds);
   const neg = passed.length ? mean(passed.map(id => BYID[id].emb)) : null;
   const [mtype, mcount] = mode(members.map(m => m.params.type));
   const typeBonus = 0.15 * mcount / members.length;   // a consistent style (all pendants) weighs type more
@@ -451,6 +536,25 @@ function learnedTaste() {
   return { pos: rows.filter(r => r.lift > 0.18).slice(0, 4), neg: rows.filter(r => r.lift < -0.18).slice(-4).reverse() };
 }
 
+// ---------- share links: likes/passes encoded in the URL so a result can be reopened anywhere ----------
+const num36 = id => (+id.split('_')[1]).toString(36);
+const fromNum = s => `lamp_${String(parseInt(s, 36)).padStart(4, '0')}`;
+function shareURL() {
+  const enc = ids => ids.map(num36).join('.');
+  const q = new URLSearchParams({ v: LAMPS.length, b: BUDGET, l: enc(liked), s: enc([...superIds]), p: enc(passed) });
+  return location.origin + location.pathname + '#' + q.toString();
+}
+function openShared() {
+  const q = new URLSearchParams(location.hash.slice(1));
+  if (!q.get('l') || +q.get('v') !== LAMPS.length) return false;     // links from an older lamp set don't apply
+  const dec = k => (q.get(k) || '').split('.').filter(Boolean).map(fromNum).filter(id => BYID[id]);
+  liked = dec('l'); passed = dec('p'); superIds = new Set(dec('s')); shown = [...liked, ...passed]; history = []; topHist = [];
+  BUDGET = +q.get('b') || 0;
+  document.querySelectorAll('#budget button').forEach(x => x.classList.toggle('on', +x.dataset.b === BUDGET));
+  if (!liked.length) return false;
+  results(true); return true;
+}
+
 // ---------- results ----------
 function styleName(ids) {
   const ls = ids.map(id => BYID[id].tags);
@@ -479,9 +583,10 @@ function productBlock(r, memberIds, total, big) {
 }
 
 let STYLES = [];
-function results() {
+function results(fromLink = false) {
   if (disposeViewer) { disposeViewer(); disposeViewer = null; }
   show('results');
+  if (liked.length) history_replace('#' + shareURL().split('#')[1]);
   const R = $('#results');
   if (!liked.length) {
     R.innerHTML = `<div><div class="eyebrow">No matches</div><h2>You passed on every lamp.</h2>
@@ -499,12 +604,20 @@ function results() {
       ${taste.neg.map(r => `<span class="chip neg">✕ ${esc(r.txt)}</span>`).join('')}</div></div>` : ''}
     <div class="panel"><div class="eyebrow" style="margin-bottom:10px">The ${liked.length} lamp${liked.length > 1 ? 's' : ''} you liked</div>
       <div class="liked">${liked.map(id => `<img src="out/${BYID[id].image}" alt="${id}" title="${id}">`).join('')}</div></div>
-    <div class="row"><button class="cta" id="again">Swipe again</button><button class="ghost" id="dl">Download liked.json</button></div>`;
+    <div class="row"><button class="cta" id="share">Share my lamp</button>${fromLink ? '' : '<button class="ghost" id="more">Not quite? Keep swiping</button>'}<button class="ghost" id="again">Start over</button><button class="ghost" id="dl">Download liked.json</button></div>`;
   R.querySelectorAll('.tab').forEach(t => t.onclick = () => {
     R.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t)); renderStyle(+t.dataset.i);
   });
   $('#again').onclick = () => { if (disposeViewer) { disposeViewer(); disposeViewer = null; } start(); };
-  $('#dl').onclick = () => save(new Blob([JSON.stringify({ liked, passed }, null, 1)], { type: 'application/json' }), 'liked.json');
+  if ($('#more')) $('#more').onclick = keepSwiping;
+  $('#share').onclick = async () => {
+    const url = shareURL();
+    try {
+      if (navigator.share && matchMedia('(pointer: coarse)').matches) await navigator.share({ title: 'My Lamp Tinder lamp', url });
+      else { await navigator.clipboard.writeText(url); toast('Link copied: anyone who opens it sees your results'); }
+    } catch { prompt('Copy this link:', url); }
+  };
+  $('#dl').onclick = () => save(new Blob([JSON.stringify({ liked, super: [...superIds], passed }, null, 1)], { type: 'application/json' }), 'liked.json');
   renderStyle(0);
 }
 
@@ -515,7 +628,7 @@ function save(blob, name) {
 
 function renderStyle(i) {
   if (disposeViewer) { disposeViewer(); disposeViewer = null; }
-  const ids = STYLES[i], params = blend(ids.map(id => BYID[id].params)), tags = tagsFor(params);
+  const ids = STYLES[i], params = blend(ids), tags = tagsFor(params);
   const { picks, total, relaxed } = recommend(ids);
   const chip = (label, color) => `<span class="chip">${color ? `<i class="sw" style="background:${color}"></i>` : ''}${esc(label)}</span>`;
   $('#style').innerHTML = `<div class="res-grid">
@@ -523,9 +636,14 @@ function renderStyle(i) {
       <div class="eyebrow">Your lamp · blended from ${ids.length} like${ids.length > 1 ? 's' : ''}</div>
       <h2>A ${tags.size} ${tags.type === 'arm' ? 'desk' : tags.type} lamp with a ${tags.shade_shape} shade</h2>
       <div class="chips">${chip(tags.finish + ' finish')}${chip(tags.body_color + ' body', rgb2hex(params.body_color))}${chip(tags.shade_color + ' shade', rgb2hex(params.shade_color))}${chip(tags.glow + ' glow')}${chip(tags.light + ' light')}</div>
-      <div class="viewer" id="viewer"><div class="tip">Drag to rotate</div></div>
-      <div class="row" style="margin-top:12px"><button class="ghost" id="stl">Download STL</button>
-        <span class="note">Real size in mm, Z-up, 2&nbsp;mm shade wall.</span></div>
+      <div class="viewer" id="viewer"><div class="viewbar"><button class="on" data-room="0">Lamp</button><button data-room="1">In a room</button></div>
+        <div class="tip">Drag to rotate</div><div class="size" id="size" hidden></div></div>
+      <div class="panel" style="margin-top:16px">
+        <div class="eyebrow">Make it yourself</div>
+        <div class="make" id="make"><div><b>…</b><span>filament</span></div><div><b>…</b><span>printing</span></div><div><b>…</b><span>total cost</span></div></div>
+        <p class="note" id="makenote">Printable parts built around standard lamp hardware (1/8 IPS pipe, E26 socket, cord set), with a parts list and assembly steps.</p>
+        <div class="row" style="margin-top:12px"><button class="cta" id="kit">Download build kit (.zip)</button><button class="ghost" id="stl">Display model (.stl)</button></div>
+      </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:18px">
       <div class="panel">${picks.length ? productBlock(picks[0], ids, total, true) : '<p class="note">No catalog matches.</p>'}
@@ -533,8 +651,32 @@ function renderStyle(i) {
       ${picks.length > 1 ? `<div class="panel"><div class="eyebrow">More real lamps in this style</div>
         <div class="more">${picks.slice(1).map(r => productBlock(r, ids, total, false)).join('')}</div></div>` : ''}
     </div></div>`;
-  disposeViewer = showLamp($('#viewer'), params);
-  $('#stl').onclick = () => save(lampSTL(params), `lamp-tinder-${tags.type}-${tags.shade_shape}.stl`);
+  const draw = room => {
+    if (disposeViewer) disposeViewer();
+    disposeViewer = showLamp($('#viewer'), params, { room });
+    $('#size').hidden = !room;
+    $('#size').textContent = (tags.type === 'pendant' ? `${realHeightCm(params)} cm from canopy to shade bottom` : `${realHeightCm(params)} cm tall`) + ' · person is 175 cm';
+    $('#viewer').querySelectorAll('.viewbar button').forEach(b => b.classList.toggle('on', +b.dataset.room === +room));
+  };
+  $('#viewer').querySelectorAll('.viewbar button').forEach(b => b.onclick = () => draw(b.dataset.room === '1'));
+  draw(false);
+  const name = `lamp-tinder-${tags.type}-${tags.shade_shape}`;
+  $('#stl').onclick = () => save(lampSTL(params), `${name}.stl`);
+  $('#kit').onclick = async () => {
+    const b = $('#kit'); b.disabled = true; b.textContent = 'Building kit…';
+    try { const { blob } = await kitZip(params, `Lamp Tinder: ${tags.size} ${tags.type === 'arm' ? 'desk' : tags.type} lamp with a ${tags.shade_shape} shade`); save(blob, `${name}-kit.zip`); }
+    catch (e) { console.error(e); toast('Could not build the kit: ' + e.message); }
+    b.disabled = false; b.textContent = 'Download build kit (.zip)';
+  };
+  const real = picks[0]?.p;
+  buildKit(params).then(kit => {
+    const st = kit.stats, cells = $('#make').children;
+    cells[0].querySelector('b').textContent = `${st.grams} g`;
+    cells[1].querySelector('b').textContent = `${st.hours} h`;
+    cells[2].querySelector('b').textContent = `CA$${Math.round(st.total)}`;
+    $('#makenote').textContent = `${kit.parts.length} printed part${kit.parts.length > 1 ? 's' : ''} + standard lamp hardware (~CA$${Math.round(st.hardwareCost)})` +
+      (real ? `, vs ${money(real)} for the closest real lamp.` : '.') + ' The zip has every STL, a parts list and assembly steps.';
+  }).catch(e => { console.error(e); $('#makenote').textContent = 'Kit estimate unavailable.'; });
 }
 
 load();

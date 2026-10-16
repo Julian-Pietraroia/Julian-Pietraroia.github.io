@@ -43,8 +43,10 @@ DEBUG = "--debug" in sys.argv
 
 LAMP_TYPES = ["table", "floor", "arm", "pendant"]
 LAMP_TYPE_WEIGHTS = [4, 3, 3, 2]
-BASE_SHAPES = ["disc", "dome", "square", "tripod", "stepped"]
-SHADE_SHAPES = ["cone", "drum", "dome", "globe", "bell", "flare"]
+BASE_SHAPES = ["disc", "dome", "square", "tripod", "stepped", "tall_tripod"]
+SHADE_SHAPES = ["cone", "drum", "dome", "globe", "bell", "flare", "mushroom", "saucer", "cylinder"]
+# soft studio backdrops; one is picked per card so the deck does not look identical
+BACKDROPS = ["#dbd6cf", "#d3d8cc", "#cfd6dc", "#e0d2cc", "#e2d6c3", "#d0ccc6"]
 FINISHES = ["matte", "satin", "metal"]
 
 BODY_COLORS = {
@@ -94,7 +96,7 @@ NUMERIC_KEYS = [
     "arm_reach", "shade_radius", "shade_height", "shade_taper", "shade_tilt",
     "shade_glow", "light_warmth",
 ]
-CATEGORICAL_KEYS = ["type", "base_shape", "shade_shape", "finish"]
+CATEGORICAL_KEYS = ["type", "base_shape", "shade_shape", "finish", "shade_count"]
 COLOR_KEYS = ["body_color", "shade_color"]
 
 
@@ -105,12 +107,16 @@ def jitter_color(rng, hx, amt=0.04):
 def random_params(rng):
     p = {
         "type": rng.choices(LAMP_TYPES, weights=LAMP_TYPE_WEIGHTS)[0],
-        "base_shape": rng.choice(BASE_SHAPES),
+        "base_shape": rng.choice(BASE_SHAPES[:5]),
         "shade_shape": rng.choice(SHADE_SHAPES),
         "finish": rng.choice(FINISHES),
     }
     for k in NUMERIC_KEYS:
         p[k] = rng.random()
+    # tall tripods are a floor-lamp thing (think Gräshoppa); cluster pendants have three shades
+    if p["type"] == "floor" and rng.random() < 0.3:
+        p["base_shape"] = "tall_tripod"
+    p["shade_count"] = 3 if p["type"] == "pendant" and rng.random() < 0.3 else 1
     # most stems are straight; some bend
     p["stem_bend"] = 0.5 if rng.random() < 0.55 else rng.random()
     p["body_color"] = jitter_color(rng, rng.choice(list(BODY_COLORS.values())))
@@ -123,6 +129,7 @@ def tags_for(p):
         "type": p["type"],
         "shade_shape": p["shade_shape"],
         "base_shape": p["base_shape"] if p["type"] != "pendant" else "canopy",
+        "shades": str(p.get("shade_count", 1)),
         "finish": p["finish"],
         "body_color": nearest_color_name(p["body_color"], BODY_COLORS),
         "shade_color": nearest_color_name(p["shade_color"], SHADE_COLORS),
@@ -136,7 +143,7 @@ def combine_params(plist):
     """Average numeric/colour params, majority-vote categorical ones."""
     out = {}
     for k in CATEGORICAL_KEYS:
-        out[k] = Counter(p[k] for p in plist).most_common(1)[0][0]
+        out[k] = Counter(p.get(k, 1 if k == "shade_count" else None) for p in plist).most_common(1)[0][0]
     for k in NUMERIC_KEYS:
         out[k] = sum(p[k] for p in plist) / len(plist)
     for k in COLOR_KEYS:
@@ -324,6 +331,22 @@ def shade_profile(shape, r, h, taper, steps=24):
             pts.append((r * math.sin(a), r + r * math.cos(a)))
         zmin = min(z for _, z in pts)
         pts = [(x, z - zmin) for x, z in pts]
+    elif shape == "mushroom":
+        # low, wide cap with a lip that curls back under
+        lip = r * lerp(0.82, 0.92, taper)
+        pts.append((lip, 0.0))
+        pts.append((r, h * 0.1))
+        for i in range(1, steps + 1):
+            a = (math.pi / 2) * i / steps
+            pts.append((r * math.cos(a), h * 0.1 + h * 0.9 * math.sin(a)))
+    elif shape == "saucer":
+        # shallow disc with a soft shoulder
+        for i in range(steps + 1):
+            t = i / steps
+            pts.append((r * (1 - 0.7 * t ** 1.6), h * math.sin(t * math.pi / 2)))
+    elif shape == "cylinder":
+        top = r * lerp(0.92, 1.0, taper)
+        pts = [(r, 0.0), (top, h)]
     return pts
 
 
@@ -334,7 +357,10 @@ def shade_dims(p):
     if shape == "globe":
         h = 2 * r
     else:
-        ratio = {"dome": 0.75, "flare": 1.0, "bell": 1.15}.get(shape, 1.0)
+        ratio = {"dome": 0.75, "flare": 1.0, "bell": 1.15, "mushroom": 0.6, "saucer": 0.3}.get(shape, 1.0)
+        if shape == "cylinder":
+            r *= 0.6
+            ratio = 2.2
         h = r * lerp(0.6, 1.4, p["shade_height"]) * ratio
     return r, h
 
@@ -378,8 +404,10 @@ def build_base(p, mat, root):
     elif shape == "square":
         s = R * 1.7
         box("Base", (s, s, H), (0, 0, H / 2), mat, bevel=min(0.004, H * 0.3), parent=root)
-    elif shape == "tripod":
+    elif shape in ("tripod", "tall_tripod"):
         hub = lerp(0.08, 0.16, p["base_height"]) * big
+        if shape == "tall_tripod":
+            hub = lerp(0.35, 0.65, p["base_height"]) if p["type"] == "floor" else lerp(0.14, 0.22, p["base_height"])
         leg_r = lerp(0.004, 0.009, p["stem_thickness"]) * big
         spread = R * 1.6
         for i in range(3):
@@ -457,18 +485,36 @@ def build_lamp(p):
         axis = Vector((-math.sin(-tilt), 0, -math.cos(-tilt)))  # shade pointing direction
         bulb_pos = head + axis * (h * 0.55)
 
-    else:  # pendant
-        shade_obj, r, h = build_shade(p, shade, root, close_top=True)
+    else:  # pendant (one shade, or a cluster of three hanging at different heights)
+        n = int(p.get("shade_count", 1))
         cord = lerp(0.25, 0.8, p["stem_len"])
-        top = h
-        tube("Cord", [(0, 0, top), (0, 0, top + cord)], 0.003, body, smooth=False, parent=root)
-        cap_r = lerp(0.035, 0.065, p["base_radius"])
+        r0, _ = shade_dims(p)
+        spread = r0 * 1.45                       # centre-to-centre distance keeps shades from colliding
+        cap_r = lerp(0.035, 0.065, p["base_radius"]) if n == 1 else spread + 0.03   # canopy wide enough to catch every cord
         cap_h = lerp(0.015, 0.035, p["base_height"])
-        z = top + cord
+        bulbs = []
+        r = h = 0
+        for i in range(n):
+            shade_obj, r, h = build_shade(p, shade, root, close_top=True)
+            if n == 1:
+                off, drop = Vector((0, 0, 0)), 0.0
+            else:
+                a = math.radians(90 + 120 * i)
+                off, drop = Vector((math.cos(a), math.sin(a), 0)) * spread, cord * (0, 0.22, 0.4)[i]
+            ceiling = h + cord
+            shade_obj.location = off + Vector((0, 0, drop))
+            top = h + drop
+            tube(f"Cord{i}", [tuple(off + Vector((0, 0, top))), tuple(off + Vector((0, 0, ceiling)))], 0.003, body,
+                 smooth=False, parent=root)
+            tube(f"Socket{i}", [tuple(off + Vector((0, 0, top - 0.002))), tuple(off + Vector((0, 0, top + 0.03)))],
+                 0.012, body, smooth=False, parent=root)
+            bulbs.append(off + Vector((0, 0, drop + h * (0.5 if p["shade_shape"] == "globe" else 0.45))))
+        z = h + cord
         lathe("Canopy", [(0, z), (cap_r, z), (cap_r, z + cap_h), (0, z + cap_h)], body,
               sharp=(1, 2), parent=root)
-        tube("Socket", [(0, 0, top - 0.002), (0, 0, top + 0.03)], 0.012, body, smooth=False, parent=root)
-        bulb_pos = Vector((0, 0, h * 0.45 if p["shade_shape"] != "globe" else h * 0.5))
+        bulb_pos = bulbs[0]
+        for extra in bulbs[1:]:
+            add_bulb(p, tuple(extra), root, r)["glow"] = glow
 
     light = add_bulb(p, tuple(bulb_pos), root, r)
     light["glow"] = glow
@@ -614,7 +660,7 @@ def lamp_bounds(root):
     return pts
 
 
-def frame_lamp(root, light, floor, cam, is_pendant):
+def frame_lamp(root, light, floor, cam, is_pendant, view=None):
     # normalise lamp to ~1 unit so lighting & framing are consistent
     pts = lamp_bounds(root)
     lo = Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts)))
@@ -626,11 +672,15 @@ def frame_lamp(root, light, floor, cam, is_pendant):
     floor.hide_render = False
 
     # bulb brightness: watts scale with the square of the (shrunk) shade size
-    glow = light.get("glow", 0.5)
-    light.data.energy = lerp(1.5, 6.0, glow) * s * s * 0.25 + 0.5
+    for lo_ in lamp_collection().objects:
+        if lo_.type == "LIGHT" and "glow" in lo_:
+            lo_.data.energy = lerp(1.5, 6.0, lo_["glow"]) * s * s * 0.25 + 0.5
 
     # camera: 3/4 view, orthographic, fitted to projected bounds
-    direction = Vector((1.0, -1.7, 0.5)).normalized()
+    view = view or {}
+    direction = Vector((1.0, -1.7, view.get("elev", 0.5)))
+    direction.rotate(Matrix.Rotation(math.radians(view.get("az", 0.0)), 3, "Z"))
+    direction.normalize()
     pts = lamp_bounds(root)
     center = sum(pts, Vector()) / len(pts)
     cam.location = center + direction * 6
@@ -652,10 +702,19 @@ def frame_lamp(root, light, floor, cam, is_pendant):
               "zrange", round(min(p.z for p in pts), 3), round(max(p.z for p in pts), 3), flush=True)
 
 
-def render_lamp(p, path, floor, cam):
+def set_backdrop(floor, hexcol):
+    rgb = srgb_to_linear(hex_to_rgb(hexcol))
+    bg = next(n for n in bpy.context.scene.world.node_tree.nodes if n.type == "BACKGROUND")
+    bg.inputs["Color"].default_value = (*rgb, 1.0)
+    bsdf = next(n for n in floor.data.materials[0].node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Base Color"].default_value = (*rgb, 1.0)
+
+
+def render_lamp(p, path, floor, cam, view=None):
     clear_lamp()
+    set_backdrop(floor, (view or {}).get("bg", BACKDROPS[0]))
     root, light = build_lamp(p)
-    frame_lamp(root, light, floor, cam, p["type"] == "pendant")
+    frame_lamp(root, light, floor, cam, p["type"] == "pendant", view)
     bpy.context.scene.render.filepath = path
     bpy.ops.render.render(write_still=True)
 
@@ -679,6 +738,7 @@ def parse_args():
                     help="lamps per Blender process (EEVEE goes black after ~18 renders in one session)")
     ap.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     ap.add_argument("--debug", action="store_true")
+    ap.add_argument("--redo", help="comma-separated lamp numbers to re-render in place, e.g. 17,45")
     return ap.parse_args(argv)
 
 
@@ -733,7 +793,7 @@ def main():
     os.makedirs(os.path.join(out, "lamps"), exist_ok=True)
     db_path = os.path.join(out, "lamps.json")
 
-    if not a.combine and not a.worker and a.count > a.chunk:
+    if not a.combine and not a.worker and not a.redo and a.count > a.chunk:
         return drive(a, out, db_path)
 
     floor, cam = setup_scene(a.size, a.samples, a.engine)
@@ -754,6 +814,23 @@ def main():
         print(f"Combined {len(plist)} lamps -> {os.path.join(out, 'combined.jpg')}")
         return
 
+    if a.redo:
+        # re-render specific lamps (same seed -> same lamp) and update their entries in place
+        lamps = read_db(db_path)
+        for n in [int(x) for x in a.redo.split(",") if x.strip()]:
+            rng = random.Random(a.seed * 100003 + n)
+            p = random_params(rng)
+            view = {"az": round(rng.uniform(-30, 30), 1), "elev": round(rng.uniform(0.45, 0.7), 2), "bg": rng.choice(BACKDROPS)}
+            lid = f"lamp_{n:04d}"
+            render_lamp(p, os.path.join(out, "lamps", lid + ".jpg"), floor, cam, view)
+            for l in lamps:
+                if l["id"] == lid:
+                    l.update({"params": p, "tags": tags_for(p), "view": view})
+            print(f"  redid {lid}", flush=True)
+        with open(db_path, "w") as f:
+            json.dump({"seed": a.seed, "count": len(lamps), "lamps": lamps}, f, indent=1)
+        return
+
     lamps = [l for l in read_db(db_path) if int(l["id"].split("_")[1]) < a.start] if a.start > 1 else []
 
     def save():
@@ -764,15 +841,16 @@ def main():
     for n in range(a.start, a.start + a.count):
         rng = random.Random(a.seed * 100003 + n)
         p = random_params(rng)
+        view = {"az": round(rng.uniform(-30, 30), 1), "elev": round(rng.uniform(0.45, 0.7), 2), "bg": rng.choice(BACKDROPS)}
         lid = f"lamp_{n:04d}"
         rel = f"lamps/{lid}.jpg"
         path = os.path.join(out, rel)
-        render_lamp(p, path, floor, cam)
+        render_lamp(p, path, floor, cam, view)
         if image_is_black(path):
             print(f"{lid} rendered black; restarting Blender to retry", flush=True)
             save()
             sys.exit(3)
-        lamps.append({"id": lid, "image": rel, "params": p, "tags": tags_for(p)})
+        lamps.append({"id": lid, "image": rel, "params": p, "tags": tags_for(p), "view": view})
         save()
         print(f"  {lid}  {p['type']:7s} {p['shade_shape']:6s}", flush=True)
     print(f"Rendered {a.count} lamps in {(time.time() - t0)/60:.1f} min")

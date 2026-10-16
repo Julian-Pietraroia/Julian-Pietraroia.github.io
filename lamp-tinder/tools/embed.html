@@ -49,18 +49,22 @@ async function run() {
   const st = window.__embed;
   st.state = 'loading';
   $('#status').textContent = 'Loading model (first time downloads ~90-350 MB)…';
-  const [lamps, cat] = await Promise.all([
-    fetch('../out/lamps.json').then(r => r.json()),
-    fetch('../data/catalog.json').then(r => r.json()),
+  // ?lamps-only: re-fingerprint just the lamp renders and keep the existing product fingerprints
+  // (used after rendering a new lamp set, when the product thumbnails are no longer on disk)
+  const lampsOnly = new URLSearchParams(location.search).has('lamps-only');
+  const [lamps, cat, prev] = await Promise.all([
+    fetch('../out/lamps.json', { cache: 'no-store' }).then(r => r.json()),
+    fetch('../data/catalog.json', { cache: 'no-store' }).then(r => r.json()),
+    lampsOnly ? fetch('../data/embeddings.json', { cache: 'no-store' }).then(r => r.json()) : null,
   ]);
   const jobs = [
     ...lamps.lamps.map(l => ({ kind: 'lamps', id: l.id, src: '../out/' + l.image })),
-    ...cat.products.map(p => ({ kind: 'products', id: p.id, src: `../catalog_img/${p.id}.jpg` })),
+    ...(lampsOnly ? [] : cat.products.map(p => ({ kind: 'products', id: p.id, src: `../catalog_img/${p.id}.jpg` }))),
   ];
   st.total = jobs.length;
   const processor = await AutoProcessor.from_pretrained(MODEL);
   const model = await loadModel();
-  const out = { model: MODEL, dim: 512, built: new Date().toISOString().slice(0, 10), lamps: {}, products: {} };
+  const out = { model: MODEL, dim: 512, built: new Date().toISOString().slice(0, 10), lamps: {}, products: lampsOnly ? prev.products : {} };
   st.state = 'running';
   const t0 = performance.now(), B = 8;
   for (let i = 0; i < jobs.length; i += B) {
