@@ -55,3 +55,22 @@ This project was built in a single session with Claude (Anthropic), working in t
 **Me:** can you put the claude chat in the repo
 
 **Claude:** Added as this file.
+
+**Me:** currently the lamps on the wesbite are premade correct?
+
+**Claude:** Yes. The swipe cards are 300 lamps that Blender rendered ahead of time; each session shows a random selection. The one lamp made live is the blended result, built in the browser with three.js. GitHub Pages only serves static files, so Blender can't run there.
+
+**Me:** is there a way to make the recommendations better?
+
+**Claude:** Suggested six upgrades: a much bigger catalog; matching on how lamps look using image fingerprints (CLIP) instead of tags; using passes as well as likes; not squashing mixed taste into one average; smarter card order; and a budget filter.
+
+**Me:** do all of them
+
+*Claude wrote a catalog builder that pulls lighting from ten stores' public product feeds on my PC (1,561 lamps after filtering out furniture, wall lights and ceiling fixtures), then ran CLIP in Chrome on my GPU to fingerprint every render and product photo. A check showed a few products matching almost everything; centring renders and photos separately fixed it (distinct top matches went from 59 to 186 across the 300 lamps). Claude rebuilt the site engine with smart card order, likes-minus-passes scoring, style clusters, learned-taste chips and a budget filter, then tested it with simulated users (pendant-only, pendants + desk lamps, under $150).*
+
+**Me:** I dont want thousands of thumbnails on my computer
+
+**Me:** once you are done with them, delete them
+
+*The product thumbnails were only used to compute fingerprints. Claude deleted them (1,685 files, 49 MB) and made the local server delete them automatically whenever fingerprints are rebuilt.*
+

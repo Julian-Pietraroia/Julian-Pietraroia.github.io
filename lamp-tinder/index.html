@@ -22,32 +22,36 @@
   html, body { margin: 0; height: 100%; }
   body { background: var(--bg); color: var(--ink); font: 15px/1.5 Inter, system-ui, sans-serif; overflow-x: hidden; }
   button { font: inherit; cursor: pointer; }
+  a { color: inherit; }
   .screen { display: none; min-height: 100vh; }
   .screen.active { display: flex; }
 
   header.bar { position: fixed; inset: 0 0 auto 0; display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 20px; z-index: 5; }
+    padding: 14px 20px; z-index: 5; pointer-events: none; }
   .logo { font-family: Fraunces, serif; font-weight: 700; font-size: 22px; letter-spacing: -.02em; }
   .logo span { color: var(--accent); }
 
   /* intro */
-  #intro { flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 16px 40px; gap: 18px; }
+  #intro { flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 16px 40px; gap: 16px; }
   #intro h1 { font-family: Fraunces, serif; font-size: clamp(40px, 8vw, 76px); line-height: .95; margin: 0; letter-spacing: -.03em; }
   #intro h1 em { font-style: normal; color: var(--accent); }
-  #intro p { max-width: 460px; color: var(--muted); margin: 0; }
+  #intro p { max-width: 480px; color: var(--muted); margin: 0; }
   .peek { display: flex; gap: 10px; margin: 8px 0 6px; }
   .peek img { width: 84px; height: 84px; border-radius: 14px; object-fit: cover; box-shadow: var(--shadow); }
   .peek img:nth-child(odd) { transform: rotate(-4deg); } .peek img:nth-child(even) { transform: rotate(3deg) translateY(6px); }
-  .seg { display: inline-flex; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
-  .seg button { border: 0; background: none; padding: 8px 16px; border-radius: 999px; color: var(--muted); }
+  .opt { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .opt label { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; }
+  .seg { display: inline-flex; flex-wrap: wrap; justify-content: center; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+  .seg button { border: 0; background: none; padding: 7px 14px; border-radius: 999px; color: var(--muted); font-size: 14px; }
   .seg button.on { background: var(--ink); color: var(--paper); }
-  .cta { border: 0; background: var(--ink); color: var(--paper); padding: 14px 28px; border-radius: 999px; font-weight: 600; font-size: 16px; }
+  .cta { border: 0; background: var(--ink); color: var(--paper); padding: 14px 28px; border-radius: 999px; font-weight: 600; font-size: 16px; text-decoration: none; display: inline-block; }
   .cta:hover { background: #000; }
+  .cta:disabled { opacity: .5; cursor: default; }
   .ghost { border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 11px 20px; border-radius: 999px; font-weight: 500; }
   .err { color: var(--nope); max-width: 520px; }
 
   /* swipe */
-  #swipe { flex-direction: column; align-items: center; justify-content: center; padding: 70px 16px 24px; gap: 18px; }
+  #swipe { flex-direction: column; align-items: center; justify-content: center; padding: 70px 16px 24px; gap: 16px; }
   .progress { width: min(380px, 100%); height: 4px; background: var(--line); border-radius: 4px; overflow: hidden; }
   .progress i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .3s; }
   .count { font-size: 13px; color: var(--muted); }
@@ -63,8 +67,7 @@
     font: 700 28px/1 Inter, sans-serif; letter-spacing: .06em; opacity: 0; }
   .stamp.like { left: 20px; color: var(--like); transform: rotate(-14deg); }
   .stamp.nope { right: 20px; color: var(--nope); transform: rotate(14deg); }
-  .card.back1 { transform: scale(.95) translateY(14px); }
-  .card.back2 { transform: scale(.9) translateY(28px); opacity: .7; }
+  .card.under { transform: scale(.95) translateY(14px); }
   .card.top { cursor: grab; } .card.top:active { cursor: grabbing; }
   .actions { display: flex; gap: 22px; align-items: center; }
   .round { width: 64px; height: 64px; border-radius: 50%; border: 0; background: var(--paper); box-shadow: var(--shadow);
@@ -73,47 +76,58 @@
   .round svg { width: 28px; height: 28px; }
   .hint { font-size: 12px; color: var(--muted); }
   .finish { border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 9px 18px;
-    border-radius: 999px; font-weight: 500; font-size: 14px; }
+    border-radius: 999px; font-weight: 500; font-size: 14px; transition: background .2s, color .2s; }
   .finish:hover:not(:disabled) { border-color: var(--ink); }
   .finish:disabled { opacity: .45; cursor: default; }
+  .finish.ready { background: var(--accent); border-color: var(--accent); color: #fff; }
 
   /* results */
-  #results { flex-direction: column; padding: 76px 20px 48px; gap: 28px; max-width: 1180px; margin: 0 auto; }
-  .res-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 28px; align-items: start; }
-  @media (max-width: 860px) { .res-grid { grid-template-columns: 1fr; } }
+  #results { flex-direction: column; padding: 76px 20px 56px; gap: 22px; max-width: 1180px; margin: 0 auto; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tab { border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 8px 16px; color: var(--muted); }
+  .tab.on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .res-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 28px; align-items: start; }
+  @media (max-width: 900px) { .res-grid { grid-template-columns: 1fr; } }
   .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; }
   h2 { font-family: Fraunces, serif; font-weight: 500; font-size: clamp(28px, 4vw, 40px); margin: 4px 0 0; letter-spacing: -.02em; line-height: 1.05; }
-  .viewer { position: relative; aspect-ratio: 1 / 1; border-radius: 22px; overflow: hidden; background: var(--card-bg); box-shadow: var(--shadow); }
-  .viewer .tip { position: absolute; left: 14px; bottom: 12px; font-size: 12px; color: var(--muted); background: rgba(247,244,239,.8); padding: 4px 10px; border-radius: 999px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .viewer { position: relative; aspect-ratio: 1 / 1; border-radius: 22px; overflow: hidden; background: var(--card-bg); box-shadow: var(--shadow); margin-top: 14px; }
+  .viewer .tip { position: absolute; left: 14px; bottom: 12px; font-size: 12px; color: var(--muted); background: rgba(247,244,239,.85); padding: 4px 10px; border-radius: 999px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .chip { background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+  .chip.pos { border-color: #9cc4a9; background: #eef5ef; } .chip.neg { border-color: #e2b1ab; background: #f8eeec; }
   .sw { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,.15); display: inline-block; }
   .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
-  .match { display: flex; flex-direction: column; gap: 10px; }
-  .match .top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
-  .match .name { font-family: Fraunces, serif; font-size: 26px; font-weight: 500; line-height: 1.1; }
-  .match .brand { color: var(--muted); font-size: 14px; }
-  .pct { font-family: Fraunces, serif; font-size: 34px; color: var(--accent); white-space: nowrap; }
-  .why { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14px; }
-  .buy { align-self: flex-start; text-decoration: none; }
-  .runner { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
-  .runner a { color: var(--ink); font-weight: 500; }
-  .runner span { color: var(--muted); font-size: 13px; }
-  .liked { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+  .pick { display: grid; grid-template-columns: 170px 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 520px) { .pick { grid-template-columns: 1fr; } }
+  .pimg { width: 100%; aspect-ratio: 1; object-fit: contain; background: #fff; border-radius: 14px; border: 1px solid var(--line); display: block; }
+  .pick .name { font-family: Fraunces, serif; font-size: 26px; font-weight: 500; line-height: 1.1; }
+  .pick .brand, .small { color: var(--muted); font-size: 14px; }
+  .price { font-weight: 600; font-size: 18px; margin: 6px 0; }
+  .score { color: var(--accent); font-weight: 600; font-size: 14px; }
+  .because { display: flex; gap: 6px; margin-top: 8px; }
+  .because img { width: 46px; height: 46px; border-radius: 9px; object-fit: cover; }
+  .more { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 12px; }
+  .more a { text-decoration: none; display: flex; flex-direction: column; gap: 4px; }
+  .more .n { font-size: 13px; font-weight: 500; line-height: 1.25; }
+  .more .p { font-size: 13px; color: var(--muted); }
+  .liked { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
   .liked img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; }
-  .row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .note { font-size: 13px; color: var(--muted); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .note { font-size: 13px; color: var(--muted); margin: 0; }
   code { background: #e3ddd3; padding: 1px 6px; border-radius: 5px; font-size: 12.5px; }
 </style>
 </head>
 <body>
-<header class="bar"><div class="logo">lamp<span>·</span>tinder</div><div id="hdr-right"></div></header>
+<header class="bar"><div class="logo">lamp<span>·</span>tinder</div></header>
 
 <section id="intro" class="screen active">
   <div class="peek" id="peek"></div>
   <h1>Find the lamp<br>you <em>actually</em> want.</h1>
-  <p>Swipe right on lamps you like, left on the ones you don't. At the end we blend every lamp you liked into one, then find the closest one you can actually buy.</p>
-  <div class="seg" id="len"><button data-n="20">20 lamps</button><button data-n="30" class="on">30 lamps</button><button data-n="50">50 lamps</button></div>
+  <p>Swipe right on lamps you like, left on the ones you don't. Then we blend your favourites into a lamp of your own and find the real ones that look most like your taste.</p>
+  <div class="opt"><label>Budget</label>
+    <div class="seg" id="budget"><button data-b="150">Under $150</button><button data-b="500">Under $500</button><button data-b="1500">Under $1,500</button><button data-b="0" class="on">Any</button></div></div>
+  <div class="opt"><label>Up to</label>
+    <div class="seg" id="len"><button data-n="20">20 lamps</button><button data-n="30" class="on">30 lamps</button><button data-n="50">50 lamps</button></div></div>
   <button class="cta" id="start" disabled>Loading lamps…</button>
   <p class="err" id="err" hidden></p>
 </section>
@@ -135,7 +149,7 @@
 <script type="module">
 import { showLamp, lampSTL } from './site/lamp3d.js';
 
-// ---- vocab (mirrors gen_lamps.py) --------------------------------------
+// ---------- vocabulary (mirrors gen_lamps.py) ----------
 const BODY = { black:'#1c1c1c', white:'#f2f0eb', brass:'#c9a25a', copper:'#b8734a', chrome:'#c8ccd0', sage:'#9caf88',
   terracotta:'#c1694f', navy:'#24345a', mustard:'#d4a72c', walnut:'#5a3b26', oak:'#c49a6c', red:'#b8322a',
   'forest green':'#2f4a3a', blush:'#e3b5a8', graphite:'#4a4d52' };
@@ -145,105 +159,145 @@ const SHADE = { linen:'#efe8da', white:'#f7f5f0', cream:'#f1e3c4', black:'#20202
 const NUMERIC = ['base_radius','base_height','stem_len','stem_thickness','stem_bend','arm_reach','shade_radius',
   'shade_height','shade_taper','shade_tilt','shade_glow','light_warmth'];
 const CATEG = ['type','base_shape','shade_shape','finish'];
+const TYPE_PLURAL = { table: 'table lamps', floor: 'floor lamps', arm: 'desk lamps', pendant: 'pendants' };
 const hex2rgb = h => [1,3,5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
 const rgb2hex = c => '#' + c.map(x => Math.round(Math.max(0, Math.min(1, x)) * 255).toString(16).padStart(2, '0')).join('');
-const dist = (a, b) => Math.hypot(a[0]-b[0], a[1]-b[1], a[2]-b[2]);
-const nearest = (rgb, table) => Object.entries(table).sort((x, y) => dist(rgb, hex2rgb(x[1])) - dist(rgb, hex2rgb(y[1])))[0][0];
+const cdist = (a, b) => Math.hypot(a[0]-b[0], a[1]-b[1], a[2]-b[2]);
+const nearest = (rgb, table) => Object.entries(table).sort((x, y) => cdist(rgb, hex2rgb(x[1])) - cdist(rgb, hex2rgb(y[1])))[0][0];
+const mode = arr => { const c = {}; let best, n = 0; for (const x of arr) { c[x] = (c[x] || 0) + 1; if (c[x] > n) { n = c[x]; best = x; } } return [best, n]; };
 
 function tagsFor(p) {
   return {
-    type: p.type, shade_shape: p.shade_shape, base_shape: p.type === 'pendant' ? 'canopy' : p.base_shape, finish: p.finish,
+    type: p.type, shade_shape: p.shade_shape, finish: p.finish,
     body_color: nearest(p.body_color, BODY), shade_color: nearest(p.shade_color, SHADE),
     size: p.shade_radius > .66 ? 'large' : p.shade_radius < .33 ? 'small' : 'medium',
     glow: p.shade_glow > .6 ? 'bright' : p.shade_glow < .25 ? 'opaque' : 'soft',
     light: p.light_warmth > .5 ? 'warm' : 'neutral',
   };
 }
-function mode(arr) { const c = {}; let best, n = 0; for (const x of arr) { c[x] = (c[x] || 0) + 1; if (c[x] > n) { n = c[x]; best = x; } } return best; }
-function combine(list) {
+function blend(list) {
   const out = {};
-  for (const k of CATEG) out[k] = mode(list.map(p => p[k]));
+  for (const k of CATEG) out[k] = mode(list.map(p => p[k]))[0];
   for (const k of NUMERIC) out[k] = list.reduce((s, p) => s + p[k], 0) / list.length;
   for (const k of ['body_color', 'shade_color']) out[k] = [0,1,2].map(i => list.reduce((s, p) => s + p[k][i], 0) / list.length);
   return out;
 }
 
-// ---- matching ----------------------------------------------------------
-const ROUND = ['dome', 'globe', 'bell'], STRAIGHT = ['cone', 'drum', 'flare'];
-const TYPE_NEAR = { table: { arm: .4, floor: .3 }, arm: { table: .4 }, floor: { table: .3 }, pendant: {} };
-const GLOW = ['opaque', 'soft', 'bright'];
-function scoreProduct(prod, combined, tags) {
-  const why = []; let s = 0;
-  if (prod.type === tags.type) { s += 3; why.push(`a ${tags.type} lamp, like most of your likes`); }
-  else s += 3 * (TYPE_NEAR[tags.type][prod.type] || 0);
-  if (prod.shade_shape === tags.shade_shape) { s += 3; why.push(`${tags.shade_shape}-shaped shade`); }
-  else if ([ROUND, STRAIGHT].some(g => g.includes(prod.shade_shape) && g.includes(tags.shade_shape))) {
-    s += 1.5; why.push(`${ROUND.includes(tags.shade_shape) ? 'rounded' : 'straight-sided'} shade like yours`);
-  }
-  if (prod.finish === tags.finish) { s += 1; why.push(`${tags.finish} finish`); }
-  else if (prod.finish !== 'matte' && tags.finish !== 'matte') s += .4;
-  const bc = 1 - dist(combined.body_color, hex2rgb(BODY[prod.body_color])) / Math.sqrt(3);
-  const sc = 1 - dist(combined.shade_color, hex2rgb(SHADE[prod.shade_color])) / Math.sqrt(3);
-  s += 1.5 * bc ** 2 + 1.5 * sc ** 2;
-  if (bc > .85) why.push(`${prod.body_color} body, close to your ${tags.body_color}`);
-  if (sc > .85) why.push(`${prod.shade_color} shade, close to your ${tags.shade_color}`);
-  const gd = Math.abs(GLOW.indexOf(prod.glow) - GLOW.indexOf(tags.glow));
-  s += gd === 0 ? 1 : gd === 1 ? .4 : 0;
-  if (gd === 0) why.push(`${tags.glow === 'opaque' ? 'opaque shade that throws light down' : tags.glow + ' glowing shade'}`);
-  if (prod.base_shape === tags.base_shape && prod.type !== 'pendant') { s += .5; why.push(`${tags.base_shape} base`); }
-  return { prod, pct: Math.round(100 * s / 11.5), why };
+// ---------- vectors ----------
+function decode(b64) {
+  const s = atob(b64), v = new Float32Array(s.length);
+  let n = 0;
+  for (let i = 0; i < s.length; i++) { const x = (s.charCodeAt(i) << 24) >> 24; v[i] = x; n += x * x; }
+  n = Math.sqrt(n) || 1; for (let i = 0; i < v.length; i++) v[i] /= n;
+  return v;
+}
+const dot = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; };
+function mean(vs) {
+  const m = new Float32Array(vs[0].length);
+  for (const v of vs) for (let i = 0; i < m.length; i++) m[i] += v[i];
+  return normalize(m);
+}
+function normalize(v) { let n = 0; for (const x of v) n += x * x; n = Math.sqrt(n) || 1; return v.map(x => x / n); }
+const sub = (a, b, k = 1) => a.map((x, i) => x - k * b[i]);
+// Renders and product photos live in slightly different parts of CLIP space (studio grey vs real photos).
+// Centring each set on its own mean removes that offset, so matches depend on the lamp, not the photo style.
+function centre(items) {
+  const m = new Float32Array(items[0].emb.length);
+  for (const it of items) for (let i = 0; i < m.length; i++) m[i] += it.emb[i] / items.length;
+  for (const it of items) it.emb = normalize(sub(it.emb, m));
 }
 
-// ---- state -------------------------------------------------------------
-let LAMPS = [], PRODUCTS = [], deck = [], idx = 0, liked = [], N = 30, disposeViewer = null;
+// ---------- data ----------
+let LAMPS = [], BYID = {}, PRODUCTS = [], USD = 1.38;
+let N = 30, BUDGET = 0;
+let shown = [], liked = [], passed = [], current = null, stableTop = [], disposeViewer = null;
 const $ = s => document.querySelector(s);
 const show = id => { document.querySelectorAll('.screen').forEach(e => e.classList.toggle('active', e.id === id)); window.scrollTo(0, 0); };
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-const pretty = t => `${t.finish} ${t.body_color} ${t.type === 'arm' ? 'arm lamp' : t.type + ' lamp'}`;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const money = p => new Intl.NumberFormat('en-CA', { style: 'currency', currency: p.currency, maximumFractionDigits: p.price < 100 ? 2 : 0 }).format(p.price)
+  .replace(/^\$/, p.currency === 'CAD' ? 'CA$' : '$').replace(/^US\$/, 'US$');
+const thumb = u => /cdn\.shopify\.com|\/cdn\/shop\//.test(u) ? u + (u.includes('?') ? '&' : '?') + 'width=400' : u;
 
 async function load() {
   try {
-    const [l, p] = await Promise.all([fetch('out/lamps.json').then(r => r.json()), fetch('site/products.json').then(r => r.json())]);
-    LAMPS = l.lamps; PRODUCTS = p;
+    const [l, c, e] = await Promise.all(['out/lamps.json', 'data/catalog.json', 'data/embeddings.json']
+      .map(u => fetch(u).then(r => { if (!r.ok) throw new Error(`${u}: ${r.status}`); return r.json(); })));
+    USD = c.usd_to_cad || USD;
+    LAMPS = l.lamps.filter(x => e.lamps[x.id]).map(x => ({ ...x, emb: decode(e.lamps[x.id]) }));
+    LAMPS.forEach(x => { BYID[x.id] = x; });
+    PRODUCTS = c.products.filter(p => e.products[p.id]).map(p => ({ ...p, emb: decode(e.products[p.id]) }));
+    centre(LAMPS); centre(PRODUCTS);
     $('#peek').innerHTML = shuffle([...LAMPS]).slice(0, 5).map(x => `<img src="out/${x.image}" alt="">`).join('');
     $('#start').disabled = false; $('#start').textContent = 'Start swiping';
-  } catch (e) {
+  } catch (err) {
     $('#start').textContent = 'Could not load lamps';
     $('#err').hidden = false;
     $('#err').innerHTML = location.protocol === 'file:'
-      ? 'Open this site through <code>start-site.bat</code> instead of double-clicking index.html; browsers block loading the lamp data from a file.'
-      : `Couldn't read <code>out/lamps.json</code>. Run <code>run.bat</code> first to generate the lamps. (${e.message})`;
+      ? 'Open this site through <code>start-site.bat</code> instead of double-clicking index.html.'
+      : `Couldn't load the lamp data (${esc(err.message)}).`;
   }
 }
 
-$('#len').addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return;
-  N = +b.dataset.n; $('#len').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
-});
+for (const [sel, set] of [['#len', b => { N = +b.dataset.n; }], ['#budget', b => { BUDGET = +b.dataset.b; }]]) {
+  $(sel).addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    set(b); $(sel).querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  });
+}
 $('#start').addEventListener('click', start);
 
+// ---------- choosing the next card ----------
+// Early cards are spread out across the space of looks; after that we mix
+// "probably a like" picks (to refine your style) with "could go either way" picks (to learn the most).
+function minSimToShown(l) { let m = -1; for (const s of shown) m = Math.max(m, dot(l.emb, BYID[s].emb)); return m; }
+function diversePick(pool) {
+  if (!shown.length) return pool[Math.floor(Math.random() * pool.length)];
+  const cands = shuffle([...pool]).slice(0, 60);
+  return cands.reduce((best, c) => { const d = minSimToShown(c); return d < best[1] ? [c, d] : best; }, [null, 2])[0];
+}
+function nextLamp() {
+  const pool = LAMPS.filter(l => !shown.includes(l.id));
+  if (!pool.length) return null;
+  if (shown.length < 6 || !liked.length || !passed.length) return diversePick(pool);
+  const w = sub(mean(liked.map(id => BYID[id].emb)), mean(passed.map(id => BYID[id].emb)));
+  const score = l => dot(w, l.emb);
+  const avg = ids => ids.reduce((s, id) => s + score(BYID[id]), 0) / ids.length;
+  const t = (avg(liked) + avg(passed)) / 2;
+  const recent = shown.slice(-3).map(id => BYID[id].emb);
+  const fresh = pool.filter(l => recent.every(r => dot(r, l.emb) < 0.8));
+  const cand = fresh.length ? fresh : pool;
+  const turn = shown.length % 3;
+  if (turn === 0) return cand.reduce((a, b) => score(b) > score(a) ? b : a);                       // likely like
+  if (turn === 1) return cand.reduce((a, b) => Math.abs(score(b) - t) < Math.abs(score(a) - t) ? b : a); // most informative
+  return diversePick(cand);                                                                         // explore
+}
+
 function start() {
-  deck = shuffle([...LAMPS]).slice(0, Math.min(N, LAMPS.length)); idx = 0; liked = [];
-  show('swipe'); renderDeck();
+  shown = []; liked = []; passed = []; stableTop = [];
+  show('swipe'); current = nextLamp(); shown.push(current.id); renderDeck();
 }
 
 function cardHTML(l, cls) {
   const t = l.tags, n = +l.id.split('_')[1];
+  const kind = t.type === 'arm' ? 'desk lamp' : t.type === 'pendant' ? 'pendant' : `${t.type} lamp`;
   return `<div class="card ${cls}" data-id="${l.id}"><img src="out/${l.image}" alt="">
     <div class="stamp like">LIKE</div><div class="stamp nope">NOPE</div>
-    <div class="meta"><b>Lamp no. ${n}</b><div>${pretty(t)} · ${t.shade_shape} shade · ${t.shade_color}</div></div></div>`;
+    <div class="meta"><b>Lamp no. ${n}</b><div>${t.finish} ${t.body_color} ${kind} · ${t.shade_shape} shade</div></div></div>`;
 }
 
 function renderDeck() {
-  $('#bar').style.width = `${100 * idx / deck.length}%`;
-  $('#count').textContent = `${idx + 1} of ${deck.length} · ${liked.length} liked`;
-  const fin = $('#finish');
+  const done = liked.length + passed.length;
+  $('#bar').style.width = `${100 * done / N}%`;
+  $('#count').textContent = `${done + 1} of ${N} · ${liked.length} liked`;
+  // the next card is chosen after this swipe, so the card underneath is a blank placeholder
+  $('#deck').innerHTML = '<div class="card under"></div>' + cardHTML(current, 'top');
+  attachDrag($('#deck .card.top'));
+  const fin = $('#finish'), settled = stableTop.length >= 4 && stableTop.slice(-4).every(x => x === stableTop[stableTop.length - 1]);
   fin.disabled = !liked.length;
-  fin.textContent = liked.length ? `See my lamp now (${liked.length} liked) →` : 'Like a lamp to finish early';
-  const el = $('#deck');
-  el.innerHTML = deck.slice(idx, idx + 3).map((l, i) => cardHTML(l, ['top', 'back1', 'back2'][i])).reverse().join('');
-  const top = el.querySelector('.card.top');
-  if (top) attachDrag(top);
+  fin.classList.toggle('ready', settled);
+  fin.textContent = !liked.length ? 'Like a lamp to finish early'
+    : settled ? 'Your match has settled. See it →' : `See my lamp now (${liked.length} liked) →`;
 }
 
 function attachDrag(card) {
@@ -267,93 +321,199 @@ function attachDrag(card) {
 
 let busy = false;
 function decide(isLike) {
-  if (busy || idx >= deck.length) return;
+  if (busy || !current) return;
   busy = true;
+  (isLike ? liked : passed).push(current.id);
   const card = $('#deck .card.top');
-  if (isLike) liked.push(deck[idx]);
   card.style.transition = 'transform .32s ease-in, opacity .32s';
   card.querySelector(isLike ? '.stamp.like' : '.stamp.nope').style.opacity = 1;
   card.style.transform = `translate(${isLike ? 140 : -140}%, 10%) rotate(${isLike ? 24 : -24}deg)`;
   card.style.opacity = 0;
-  setTimeout(() => { idx++; busy = false; idx >= deck.length ? results() : renderDeck(); }, 300);
+  if (liked.length >= 4) stableTop.push(topPickId());
+  setTimeout(() => {
+    busy = false;
+    current = liked.length + passed.length < N ? nextLamp() : null;
+    if (!current) return results();
+    shown.push(current.id); renderDeck();
+  }, 300);
 }
-$('#finish').addEventListener('click', () => { if (liked.length && !busy) results(); });
 $('#like').addEventListener('click', () => decide(true));
 $('#nope').addEventListener('click', () => decide(false));
+$('#finish').addEventListener('click', () => { if (liked.length && !busy) results(); });
 addEventListener('keydown', e => {
   if (!$('#swipe').classList.contains('active')) return;
   if (e.key === 'ArrowRight') decide(true); if (e.key === 'ArrowLeft') decide(false);
 });
 
+// ---------- styles (clusters of likes) ----------
+function kmeans(vs, k, iters = 25) {
+  // k-means++ seeding with a fixed order for stable results
+  const cents = [vs[0]];
+  while (cents.length < k) {
+    let best = null, bd = -1;
+    for (const v of vs) { const d = Math.min(...cents.map(c => 1 - dot(v, c))); if (d > bd) { bd = d; best = v; } }
+    cents.push(best);
+  }
+  let assign = new Array(vs.length).fill(0);
+  for (let it = 0; it < iters; it++) {
+    assign = vs.map(v => cents.reduce((bi, c, i) => dot(v, c) > dot(v, cents[bi]) ? i : bi, 0));
+    for (let i = 0; i < k; i++) { const m = vs.filter((_, j) => assign[j] === i); if (m.length) cents[i] = mean(m); }
+  }
+  return assign;
+}
+function silhouette(vs, assign, k) {
+  let s = 0;
+  vs.forEach((v, i) => {
+    const d = c => { const m = vs.filter((_, j) => j !== i && assign[j] === c); return m.length ? m.reduce((a, w) => a + 1 - dot(v, w), 0) / m.length : null; };
+    const a = d(assign[i]); if (a === null) return;
+    const b = Math.min(...[...Array(k).keys()].filter(c => c !== assign[i]).map(d).filter(x => x !== null));
+    s += (b - a) / Math.max(a, b);
+  });
+  return s / vs.length;
+}
+function styles() {
+  const ids = [...liked], vs = ids.map(id => BYID[id].emb);
+  let best = { k: 1, assign: ids.map(() => 0) };
+  if (ids.length >= 4) {
+    let bestS = 0.1;
+    for (let k = 2; k <= Math.min(3, Math.floor(ids.length / 2)); k++) {
+      const a = kmeans(vs, k), sizes = [...Array(k).keys()].map(c => a.filter(x => x === c).length);
+      if (Math.min(...sizes) < (ids.length >= 6 ? 3 : 2)) continue;
+      const s = silhouette(vs, a, k);
+      if (s > bestS) { bestS = s; best = { k, assign: a }; }
+    }
+  }
+  return [...Array(best.k).keys()].map(c => ids.filter((_, j) => best.assign[j] === c)).sort((a, b) => b.length - a.length);
+}
+
+// ---------- recommendations ----------
+function scorer(memberIds) {
+  const members = memberIds.map(id => BYID[id]);
+  const cent = mean(members.map(m => m.emb));
+  const neg = passed.length ? mean(passed.map(id => BYID[id].emb)) : null;
+  const [mtype, mcount] = mode(members.map(m => m.params.type));
+  const typeBonus = 0.1 * mcount / members.length;   // a consistent style (all pendants) weighs type more
+  return p => {
+    let nn = -1; for (const m of members) nn = Math.max(nn, dot(p.emb, m.emb));
+    return 0.6 * dot(p.emb, cent) + 0.4 * nn - (neg ? 0.25 * dot(p.emb, neg) : 0) + (p.type === mtype ? typeBonus : 0);
+  };
+}
+const dedupeKey = p => (p.brand + p.name).toLowerCase().replace(/\b(table|floor|desk|pendant|lamp|light)\b/g, '').replace(/[^a-z0-9]/g, '').slice(0, 40);
+function recommend(memberIds) {
+  const score = scorer(memberIds);
+  const all = PRODUCTS.map(p => ({ p, s: score(p) })).sort((a, b) => b.s - a.s);
+  all.forEach((r, i) => { r.pct = Math.max(1, Math.round(100 * i / all.length)); });
+  let pool = BUDGET ? all.filter(r => r.p.price_cad <= BUDGET) : all;
+  const relaxed = BUDGET && pool.length < 6;
+  if (relaxed) pool = all;
+  const seen = new Set(), picks = [];
+  for (const r of pool) { const k = dedupeKey(r.p); if (seen.has(k)) continue; seen.add(k); picks.push(r); if (picks.length === 7) break; }
+  return { picks, total: all.length, relaxed };
+}
+function topPickId() { return recommend(liked).picks[0]?.p.id; }
+function closestLiked(p, memberIds, n = 3) {
+  return memberIds.map(id => BYID[id]).sort((a, b) => dot(p.emb, b.emb) - dot(p.emb, a.emb)).slice(0, n);
+}
+
+// what the swipes say about you: tag values liked far more / less often than average
+function learnedTaste() {
+  const seen = [...liked, ...passed]; if (seen.length < 8 || !liked.length || !passed.length) return { pos: [], neg: [] };
+  const R = liked.length / seen.length, rows = [];
+  const label = { type: v => TYPE_PLURAL[v], shade_shape: v => `${v} shades`, finish: v => `${v} finishes`,
+    body_color: v => `${v} bodies`, shade_color: v => `${v} shades`, glow: v => `${v === 'opaque' ? 'solid' : v}-glow shades` };
+  for (const key of Object.keys(label)) {
+    const vals = {};
+    for (const id of seen) { const v = BYID[id].tags[key]; (vals[v] ||= [0, 0]); vals[v][0]++; if (liked.includes(id)) vals[v][1]++; }
+    for (const [v, [n, l]] of Object.entries(vals)) if (n >= 4) rows.push({ txt: label[key](v), lift: (l + R) / (n + 1) - R, n });
+  }
+  rows.sort((a, b) => b.lift - a.lift);
+  return { pos: rows.filter(r => r.lift > 0.18).slice(0, 4), neg: rows.filter(r => r.lift < -0.18).slice(-4).reverse() };
+}
+
+// ---------- results ----------
+function styleName(ids) {
+  const ls = ids.map(id => BYID[id].tags);
+  const [type, tn] = mode(ls.map(t => t.type)), [col, cn] = mode(ls.map(t => t.body_color)), [shape, sn] = mode(ls.map(t => t.shade_shape));
+  const bits = [];
+  if (cn / ls.length >= 0.5) bits.push(col);
+  if (sn / ls.length >= 0.6) bits.push(`${shape}-shade`);
+  return (bits.join(' ') + ' ' + (tn / ls.length >= 0.5 ? TYPE_PLURAL[type] : 'lamps')).trim();
+}
+
+function productBlock(r, memberIds, total, big) {
+  const p = r.p, near = closestLiked(p, memberIds);
+  const img = `<img class="pimg" src="${esc(thumb(p.image))}" alt="${esc(p.name)}" loading="lazy" referrerpolicy="no-referrer">`;
+  if (!big) return `<a href="${esc(p.url)}" target="_blank" rel="noopener">${img}<span class="n">${esc(p.name)}</span>
+    <span class="p">${esc(money(p))} · ${esc(p.store)}</span></a>`;
+  return `<div class="pick">${img}<div>
+      <div class="eyebrow">Your closest real lamp</div>
+      <div class="name" style="margin-top:4px">${esc(p.name)}</div>
+      <div class="brand">${esc(p.brand || p.store)}${p.brand ? ' · sold by ' + esc(p.store) : ''}</div>
+      <div class="price">${esc(money(p))}${p.currency === 'USD' ? ` <span class="small">(≈ CA$${Math.round(p.price * USD)})</span>` : ''}</div>
+      <div class="score">Closer to your taste than ${100 - r.pct}% of ${total.toLocaleString()} real lamps</div>
+      <div class="small" style="margin-top:10px">Looks most like these lamps you liked:</div>
+      <div class="because">${near.map(l => `<img src="out/${l.image}" alt="${l.id}" title="${l.id}">`).join('')}</div>
+      <div class="row" style="margin-top:14px"><a class="cta" href="${esc(p.url)}" target="_blank" rel="noopener">View at ${esc(p.store)} ↗</a></div>
+    </div></div>`;
+}
+
+let STYLES = [];
 function results() {
   if (disposeViewer) { disposeViewer(); disposeViewer = null; }
   show('results');
   const R = $('#results');
   if (!liked.length) {
-    R.innerHTML = `<div><div class="eyebrow">No matches</div><h2>You passed on all ${deck.length} lamps.</h2>
-      <p class="note">Picky. Give it another round with a fresh set.</p><button class="cta" id="again">Swipe again</button></div>`;
+    R.innerHTML = `<div><div class="eyebrow">No matches</div><h2>You passed on every lamp.</h2>
+      <p class="note">Picky. Give it another round with a fresh set.</p><br><button class="cta" id="again">Swipe again</button></div>`;
     $('#again').onclick = start; return;
   }
-  const combined = combine(liked.map(l => l.params));
-  const tags = tagsFor(combined);
-  const ranked = PRODUCTS.map(p => scoreProduct(p, combined, tags)).sort((a, b) => b.pct - a.pct);
-  const best = ranked[0];
-  const chip = (label, color) => `<span class="chip">${color ? `<i class="sw" style="background:${color}"></i>` : ''}${label}</span>`;
-
+  STYLES = styles();
+  const taste = learnedTaste();
   R.innerHTML = `
-    <div class="res-grid">
-      <div>
-        <div class="eyebrow">Your lamp · blended from ${liked.length} like${liked.length > 1 ? 's' : ''}</div>
-        <h2>A ${tags.size} ${tags.type === 'arm' ? 'arm' : tags.type} lamp with a ${tags.shade_shape} shade</h2>
-        <div class="chips">
-          ${chip(tags.type)}${chip(tags.shade_shape + ' shade')}${chip(tags.finish + ' finish')}
-          ${chip(tags.body_color + ' body', rgb2hex(combined.body_color))}${chip(tags.shade_color + ' shade', rgb2hex(combined.shade_color))}
-          ${chip(tags.glow + ' glow')}${chip(tags.light + ' light')}
-        </div>
-        <div class="viewer" id="viewer" style="margin-top:16px"><div class="tip">Drag to rotate</div></div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:18px">
-        <div class="panel match">
-          <div class="eyebrow">Closest lamp you can buy</div>
-          <div class="top"><div><div class="name">${best.prod.name}</div>
-            <div class="brand">${best.prod.brand}${best.prod.designer ? ' · ' + best.prod.designer : ''}</div></div>
-            <div class="pct">${best.pct}%</div></div>
-          <div class="chips" style="margin:0">${chip(best.prod.body_color + ' body', BODY[best.prod.body_color])}${chip(best.prod.shade_color + ' shade', SHADE[best.prod.shade_color])}</div>
-          <ul class="why">${best.why.map(w => `<li>${w}</li>`).join('') || '<li>closest overall shape and colour</li>'}</ul>
-          <a class="cta buy" href="${best.prod.url}" target="_blank" rel="noopener">View at store ↗</a>
-        </div>
-        <div class="panel">
-          <div class="eyebrow" style="margin-bottom:4px">Also worth a look</div>
-          ${ranked.slice(1, 4).map(r => `<div class="runner"><div><a href="${r.prod.url}" target="_blank" rel="noopener">${r.prod.brand} ${r.prod.name}</a><br>
-            <span>${r.prod.type} · ${r.prod.shade_shape} shade · ${r.prod.body_color}</span></div><span>${r.pct}%</span></div>`).join('')}
-        </div>
-        <div class="panel">
-          <div class="eyebrow" style="margin-bottom:10px">The ${liked.length} lamp${liked.length > 1 ? 's' : ''} you liked</div>
-          <div class="liked">${liked.map(l => `<img src="out/${l.image}" alt="${l.id}" title="${l.id}">`).join('')}</div>
-        </div>
-        <div class="row">
-          <button class="cta" id="again">Swipe again</button>
-          <button class="ghost" id="stl">Download STL</button>
-          <button class="ghost" id="dl">Download liked.json</button>
-        </div>
-        <p class="note">The STL is your blended lamp at real size in millimetres (Z-up), with a 2&nbsp;mm shade wall. Parts are separate overlapping bodies; most slicers merge them automatically.</p>
-        <p class="note">For a full-quality Blender render of your lamp, save <code>liked.json</code> into the lamp-tinder folder and run <code>run.bat --combine liked.json</code>.</p>
-      </div>
-    </div>`;
-  disposeViewer = showLamp($('#viewer'), combined);
+    ${STYLES.length > 1 ? `<div><div class="eyebrow">You have ${STYLES.length} distinct styles</div>
+      <div class="tabs" style="margin-top:8px">${STYLES.map((s, i) => `<button class="tab${i ? '' : ' on'}" data-i="${i}">${esc(styleName(s))} · ${s.length}</button>`).join('')}</div></div>` : ''}
+    <div id="style"></div>
+    ${taste.pos.length || taste.neg.length ? `<div class="panel"><div class="eyebrow">What your swipes say</div><div class="chips">
+      ${taste.pos.map(r => `<span class="chip pos">♥ ${esc(r.txt)}</span>`).join('')}
+      ${taste.neg.map(r => `<span class="chip neg">✕ ${esc(r.txt)}</span>`).join('')}</div></div>` : ''}
+    <div class="panel"><div class="eyebrow" style="margin-bottom:10px">The ${liked.length} lamp${liked.length > 1 ? 's' : ''} you liked</div>
+      <div class="liked">${liked.map(id => `<img src="out/${BYID[id].image}" alt="${id}" title="${id}">`).join('')}</div></div>
+    <div class="row"><button class="cta" id="again">Swipe again</button><button class="ghost" id="dl">Download liked.json</button></div>`;
+  R.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+    R.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t)); renderStyle(+t.dataset.i);
+  });
   $('#again').onclick = () => { if (disposeViewer) { disposeViewer(); disposeViewer = null; } start(); };
-  $('#stl').onclick = () => {
-    const a = Object.assign(document.createElement('a'), {
-      href: URL.createObjectURL(lampSTL(combined)),
-      download: `lamp-tinder-${tags.type}-${tags.shade_shape}.stl`,
-    });
-    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  };
-  $('#dl').onclick = () => {
-    const blob = new Blob([JSON.stringify({ liked: liked.map(l => l.id) }, null, 1)], { type: 'application/json' });
-    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'liked.json' });
-    a.click(); URL.revokeObjectURL(a.href);
-  };
+  $('#dl').onclick = () => save(new Blob([JSON.stringify({ liked, passed }, null, 1)], { type: 'application/json' }), 'liked.json');
+  renderStyle(0);
+}
+
+function save(blob, name) {
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: name });
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function renderStyle(i) {
+  if (disposeViewer) { disposeViewer(); disposeViewer = null; }
+  const ids = STYLES[i], params = blend(ids.map(id => BYID[id].params)), tags = tagsFor(params);
+  const { picks, total, relaxed } = recommend(ids);
+  const chip = (label, color) => `<span class="chip">${color ? `<i class="sw" style="background:${color}"></i>` : ''}${esc(label)}</span>`;
+  $('#style').innerHTML = `<div class="res-grid">
+    <div>
+      <div class="eyebrow">Your lamp · blended from ${ids.length} like${ids.length > 1 ? 's' : ''}</div>
+      <h2>A ${tags.size} ${tags.type === 'arm' ? 'desk' : tags.type} lamp with a ${tags.shade_shape} shade</h2>
+      <div class="chips">${chip(tags.finish + ' finish')}${chip(tags.body_color + ' body', rgb2hex(params.body_color))}${chip(tags.shade_color + ' shade', rgb2hex(params.shade_color))}${chip(tags.glow + ' glow')}${chip(tags.light + ' light')}</div>
+      <div class="viewer" id="viewer"><div class="tip">Drag to rotate</div></div>
+      <div class="row" style="margin-top:12px"><button class="ghost" id="stl">Download STL</button>
+        <span class="note">Real size in mm, Z-up, 2&nbsp;mm shade wall.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="panel">${picks.length ? productBlock(picks[0], ids, total, true) : '<p class="note">No catalog matches.</p>'}
+        ${relaxed ? `<p class="note" style="margin-top:12px">Not enough close matches under $${BUDGET}, so these include pricier lamps.</p>` : ''}</div>
+      ${picks.length > 1 ? `<div class="panel"><div class="eyebrow">More real lamps in this style</div>
+        <div class="more">${picks.slice(1).map(r => productBlock(r, ids, total, false)).join('')}</div></div>` : ''}
+    </div></div>`;
+  disposeViewer = showLamp($('#viewer'), params);
+  $('#stl').onclick = () => save(lampSTL(params), `lamp-tinder-${tags.type}-${tags.shade_shape}.stl`);
 }
 
 load();

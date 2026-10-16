@@ -1,6 +1,6 @@
 # Lamp Tinder
 
-Swipe right on lamps you like, left on the ones you don't. At the end, every lamp you liked is blended into one new lamp (shown in 3D, downloadable as an STL) and matched against real lamps you can buy.
+Swipe right on lamps you like, left on the ones you don't. Your likes are blended into a lamp of your own (shown in 3D, downloadable as an STL), and matched against ~1,500 real lamps you can buy.
 
 Live: https://julian-pietraroia.github.io/lamp-tinder/
 
@@ -8,14 +8,19 @@ Built in one session with Claude; the conversation is in [CHAT.md](CHAT.md).
 
 ## How it works
 - **Generation:** `generator/gen_lamps.py` builds random lamps procedurally in Blender (type, base, stem, shade profile, finish, colours, glow) and renders each one with EEVEE. Every parameter is stored normalised to 0–1 in `out/lamps.json`.
-- **Blending:** numeric parameters and colours are averaged across your likes; type, shade shape, base and finish are decided by majority vote.
+- **Real-lamp catalog:** `tools/build_catalog.py` pulls lighting from public store feeds (IKEA Canada, Bouclair, EQ3, Mobilia, Montreal Lighting, HUTK, Schoolhouse, A+R, Illuminee, Lulu and Georgia) into `data/catalog.json`: name, brand, store link, photo URL, price, lamp type. The site hot-links each store's own photo.
+- **Image fingerprints:** `tools/embed.html` runs the CLIP image model (ViT-B/32, via transformers.js) in the browser over every render and every product photo, saving int8 vectors to `data/embeddings.json`. Renders and photos are each centred on their own mean so matching depends on the lamp, not the photo style.
+- **Smart card order:** the first cards are spread across the space of looks; after that, cards alternate between "probably a like" (to refine your style), "could go either way" (most informative), and exploration. When your top match stops changing, the finish button tells you it has settled.
+- **Likes and passes:** recommendations score each real lamp by similarity to your liked lamps, minus similarity to the ones you passed on, plus a bonus for matching your preferred lamp type.
+- **Styles:** liked lamps are clustered (k-means on the fingerprints, k chosen by silhouette); distinct tastes, e.g. desk lamps and pendants, each get their own blended lamp and recommendations.
+- **What your swipes say:** tag values you liked or passed on much more often than average (e.g. "♥ brass bodies", "✕ globe shades").
+- **Budget:** optional price cap (CAD; US prices converted at a fixed rough rate).
 - **3D + STL:** `site/lamp3d.js` is a three.js port of the Blender builder, so the blended lamp renders in the browser and exports as an STL (mm, Z-up, 2 mm shade wall).
-- **Recommendation:** the blended lamp's tags are scored against `site/products.json`, a hand-tagged catalog of real lamps.
 
-## Regenerating lamps (Windows + Blender 5.2)
-Copy the `generator/` files next to `index.html`, then:
+## Rebuilding (Windows + Blender 5.2; uses Blender's bundled Python)
 ```
-run.bat --count 300               # render 300 lamps into out/
-run.bat --combine liked.json      # Blender render of a blended lamp
+generator\run.bat --count 300     # render lamps (copy generator/ files next to index.html first)
+tools\build_catalog.bat           # refresh the real-lamp catalog
+tools\embed.bat                   # opens the fingerprint page; click Start (thumbnails are deleted afterwards)
 start-site.bat                    # local preview at http://localhost:8000
 ```

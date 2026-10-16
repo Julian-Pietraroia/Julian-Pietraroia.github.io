@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Lamp Tinder: image fingerprints</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; background: #ebe7e0; color: #1f1c18; margin: 0; padding: 40px 16px; }
+  main { max-width: 640px; margin: 0 auto; }
+  .bar { height: 8px; background: #d6d0c6; border-radius: 4px; overflow: hidden; margin: 12px 0; }
+  .bar i { display: block; height: 100%; width: 0; background: #1f1c18; }
+  pre { background: #f7f4ef; padding: 12px; border-radius: 8px; white-space: pre-wrap; font-size: 12px; max-height: 300px; overflow: auto; }
+  button { font: inherit; padding: 10px 20px; border-radius: 999px; border: 0; background: #1f1c18; color: #fff; cursor: pointer; }
+</style></head>
+<body><main>
+<h1>Image fingerprints</h1>
+<p>Runs the CLIP image model in this browser over every lamp render and every catalog photo,
+then saves <code>data/embeddings.json</code>. Takes a few minutes; keep this tab open.</p>
+<button id="go">Start</button>
+<div class="bar"><i id="bar"></i></div>
+<div id="status">Idle</div>
+<pre id="log"></pre>
+</main>
+<script type="module">
+import { AutoProcessor, CLIPVisionModelWithProjection, RawImage, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
+env.allowLocalModels = false;
+const MODEL = 'Xenova/clip-vit-base-patch32';
+const $ = s => document.querySelector(s);
+const log = m => { $('#log').textContent += m + '\n'; console.log('[embed]', m); };
+window.__embed = { state: 'idle', done: 0, total: 0, error: null };
+
+function toB64(vec) {                       // quantise a unit vector to int8; scale is dropped (re-normalised on load)
+  let m = 0; for (const x of vec) m = Math.max(m, Math.abs(x));
+  const q = new Int8Array(vec.length);
+  for (let i = 0; i < vec.length; i++) q[i] = Math.round(vec[i] / m * 127);
+  let s = ''; const b = new Uint8Array(q.buffer);
+  for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+  return btoa(s);
+}
+
+async function loadModel() {
+  for (const opt of [{ device: 'webgpu', dtype: 'fp32' }, { device: 'wasm', dtype: 'q8' }]) {
+    try {
+      const m = await CLIPVisionModelWithProjection.from_pretrained(MODEL, opt);
+      log(`model loaded (${opt.device}, ${opt.dtype})`);
+      return m;
+    } catch (e) { log(`${opt.device} unavailable: ${e.message}`); }
+  }
+  throw new Error('could not load CLIP');
+}
+
+async function run() {
+  const st = window.__embed;
+  st.state = 'loading';
+  $('#status').textContent = 'Loading model (first time downloads ~90-350 MB)…';
+  const [lamps, cat] = await Promise.all([
+    fetch('../out/lamps.json').then(r => r.json()),
+    fetch('../data/catalog.json').then(r => r.json()),
+  ]);
+  const jobs = [
+    ...lamps.lamps.map(l => ({ kind: 'lamps', id: l.id, src: '../out/' + l.image })),
+    ...cat.products.map(p => ({ kind: 'products', id: p.id, src: `../catalog_img/${p.id}.jpg` })),
+  ];
+  st.total = jobs.length;
+  const processor = await AutoProcessor.from_pretrained(MODEL);
+  const model = await loadModel();
+  const out = { model: MODEL, dim: 512, built: new Date().toISOString().slice(0, 10), lamps: {}, products: {} };
+  st.state = 'running';
+  const t0 = performance.now(), B = 8;
+  for (let i = 0; i < jobs.length; i += B) {
+    const batch = jobs.slice(i, i + B), imgs = [], ok = [];
+    for (const j of batch) {
+      try { imgs.push(await RawImage.read(j.src)); ok.push(j); }
+      catch (e) { log(`skip ${j.id}: ${e.message}`); }
+    }
+    if (imgs.length) {
+      const inputs = await processor(imgs);
+      const { image_embeds } = await model(inputs);
+      const D = image_embeds.dims[1], data = image_embeds.data;
+      ok.forEach((j, k) => {
+        const v = Array.from(data.slice(k * D, (k + 1) * D));
+        const n = Math.hypot(...v); out[j.kind][j.id] = toB64(v.map(x => x / n));
+      });
+    }
+    st.done = Math.min(jobs.length, i + B);
+    const rate = (performance.now() - t0) / st.done;
+    $('#bar').style.width = `${100 * st.done / st.total}%`;
+    $('#status').textContent = `${st.done} / ${st.total} images · ${Math.round(rate * (st.total - st.done) / 1000)} s left`;
+  }
+  st.state = 'saving';
+  const res = await fetch('/save?name=embeddings.json', { method: 'POST', body: JSON.stringify(out) });
+  if (!res.ok) throw new Error('save failed: ' + res.status);
+  st.state = 'done';
+  $('#status').textContent = `Done: ${Object.keys(out.lamps).length} lamps, ${Object.keys(out.products).length} products saved to data/embeddings.json`;
+  log($('#status').textContent);
+}
+$('#go').onclick = () => run().catch(e => { window.__embed.state = 'error'; window.__embed.error = e.message; log('ERROR ' + e.stack); });
+</script>
+</body></html>
