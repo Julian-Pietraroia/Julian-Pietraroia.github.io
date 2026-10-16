@@ -1,0 +1,58 @@
+# Weekly refresh of Lamp Tinder's real-lamp catalog: re-pulls store feeds (prices, links, new
+# products), fingerprints only the new product photos in memory, and commits the data files.
+name: Lamp Tinder catalog refresh
+
+on:
+  schedule:
+    - cron: "17 13 * * 1"     # Mondays 13:17 UTC (06:17 Vancouver)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lamp-tinder-catalog
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: lamp-tinder
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Cache CLIP model
+        uses: actions/cache@v4
+        with:
+          path: lamp-tinder/node_modules/@huggingface/transformers/.cache
+          key: clip-vit-base-patch32-v1
+
+      - name: Pull store feeds
+        env:
+          LT_NO_IMAGES: "1"
+        run: python tools/build_catalog.py
+
+      - name: Fingerprint new products
+        run: |
+          npm install --no-save --no-package-lock @huggingface/transformers@3.0.2
+          node tools/embed_new.mjs
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name "lamp-tinder-bot"
+          git config user.email "lamp-tinder-bot@users.noreply.github.com"
+          git add data/catalog.json data/embeddings.json
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
+          git commit -m "Lamp Tinder: weekly catalog refresh"
+          git push
