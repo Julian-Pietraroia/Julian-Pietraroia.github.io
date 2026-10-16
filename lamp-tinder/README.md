@@ -1,6 +1,6 @@
 # Lamp Tinder
 
-Swipe right on lamps you like, left on the ones you don't. Your likes are blended into a lamp of your own (shown in 3D, downloadable as an STL), and matched against ~1,500 real lamps you can buy.
+Swipe right on 1,200 Blender-generated lamps you like, left on the ones you don't. Your likes are blended into a lamp of your own (shown in 3D, downloadable as an STL), and matched against ~1,500 real lamps you can buy.
 
 Live: https://julian-pietraroia.github.io/lamp-tinder/
 

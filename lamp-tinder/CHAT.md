@@ -90,3 +90,7 @@ This project was built in a single session with Claude (Anthropic), working in t
 
 *A 1,200-lamp render with new styles (mushroom, saucer and cylinder shades, tall-tripod floor lamps, three-shade cluster pendants, varied backdrops and camera angles) was already running on my PC; Claude fixed three early cluster pendants rendered before a canopy fix and fingerprinted the new set. Meanwhile it added undo, super-like, weighted blending, share links, the "In a room" view and the build-it-yourself kit (checked across 217 lamp combinations: every part watertight, flat on the bed, oversize parts cut into wedges), fixed the mobile layout, and added the weekly catalog workflow. The workflow's first test run could only reach 3 of 10 stores from GitHub's servers and pruned the catalog to 221 products; Claude restored it within minutes and added a per-store fallback and a shrink guard, then re-ran it to confirm the catalog stays intact.*
 
+**Me:** try again
+
+*Once the PC was back online, Claude published the 1,200-lamp set and its fingerprints, replacing the original 300.*
+
