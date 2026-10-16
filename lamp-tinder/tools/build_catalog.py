@@ -187,8 +187,27 @@ def thumb_url(item):
     return u
 
 
+def previous_catalog():
+    try:
+        with open(os.path.join(DATA, "catalog.json"), encoding="utf-8") as f:
+            return json.load(f)["products"]
+    except Exception:  # noqa: BLE001
+        return []
+
+
+def keep_or_fallback(store, fresh, prev):
+    """If a store's feed failed or shrank by more than half (blocked, rate-limited, site change),
+    keep last time's listings for that store instead of dropping them."""
+    old = [p for p in prev if p["store"] == store]
+    if old and len(fresh) < 0.5 * len(old):
+        log(f"  {store}: only {len(fresh)} lamps this time vs {len(old)} before -> keeping previous listings")
+        return old
+    return fresh
+
+
 def main():
     os.makedirs(DATA, exist_ok=True)
+    prev = previous_catalog()
     if not os.environ.get("LT_NO_IMAGES"):
         os.makedirs(IMG, exist_ok=True)
     open(LOG, "w").close()
@@ -206,9 +225,9 @@ def main():
                 if by_type[t]:
                     kept.append(by_type[t].pop(0))
         log(f"  {store}: {len(got)} lamps, kept {len(kept)}")
-        items += kept[:MAX_PER_STORE]
+        items += keep_or_fallback(store, kept[:MAX_PER_STORE], prev)
     log("IKEA Canada ...")
-    items += ikea()
+    items += keep_or_fallback("IKEA Canada", ikea(), prev)
 
     # de-duplicate identical listings (same brand + name) keeping the cheapest
     best = {}
@@ -223,6 +242,11 @@ def main():
         ok = items
     else:
         ok = download_thumbs(items)
+
+    # last line of defence: never replace a catalog with one that lost a big chunk of products
+    if prev and len(ok) < 0.8 * len(prev) and not os.environ.get("LT_ALLOW_SHRINK"):
+        log(f"ABORT: new catalog has {len(ok)} products vs {len(prev)} before; not writing it (set LT_ALLOW_SHRINK=1 to override)")
+        return 1
 
     counts = {}
     for it in ok:
