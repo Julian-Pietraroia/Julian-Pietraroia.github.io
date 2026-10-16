@@ -1,6 +1,6 @@
 {
 "usd_to_cad": 1.38,
-"built": "2026-10-15",
+"built": "2026-10-16",
 "products": [
 {
 "id": "montreallighting-9077339127998",
@@ -2837,19 +2837,6 @@
 "category": "Ceiling Light Fixtures"
 },
 {
-"id": "aplusr-7602866389050",
-"store": "A+R",
-"brand": "Anglepoise",
-"name": "Original 315 Desk Lamp",
-"url": "https://aplusrstore.com/products/anglepoise-original-315-desk-lamp",
-"image": "https://cdn.shopify.com/s/files/1/0012/2005/1002/files/Original_315_Desk_Lamp_01.jpg?v=1790251345",
-"price": 360.0,
-"currency": "USD",
-"price_cad": 497,
-"type": "arm",
-"category": "Table + Task Lamps"
-},
-{
 "id": "hutk-9594837663973",
 "store": "HUTK",
 "brand": "Louis Poulsen",
@@ -3110,19 +3097,6 @@
 "category": ""
 },
 {
-"id": "illuminee-7587911401550",
-"store": "Illuminee",
-"brand": "Blu Dot",
-"name": "Filter Table Lamp",
-"url": "https://www.illuminee.com/products/filter-table-lamp",
-"image": "https://cdn.shopify.com/s/files/1/0292/7099/9118/files/illuminee-blu-dot-filter-table-light-oxblood.png?v=1756454542",
-"price": 360.0,
-"currency": "USD",
-"price_cad": 497,
-"type": "table",
-"category": "Table Lamp"
-},
-{
 "id": "hutk-9590678257893",
 "store": "HUTK",
 "brand": "Anony",
@@ -3212,19 +3186,6 @@
 "price_cad": 1815,
 "type": "floor",
 "category": ""
-},
-{
-"id": "illuminee-7600826581070",
-"store": "Illuminee",
-"brand": "Blu Dot",
-"name": "Bully Table Lamp",
-"url": "https://www.illuminee.com/products/bully-table-lamp",
-"image": "https://cdn.shopify.com/s/files/1/0292/7099/9118/files/illuminee-blu-dot-bully-table-lamp.png?v=1756454428",
-"price": 556.0,
-"currency": "USD",
-"price_cad": 767,
-"type": "table",
-"category": "Table Lamp"
 },
 {
 "id": "hutk-4261260099664",
@@ -4096,19 +4057,6 @@
 "price_cad": 840,
 "type": "pendant",
 "category": ""
-},
-{
-"id": "illuminee-6977566441550",
-"store": "Illuminee",
-"brand": "Moooi",
-"name": "NR2 Floor Lamp",
-"url": "https://www.illuminee.com/products/nr2-floor-lamp",
-"image": "https://cdn.shopify.com/s/files/1/0292/7099/9118/files/illuminee-moooi-nr2-floor-lamp-white.png?v=1758515858",
-"price": 1984.0,
-"currency": "USD",
-"price_cad": 2738,
-"type": "floor",
-"category": "Floor Lamp"
 },
 {
 "id": "hutk-9241718325477",
@@ -5242,19 +5190,6 @@
 "category": ""
 },
 {
-"id": "aplusr-7107650388026",
-"store": "A+R",
-"brand": "Louis Poulsen",
-"name": "Patera Pendant",
-"url": "https://aplusrstore.com/products/louis-poulsen-patera-pendant",
-"image": "https://cdn.shopify.com/s/files/1/0012/2005/1002/files/9935_24136_Patera-900-01C-2-5-91647_49349c45-c2ef-4c04-a59a-556fdc3.jpg?v=1782816650",
-"price": 1260.0,
-"currency": "USD",
-"price_cad": 1739,
-"type": "pendant",
-"category": "Ceiling + Pendant Lights"
-},
-{
 "id": "hutk-4612971757648",
 "store": "HUTK",
 "brand": "Muuto",
@@ -5331,19 +5266,6 @@
 "price_cad": 1055,
 "type": "pendant",
 "category": ""
-},
-{
-"id": "illuminee-7582114316366",
-"store": "Illuminee",
-"brand": "Flos",
-"name": "Arco Floor Lamp",
-"url": "https://www.illuminee.com/products/arco-floor-lamp",
-"image": "https://cdn.shopify.com/s/files/1/0292/7099/9118/files/illuminee-flos-arco-floor-lamp.png?v=1754307998",
-"price": 4095.0,
-"currency": "USD",
-"price_cad": 5651,
-"type": "floor",
-"category": "Floor Lamp"
 },
 {
 "id": "hutk-8046161920229",
@@ -9675,6 +9597,32 @@
 "category": "Rechargeable Table Lamp"
 },
 {
+"id": "aplusr-7602866389050",
+"store": "A+R",
+"brand": "Anglepoise",
+"name": "Original 315 Desk Lamp",
+"url": "https://aplusrstore.com/products/anglepoise-original-315-desk-lamp",
+"image": "https://cdn.shopify.com/s/files/1/0012/2005/1002/files/Original_315_Desk_Lamp_01.jpg?v=1790251345",
+"price": 360.0,
+"currency": "USD",
+"price_cad": 497,
+"type": "arm",
+"category": "Table + Task Lamps"
+},
+{
+"id": "aplusr-7107650388026",
+"store": "A+R",
+"brand": "Louis Poulsen",
+"name": "Patera Pendant",
+"url": "https://aplusrstore.com/products/louis-poulsen-patera-pendant",
+"image": "https://cdn.shopify.com/s/files/1/0012/2005/1002/files/9935_24136_Patera-900-01C-2-5-91647_49349c45-c2ef-4c04-a59a-556fdc3.jpg?v=1782816650",
+"price": 1260.0,
+"currency": "USD",
+"price_cad": 1739,
+"type": "pendant",
+"category": "Ceiling + Pendant Lights"
+},
+{
 "id": "aplusr-7645475668026",
 "store": "A+R",
 "brand": "Louis Poulsen",
@@ -12416,6 +12364,58 @@
 "price_cad": 4761,
 "type": "pendant",
 "category": "Ceiling + Pendant Lights"
+},
+{
+"id": "illuminee-7587911401550",
+"store": "Illuminee",
+"brand": "Blu Dot",
+"name": "Filter Table Lamp",
+"url": "https://www.illuminee.com/products/filter-table-lamp",
+"image": "https://cdn.shopify.com/s/files/1/0292/7099/9118/files/illuminee-blu-dot-filter-table-light-oxblood.png?v=1756454542",
+"price": 360.0,
+"currency": "USD",
+"price_cad": 497,
+"type": "table",
+"category": "Table Lamp"
+},
+{
+"id": "illuminee-7600826581070",
+"store": "Illuminee",
+"brand": "Blu Dot",
+"name": "Bully Table Lamp",
+"url": "https://www.illuminee.com/products/bully-table-lamp",
+"image": "https://cdn.shopify.com/s/files/1/0292/7099/9118/files/illuminee-blu-dot-bully-table-lamp.png?v=1756454428",
+"price": 556.0,
+"currency": "USD",
+"price_cad": 767,
+"type": "table",
+"category": "Table Lamp"
+},
+{
+"id": "illuminee-6977566441550",
+"store": "Illuminee",
+"brand": "Moooi",
+"name": "NR2 Floor Lamp",
+"url": "https://www.illuminee.com/products/nr2-floor-lamp",
+"image": "https://cdn.shopify.com/s/files/1/0292/7099/9118/files/illuminee-moooi-nr2-floor-lamp-white.png?v=1758515858",
+"price": 1984.0,
+"currency": "USD",
+"price_cad": 2738,
+"type": "floor",
+"category": "Floor Lamp"
+},
+{
+"id": "illuminee-7582114316366",
+"store": "Illuminee",
+"brand": "Flos",
+"name": "Arco Floor Lamp",
+"url": "https://www.illuminee.com/products/arco-floor-lamp",
+"image": "https://cdn.shopify.com/s/files/1/0292/7099/9118/files/illuminee-flos-arco-floor-lamp.png?v=1754307998",
+"price": 4095.0,
+"currency": "USD",
+"price_cad": 5651,
+"type": "floor",
+"category": "Floor Lamp"
 },
 {
 "id": "illuminee-7992116052046",
@@ -18253,6 +18253,18 @@
 "type": "table"
 },
 {
+"id": "ikea-20628019",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Solskur led table lamp",
+"url": "https://www.ikea.com/ca/en/p/solskur-led-table-lamp-light-blue-nickel-plated-20628019/",
+"image": "https://www.ikea.com/ca/en/images/products/solskur-led-table-lamp-light-blue-nickel-plated__1543954_pe1019002_s5.jpg",
+"price": 39.99,
+"currency": "CAD",
+"price_cad": 40,
+"type": "table"
+},
+{
 "id": "ikea-20608554",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18274,18 +18286,6 @@
 "price": 29.99,
 "currency": "CAD",
 "price_cad": 30,
-"type": "table"
-},
-{
-"id": "ikea-20628019",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Solskur led table lamp",
-"url": "https://www.ikea.com/ca/en/p/solskur-led-table-lamp-light-blue-nickel-plated-20628019/",
-"image": "https://www.ikea.com/ca/en/images/products/solskur-led-table-lamp-light-blue-nickel-plated__1543954_pe1019002_s5.jpg",
-"price": 39.99,
-"currency": "CAD",
-"price_cad": 40,
 "type": "table"
 },
 {
@@ -18373,18 +18373,6 @@
 "type": "arm"
 },
 {
-"id": "ikea-90510403",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Isk\u00e4rna led table lamp",
-"url": "https://www.ikea.com/ca/en/p/iskaerna-led-table-lamp-multicolor-90510403/",
-"image": "https://www.ikea.com/ca/en/images/products/iskaerna-led-table-lamp-multicolor__1010154_pe828872_s5.jpg",
-"price": 34.99,
-"currency": "CAD",
-"price_cad": 35,
-"type": "table"
-},
-{
 "id": "ikea-40542430",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18394,6 +18382,18 @@
 "price": 27.99,
 "currency": "CAD",
 "price_cad": 28,
+"type": "table"
+},
+{
+"id": "ikea-90510403",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Isk\u00e4rna led table lamp",
+"url": "https://www.ikea.com/ca/en/p/iskaerna-led-table-lamp-multicolor-90510403/",
+"image": "https://www.ikea.com/ca/en/images/products/iskaerna-led-table-lamp-multicolor__1010154_pe828872_s5.jpg",
+"price": 34.99,
+"currency": "CAD",
+"price_cad": 35,
 "type": "table"
 },
 {
@@ -18421,18 +18421,6 @@
 "type": "table"
 },
 {
-"id": "ikea-00328682",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Solbo table lamp",
-"url": "https://www.ikea.com/ca/en/p/solbo-table-lamp-white-owl-00328682/",
-"image": "https://www.ikea.com/ca/en/images/products/solbo-table-lamp-white-owl__0609266_pe684403_s5.jpg",
-"price": 24.99,
-"currency": "CAD",
-"price_cad": 25,
-"type": "table"
-},
-{
 "id": "ikea-00514373",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18443,6 +18431,18 @@
 "currency": "CAD",
 "price_cad": 35,
 "type": "arm"
+},
+{
+"id": "ikea-00328682",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Solbo table lamp",
+"url": "https://www.ikea.com/ca/en/p/solbo-table-lamp-white-owl-00328682/",
+"image": "https://www.ikea.com/ca/en/images/products/solbo-table-lamp-white-owl__0609266_pe684403_s5.jpg",
+"price": 24.99,
+"currency": "CAD",
+"price_cad": 25,
+"type": "table"
 },
 {
 "id": "ikea-10555235",
@@ -20017,18 +20017,6 @@
 "type": "arm"
 },
 {
-"id": "ikea-30540196",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Brunb\u00e5ge led work lamp",
-"url": "https://www.ikea.com/ca/en/p/brunbage-led-work-lamp-with-storage-dimmable-turquoise-30540196/",
-"image": "https://www.ikea.com/ca/en/images/products/brunbage-led-work-lamp-with-storage-dimmable-turquoise__1149363_pe883977_s5.jpg",
-"price": 29.99,
-"currency": "CAD",
-"price_cad": 30,
-"type": "arm"
-},
-{
 "id": "ikea-40448611",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -20050,6 +20038,18 @@
 "price": 19.99,
 "currency": "CAD",
 "price_cad": 20,
+"type": "arm"
+},
+{
+"id": "ikea-30540196",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Brunb\u00e5ge led work lamp",
+"url": "https://www.ikea.com/ca/en/p/brunbage-led-work-lamp-with-storage-dimmable-turquoise-30540196/",
+"image": "https://www.ikea.com/ca/en/images/products/brunbage-led-work-lamp-with-storage-dimmable-turquoise__1149363_pe883977_s5.jpg",
+"price": 29.99,
+"currency": "CAD",
+"price_cad": 30,
 "type": "arm"
 },
 {
