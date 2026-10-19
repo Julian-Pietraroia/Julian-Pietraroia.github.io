@@ -1,6 +1,6 @@
 {
 "usd_to_cad": 1.38,
-"built": "2026-10-16",
+"built": "2026-10-19",
 "products": [
 {
 "id": "montreallighting-9077339127998",
@@ -17821,18 +17821,6 @@
 "type": "table"
 },
 {
-"id": "ikea-90504567",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Barlast table lamp",
-"url": "https://www.ikea.com/ca/en/p/barlast-table-lamp-black-white-90504567/",
-"image": "https://www.ikea.com/ca/en/images/products/barlast-table-lamp-black-white__1032422_pe836908_s5.jpg",
-"price": 5.99,
-"currency": "CAD",
-"price_cad": 6,
-"type": "table"
-},
-{
 "id": "ikea-00467526",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -17842,6 +17830,18 @@
 "price": 14.99,
 "currency": "CAD",
 "price_cad": 15,
+"type": "table"
+},
+{
+"id": "ikea-90504567",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Barlast table lamp",
+"url": "https://www.ikea.com/ca/en/p/barlast-table-lamp-black-white-90504567/",
+"image": "https://www.ikea.com/ca/en/images/products/barlast-table-lamp-black-white__1032422_pe836908_s5.jpg",
+"price": 5.99,
+"currency": "CAD",
+"price_cad": 6,
 "type": "table"
 },
 {
@@ -17857,18 +17857,6 @@
 "type": "table"
 },
 {
-"id": "ikea-20459846",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Sn\u00f6byar table lamp",
-"url": "https://www.ikea.com/ca/en/p/snoebyar-table-lamp-gray-turquoise-ceramic-gray-20459846/",
-"image": "https://www.ikea.com/ca/en/images/products/snoebyar-table-lamp-gray-turquoise-ceramic-gray__0952098_pe801573_s5.jpg",
-"price": 89.0,
-"currency": "CAD",
-"price_cad": 89,
-"type": "table"
-},
-{
 "id": "ikea-80358019",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -17878,6 +17866,18 @@
 "price": 14.99,
 "currency": "CAD",
 "price_cad": 15,
+"type": "table"
+},
+{
+"id": "ikea-20459846",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Sn\u00f6byar table lamp",
+"url": "https://www.ikea.com/ca/en/p/snoebyar-table-lamp-gray-turquoise-ceramic-gray-20459846/",
+"image": "https://www.ikea.com/ca/en/images/products/snoebyar-table-lamp-gray-turquoise-ceramic-gray__0952098_pe801573_s5.jpg",
+"price": 89.0,
+"currency": "CAD",
+"price_cad": 89,
 "type": "table"
 },
 {
@@ -17893,18 +17893,6 @@
 "type": "arm"
 },
 {
-"id": "ikea-40601274",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Halgatt table lamp",
-"url": "https://www.ikea.com/ca/en/p/halgatt-table-lamp-dimmable-white-white-ceramic-40601274/",
-"image": "https://www.ikea.com/ca/en/images/products/halgatt-table-lamp-dimmable-white-white-ceramic__1429908_pe981980_s5.jpg",
-"price": 49.99,
-"currency": "CAD",
-"price_cad": 50,
-"type": "table"
-},
-{
 "id": "ikea-60518410",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -17914,6 +17902,18 @@
 "price": 14.99,
 "currency": "CAD",
 "price_cad": 15,
+"type": "table"
+},
+{
+"id": "ikea-40601274",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Halgatt table lamp",
+"url": "https://www.ikea.com/ca/en/p/halgatt-table-lamp-dimmable-white-white-ceramic-40601274/",
+"image": "https://www.ikea.com/ca/en/images/products/halgatt-table-lamp-dimmable-white-white-ceramic__1429908_pe981980_s5.jpg",
+"price": 49.99,
+"currency": "CAD",
+"price_cad": 50,
 "type": "table"
 },
 {
@@ -17929,6 +17929,18 @@
 "type": "table"
 },
 {
+"id": "ikea-20643326",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Spetsboj table lamp",
+"url": "https://www.ikea.com/ca/en/p/spetsboj-table-lamp-dimmable-orange-20643326/",
+"image": "https://www.ikea.com/ca/en/images/products/spetsboj-table-lamp-dimmable-orange__1531242_pe1015572_s5.jpg",
+"price": 14.99,
+"currency": "CAD",
+"price_cad": 15,
+"type": "table"
+},
+{
 "id": "ikea-00404987",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -17938,6 +17950,18 @@
 "price": 59.99,
 "currency": "CAD",
 "price_cad": 60,
+"type": "table"
+},
+{
+"id": "ikea-10373221",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Gr\u00f6n\u00f6 table lamp",
+"url": "https://www.ikea.com/ca/en/p/groenoe-table-lamp-frosted-glass-white-10373221/",
+"image": "https://www.ikea.com/ca/en/images/products/groenoe-table-lamp-frosted-glass-white__0609359_pe684477_s5.jpg",
+"price": 12.99,
+"currency": "CAD",
+"price_cad": 13,
 "type": "table"
 },
 {
@@ -17953,18 +17977,6 @@
 "type": "table"
 },
 {
-"id": "ikea-20643326",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Spetsboj table lamp",
-"url": "https://www.ikea.com/ca/en/p/spetsboj-table-lamp-dimmable-orange-20643326/",
-"image": "https://www.ikea.com/ca/en/images/products/spetsboj-table-lamp-dimmable-orange__1531242_pe1015572_s5.jpg",
-"price": 14.99,
-"currency": "CAD",
-"price_cad": 15,
-"type": "table"
-},
-{
 "id": "ikea-90504992",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -17974,18 +17986,6 @@
 "price": 19.99,
 "currency": "CAD",
 "price_cad": 20,
-"type": "table"
-},
-{
-"id": "ikea-10373221",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Gr\u00f6n\u00f6 table lamp",
-"url": "https://www.ikea.com/ca/en/p/groenoe-table-lamp-frosted-glass-white-10373221/",
-"image": "https://www.ikea.com/ca/en/images/products/groenoe-table-lamp-frosted-glass-white__0609359_pe684477_s5.jpg",
-"price": 12.99,
-"currency": "CAD",
-"price_cad": 13,
 "type": "table"
 },
 {
@@ -18013,18 +18013,6 @@
 "type": "table"
 },
 {
-"id": "ikea-80358496",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Svallet work lamp",
-"url": "https://www.ikea.com/ca/en/p/svallet-work-lamp-dark-gray-white-80358496/",
-"image": "https://www.ikea.com/ca/en/images/products/svallet-work-lamp-dark-gray-white__0703502_pe724751_s5.jpg",
-"price": 7.99,
-"currency": "CAD",
-"price_cad": 8,
-"type": "arm"
-},
-{
 "id": "ikea-60591655",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18035,6 +18023,18 @@
 "currency": "CAD",
 "price_cad": 60,
 "type": "table"
+},
+{
+"id": "ikea-80358496",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Svallet work lamp",
+"url": "https://www.ikea.com/ca/en/p/svallet-work-lamp-dark-gray-white-80358496/",
+"image": "https://www.ikea.com/ca/en/images/products/svallet-work-lamp-dark-gray-white__0703502_pe724751_s5.jpg",
+"price": 7.99,
+"currency": "CAD",
+"price_cad": 8,
+"type": "arm"
 },
 {
 "id": "ikea-20595636",
@@ -18109,16 +18109,16 @@
 "type": "table"
 },
 {
-"id": "ikea-90601304",
+"id": "ikea-10331392",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Vindkraft table lamp",
-"url": "https://www.ikea.com/ca/en/p/vindkraft-table-lamp-white-moulded-paper-pulp-90601304/",
-"image": "https://www.ikea.com/ca/en/images/products/vindkraft-table-lamp-white-moulded-paper-pulp__1441326_pe986319_s5.jpg",
-"price": 39.99,
+"name": "Ranarp work lamp",
+"url": "https://www.ikea.com/ca/en/p/ranarp-work-lamp-black-10331392/",
+"image": "https://www.ikea.com/ca/en/images/products/ranarp-work-lamp-black__0610458_pe685517_s5.jpg",
+"price": 49.99,
 "currency": "CAD",
-"price_cad": 40,
-"type": "table"
+"price_cad": 50,
+"type": "arm"
 },
 {
 "id": "ikea-30618388",
@@ -18145,6 +18145,18 @@
 "type": "arm"
 },
 {
+"id": "ikea-90601304",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Vindkraft table lamp",
+"url": "https://www.ikea.com/ca/en/p/vindkraft-table-lamp-white-moulded-paper-pulp-90601304/",
+"image": "https://www.ikea.com/ca/en/images/products/vindkraft-table-lamp-white-moulded-paper-pulp__1441326_pe986319_s5.jpg",
+"price": 39.99,
+"currency": "CAD",
+"price_cad": 40,
+"type": "table"
+},
+{
 "id": "ikea-60146764",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18155,30 +18167,6 @@
 "currency": "CAD",
 "price_cad": 35,
 "type": "arm"
-},
-{
-"id": "ikea-10331392",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Ranarp work lamp",
-"url": "https://www.ikea.com/ca/en/p/ranarp-work-lamp-black-10331392/",
-"image": "https://www.ikea.com/ca/en/images/products/ranarp-work-lamp-black__0610458_pe685517_s5.jpg",
-"price": 49.99,
-"currency": "CAD",
-"price_cad": 50,
-"type": "arm"
-},
-{
-"id": "ikea-50613506",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Gennaker table lamp",
-"url": "https://www.ikea.com/ca/en/p/gennaker-table-lamp-white-50613506/",
-"image": "https://www.ikea.com/ca/en/images/products/gennaker-table-lamp-white__1495746_pe1005123_s5.jpg",
-"price": 7.99,
-"currency": "CAD",
-"price_cad": 8,
-"type": "table"
 },
 {
 "id": "ikea-90524462",
@@ -18205,6 +18193,18 @@
 "type": "floor"
 },
 {
+"id": "ikea-50613506",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Gennaker table lamp",
+"url": "https://www.ikea.com/ca/en/p/gennaker-table-lamp-white-50613506/",
+"image": "https://www.ikea.com/ca/en/images/products/gennaker-table-lamp-white__1495746_pe1005123_s5.jpg",
+"price": 7.99,
+"currency": "CAD",
+"price_cad": 8,
+"type": "table"
+},
+{
 "id": "ikea-90539208",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18217,12 +18217,12 @@
 "type": "table"
 },
 {
-"id": "ikea-00462675",
+"id": "ikea-50597785",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Markfrost table lamp",
-"url": "https://www.ikea.com/ca/en/p/markfrost-table-lamp-marble-black-00462675/",
-"image": "https://www.ikea.com/ca/en/images/products/markfrost-table-lamp-marble-black__0783961_pe761588_s5.jpg",
+"name": "Tv\u00e5mastad led portable lamp",
+"url": "https://www.ikea.com/ca/en/p/tvamastad-led-portable-lamp-battery-operated-brass-opal-white-glass-50597785/",
+"image": "https://www.ikea.com/ca/en/images/products/tvamastad-led-portable-lamp-battery-operated-brass-opal-white-glass__1395846_pe967129_s5.jpg",
 "price": 29.99,
 "currency": "CAD",
 "price_cad": 30,
@@ -18241,6 +18241,18 @@
 "type": "table"
 },
 {
+"id": "ikea-00462675",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Markfrost table lamp",
+"url": "https://www.ikea.com/ca/en/p/markfrost-table-lamp-marble-black-00462675/",
+"image": "https://www.ikea.com/ca/en/images/products/markfrost-table-lamp-marble-black__0783961_pe761588_s5.jpg",
+"price": 29.99,
+"currency": "CAD",
+"price_cad": 30,
+"type": "table"
+},
+{
 "id": "ikea-40594853",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18250,18 +18262,6 @@
 "price": 7.99,
 "currency": "CAD",
 "price_cad": 8,
-"type": "table"
-},
-{
-"id": "ikea-20628019",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Solskur led table lamp",
-"url": "https://www.ikea.com/ca/en/p/solskur-led-table-lamp-light-blue-nickel-plated-20628019/",
-"image": "https://www.ikea.com/ca/en/images/products/solskur-led-table-lamp-light-blue-nickel-plated__1543954_pe1019002_s5.jpg",
-"price": 39.99,
-"currency": "CAD",
-"price_cad": 40,
 "type": "table"
 },
 {
@@ -18277,18 +18277,6 @@
 "type": "table"
 },
 {
-"id": "ikea-50597785",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Tv\u00e5mastad led portable lamp",
-"url": "https://www.ikea.com/ca/en/p/tvamastad-led-portable-lamp-battery-operated-brass-opal-white-glass-50597785/",
-"image": "https://www.ikea.com/ca/en/images/products/tvamastad-led-portable-lamp-battery-operated-brass-opal-white-glass__1395846_pe967129_s5.jpg",
-"price": 29.99,
-"currency": "CAD",
-"price_cad": 30,
-"type": "table"
-},
-{
 "id": "ikea-40434666",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18301,15 +18289,27 @@
 "type": "table"
 },
 {
-"id": "ikea-60333195",
+"id": "ikea-20628019",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Str\u00e5la table lamp base",
-"url": "https://www.ikea.com/ca/en/p/strala-table-lamp-base-white-60333195/",
-"image": "https://www.ikea.com/ca/en/images/products/strala-table-lamp-base-white__0461680_pe607654_s5.jpg",
-"price": 9.99,
+"name": "Solskur led table lamp",
+"url": "https://www.ikea.com/ca/en/p/solskur-led-table-lamp-light-blue-nickel-plated-20628019/",
+"image": "https://www.ikea.com/ca/en/images/products/solskur-led-table-lamp-light-blue-nickel-plated__1543954_pe1019002_s5.jpg",
+"price": 39.99,
 "currency": "CAD",
-"price_cad": 10,
+"price_cad": 40,
+"type": "table"
+},
+{
+"id": "ikea-90487756",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "\u00c4ngarna led table lamp",
+"url": "https://www.ikea.com/ca/en/p/aengarna-led-table-lamp-football-pattern-90487756/",
+"image": "https://www.ikea.com/ca/en/images/products/aengarna-led-table-lamp-football-pattern__0840928_pe778704_s5.jpg",
+"price": 24.99,
+"currency": "CAD",
+"price_cad": 25,
 "type": "table"
 },
 {
@@ -18325,6 +18325,18 @@
 "type": "table"
 },
 {
+"id": "ikea-60333195",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Str\u00e5la table lamp base",
+"url": "https://www.ikea.com/ca/en/p/strala-table-lamp-base-white-60333195/",
+"image": "https://www.ikea.com/ca/en/images/products/strala-table-lamp-base-white__0461680_pe607654_s5.jpg",
+"price": 9.99,
+"currency": "CAD",
+"price_cad": 10,
+"type": "table"
+},
+{
 "id": "ikea-20355434",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18335,18 +18347,6 @@
 "currency": "CAD",
 "price_cad": 20,
 "type": "arm"
-},
-{
-"id": "ikea-90487756",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "\u00c4ngarna led table lamp",
-"url": "https://www.ikea.com/ca/en/p/aengarna-led-table-lamp-football-pattern-90487756/",
-"image": "https://www.ikea.com/ca/en/images/products/aengarna-led-table-lamp-football-pattern__0840928_pe778704_s5.jpg",
-"price": 24.99,
-"currency": "CAD",
-"price_cad": 25,
-"type": "table"
 },
 {
 "id": "ikea-40594612",
@@ -18373,18 +18373,6 @@
 "type": "arm"
 },
 {
-"id": "ikea-40542430",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Lagerg\u00e5ng led lamp for screen",
-"url": "https://www.ikea.com/ca/en/p/lagergang-led-lamp-for-screen-dimmable-turquoise-40542430/",
-"image": "https://www.ikea.com/ca/en/images/products/lagergang-led-lamp-for-screen-dimmable-turquoise__1166865_pe891302_s5.jpg",
-"price": 27.99,
-"currency": "CAD",
-"price_cad": 28,
-"type": "table"
-},
-{
 "id": "ikea-90510403",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18394,6 +18382,18 @@
 "price": 34.99,
 "currency": "CAD",
 "price_cad": 35,
+"type": "table"
+},
+{
+"id": "ikea-40542430",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Lagerg\u00e5ng led lamp for screen",
+"url": "https://www.ikea.com/ca/en/p/lagergang-led-lamp-for-screen-dimmable-turquoise-40542430/",
+"image": "https://www.ikea.com/ca/en/images/products/lagergang-led-lamp-for-screen-dimmable-turquoise__1166865_pe891302_s5.jpg",
+"price": 27.99,
+"currency": "CAD",
+"price_cad": 28,
 "type": "table"
 },
 {
@@ -18421,18 +18421,6 @@
 "type": "table"
 },
 {
-"id": "ikea-00514373",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Isn\u00e5len led work lamp",
-"url": "https://www.ikea.com/ca/en/p/isnalen-led-work-lamp-white-brass-color-00514373/",
-"image": "https://www.ikea.com/ca/en/images/products/isnalen-led-work-lamp-white-brass-color__1053570_pe857378_s5.jpg",
-"price": 34.99,
-"currency": "CAD",
-"price_cad": 35,
-"type": "arm"
-},
-{
 "id": "ikea-00328682",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18443,6 +18431,18 @@
 "currency": "CAD",
 "price_cad": 25,
 "type": "table"
+},
+{
+"id": "ikea-00514373",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Isn\u00e5len led work lamp",
+"url": "https://www.ikea.com/ca/en/p/isnalen-led-work-lamp-white-brass-color-00514373/",
+"image": "https://www.ikea.com/ca/en/images/products/isnalen-led-work-lamp-white-brass-color__1053570_pe857378_s5.jpg",
+"price": 34.99,
+"currency": "CAD",
+"price_cad": 35,
+"type": "arm"
 },
 {
 "id": "ikea-10555235",
@@ -18601,18 +18601,6 @@
 "type": "floor"
 },
 {
-"id": "ikea-80563581",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "R\u00f6dflik floor/reading lamp",
-"url": "https://www.ikea.com/ca/en/p/roedflik-floor-reading-lamp-gray-green-80563581/",
-"image": "https://www.ikea.com/ca/en/images/products/roedflik-floor-reading-lamp-gray-green__1232722_pe916583_s5.jpg",
-"price": 49.99,
-"currency": "CAD",
-"price_cad": 50,
-"type": "floor"
-},
-{
 "id": "ikea-50437773",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18622,6 +18610,18 @@
 "price": 129.0,
 "currency": "CAD",
 "price_cad": 129,
+"type": "floor"
+},
+{
+"id": "ikea-80563581",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "R\u00f6dflik floor/reading lamp",
+"url": "https://www.ikea.com/ca/en/p/roedflik-floor-reading-lamp-gray-green-80563581/",
+"image": "https://www.ikea.com/ca/en/images/products/roedflik-floor-reading-lamp-gray-green__1232722_pe916583_s5.jpg",
+"price": 49.99,
+"currency": "CAD",
+"price_cad": 50,
 "type": "floor"
 },
 {
@@ -18649,18 +18649,6 @@
 "type": "floor"
 },
 {
-"id": "ikea-00405048",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Lauters floor lamp",
-"url": "https://www.ikea.com/ca/en/p/lauters-floor-lamp-ash-white-00405048/",
-"image": "https://www.ikea.com/ca/en/images/products/lauters-floor-lamp-ash-white__0663863_pe712536_s5.jpg",
-"price": 99.0,
-"currency": "CAD",
-"price_cad": 99,
-"type": "floor"
-},
-{
 "id": "ikea-60464049",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18670,6 +18658,18 @@
 "price": 15.99,
 "currency": "CAD",
 "price_cad": 16,
+"type": "floor"
+},
+{
+"id": "ikea-00405048",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Lauters floor lamp",
+"url": "https://www.ikea.com/ca/en/p/lauters-floor-lamp-ash-white-00405048/",
+"image": "https://www.ikea.com/ca/en/images/products/lauters-floor-lamp-ash-white__0663863_pe712536_s5.jpg",
+"price": 99.0,
+"currency": "CAD",
+"price_cad": 99,
 "type": "floor"
 },
 {
@@ -18697,24 +18697,24 @@
 "type": "floor"
 },
 {
-"id": "ikea-00543846",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Flygh\u00f6jd floor lamp",
-"url": "https://www.ikea.com/ca/en/p/flyghoejd-floor-lamp-brass-green-gray-00543846/",
-"image": "https://www.ikea.com/ca/en/images/products/flyghoejd-floor-lamp-brass-green-gray__1244482_pe921202_s5.jpg",
-"price": 59.99,
-"currency": "CAD",
-"price_cad": 60,
-"type": "floor"
-},
-{
 "id": "ikea-10309206",
 "store": "IKEA Canada",
 "brand": "IKEA",
 "name": "Vidja floor lamp",
 "url": "https://www.ikea.com/ca/en/p/vidja-floor-lamp-white-10309206/",
 "image": "https://www.ikea.com/ca/en/images/products/vidja-floor-lamp-white__0606512_pe682388_s5.jpg",
+"price": 59.99,
+"currency": "CAD",
+"price_cad": 60,
+"type": "floor"
+},
+{
+"id": "ikea-00543846",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Flygh\u00f6jd floor lamp",
+"url": "https://www.ikea.com/ca/en/p/flyghoejd-floor-lamp-brass-green-gray-00543846/",
+"image": "https://www.ikea.com/ca/en/images/products/flyghoejd-floor-lamp-brass-green-gray__1244482_pe921202_s5.jpg",
 "price": 59.99,
 "currency": "CAD",
 "price_cad": 60,
@@ -18757,18 +18757,6 @@
 "type": "floor"
 },
 {
-"id": "ikea-20559266",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Kinnahult floor lamp",
-"url": "https://www.ikea.com/ca/en/p/kinnahult-floor-lamp-ash-white-20559266/",
-"image": "https://www.ikea.com/ca/en/images/products/kinnahult-floor-lamp-ash-white__1170759_pe892939_s5.jpg",
-"price": 89.0,
-"currency": "CAD",
-"price_cad": 89,
-"type": "floor"
-},
-{
 "id": "ikea-20110903",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18778,6 +18766,18 @@
 "price": 29.99,
 "currency": "CAD",
 "price_cad": 30,
+"type": "floor"
+},
+{
+"id": "ikea-20559266",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Kinnahult floor lamp",
+"url": "https://www.ikea.com/ca/en/p/kinnahult-floor-lamp-ash-white-20559266/",
+"image": "https://www.ikea.com/ca/en/images/products/kinnahult-floor-lamp-ash-white__1170759_pe892939_s5.jpg",
+"price": 89.0,
+"currency": "CAD",
+"price_cad": 89,
 "type": "floor"
 },
 {
@@ -18829,6 +18829,18 @@
 "type": "floor"
 },
 {
+"id": "ikea-70488295",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Uppvind floor lamp",
+"url": "https://www.ikea.com/ca/en/p/uppvind-floor-lamp-brass-plated-white-70488295/",
+"image": "https://www.ikea.com/ca/en/images/products/uppvind-floor-lamp-brass-plated-white__0957412_pe804984_s5.jpg",
+"price": 129.0,
+"currency": "CAD",
+"price_cad": 129,
+"type": "floor"
+},
+{
 "id": "ikea-00614301",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -18841,15 +18853,15 @@
 "type": "floor"
 },
 {
-"id": "ikea-70488295",
+"id": "ikea-00618808",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Uppvind floor lamp",
-"url": "https://www.ikea.com/ca/en/p/uppvind-floor-lamp-brass-plated-white-70488295/",
-"image": "https://www.ikea.com/ca/en/images/products/uppvind-floor-lamp-brass-plated-white__0957412_pe804984_s5.jpg",
-"price": 129.0,
+"name": "Akterspring floor lamp",
+"url": "https://www.ikea.com/ca/en/p/akterspring-floor-lamp-opal-white-glass-brass-plated-00618808/",
+"image": "https://www.ikea.com/ca/en/images/products/akterspring-floor-lamp-opal-white-glass-brass-plated__1531221_pe1015569_s5.jpg",
+"price": 69.99,
 "currency": "CAD",
-"price_cad": 129,
+"price_cad": 70,
 "type": "floor"
 },
 {
@@ -18877,15 +18889,15 @@
 "type": "floor"
 },
 {
-"id": "ikea-00618808",
+"id": "ikea-00331383",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Akterspring floor lamp",
-"url": "https://www.ikea.com/ca/en/p/akterspring-floor-lamp-opal-white-glass-brass-plated-00618808/",
-"image": "https://www.ikea.com/ca/en/images/products/akterspring-floor-lamp-opal-white-glass-brass-plated__1531221_pe1015569_s5.jpg",
-"price": 69.99,
+"name": "Ranarp floor/reading lamp",
+"url": "https://www.ikea.com/ca/en/p/ranarp-floor-reading-lamp-black-00331383/",
+"image": "https://www.ikea.com/ca/en/images/products/ranarp-floor-reading-lamp-black__0606896_pe682604_s5.jpg",
+"price": 79.99,
 "currency": "CAD",
-"price_cad": 70,
+"price_cad": 80,
 "type": "floor"
 },
 {
@@ -18901,15 +18913,15 @@
 "type": "floor"
 },
 {
-"id": "ikea-00331383",
+"id": "ikea-90566697",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Ranarp floor/reading lamp",
-"url": "https://www.ikea.com/ca/en/p/ranarp-floor-reading-lamp-black-00331383/",
-"image": "https://www.ikea.com/ca/en/images/products/ranarp-floor-reading-lamp-black__0606896_pe682604_s5.jpg",
-"price": 79.99,
+"name": "Bl\u00e4nkfyr floor lamp",
+"url": "https://www.ikea.com/ca/en/p/blaenkfyr-floor-lamp-nickel-plated-90566697/",
+"image": "https://www.ikea.com/ca/en/images/products/blaenkfyr-floor-lamp-nickel-plated__1342648_pe949079_s5.jpg",
+"price": 39.99,
 "currency": "CAD",
-"price_cad": 80,
+"price_cad": 40,
 "type": "floor"
 },
 {
@@ -18922,18 +18934,6 @@
 "price": 59.99,
 "currency": "CAD",
 "price_cad": 60,
-"type": "floor"
-},
-{
-"id": "ikea-90566697",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Bl\u00e4nkfyr floor lamp",
-"url": "https://www.ikea.com/ca/en/p/blaenkfyr-floor-lamp-nickel-plated-90566697/",
-"image": "https://www.ikea.com/ca/en/images/products/blaenkfyr-floor-lamp-nickel-plated__1342648_pe949079_s5.jpg",
-"price": 39.99,
-"currency": "CAD",
-"price_cad": 40,
 "type": "floor"
 },
 {
@@ -19069,18 +19069,6 @@
 "type": "pendant"
 },
 {
-"id": "ikea-s29617851",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Gullsudare / Havsdjup pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/gullsudare-havsdjup-pendant-lamp-white-s29617851/",
-"image": "https://www.ikea.com/ca/en/images/products/gullsudare-havsdjup-pendant-lamp-white__1455789_pe991997_s5.jpg",
-"price": 14.99,
-"currency": "CAD",
-"price_cad": 15,
-"type": "pendant"
-},
-{
 "id": "ikea-70315030",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -19090,6 +19078,18 @@
 "price": 79.99,
 "currency": "CAD",
 "price_cad": 80,
+"type": "pendant"
+},
+{
+"id": "ikea-s29617851",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Gullsudare / Havsdjup pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/gullsudare-havsdjup-pendant-lamp-white-s29617851/",
+"image": "https://www.ikea.com/ca/en/images/products/gullsudare-havsdjup-pendant-lamp-white__1455789_pe991997_s5.jpg",
+"price": 14.99,
+"currency": "CAD",
+"price_cad": 15,
 "type": "pendant"
 },
 {
@@ -19177,15 +19177,15 @@
 "type": "pendant"
 },
 {
-"id": "ikea-s29618167",
+"id": "ikea-70641985",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Kappeland / Havsdjup pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/kappeland-havsdjup-pendant-lamp-black-rattan-s29618167/",
-"image": "https://www.ikea.com/ca/en/images/products/kappeland-havsdjup-pendant-lamp-black-rattan__1200471_pe904980_s5.jpg",
-"price": 69.99,
+"name": "Kv\u00e4llsdopp pendant lamp shade",
+"url": "https://www.ikea.com/ca/en/p/kvaellsdopp-pendant-lamp-shade-brass-color-70641985/",
+"image": "https://www.ikea.com/ca/en/images/products/kvaellsdopp-pendant-lamp-shade-brass-color__1544272_pe1019134_s5.jpg",
+"price": 24.99,
 "currency": "CAD",
-"price_cad": 70,
+"price_cad": 25,
 "type": "pendant"
 },
 {
@@ -19201,6 +19201,18 @@
 "type": "pendant"
 },
 {
+"id": "ikea-s29618167",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Kappeland / Havsdjup pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/kappeland-havsdjup-pendant-lamp-black-rattan-s29618167/",
+"image": "https://www.ikea.com/ca/en/images/products/kappeland-havsdjup-pendant-lamp-black-rattan__1200471_pe904980_s5.jpg",
+"price": 69.99,
+"currency": "CAD",
+"price_cad": 70,
+"type": "pendant"
+},
+{
 "id": "ikea-10595868",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -19210,54 +19222,6 @@
 "price": 79.99,
 "currency": "CAD",
 "price_cad": 80,
-"type": "pendant"
-},
-{
-"id": "ikea-20430382",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Torared pendant lamp shade",
-"url": "https://www.ikea.com/ca/en/p/torared-pendant-lamp-shade-sedge-handmade-20430382/",
-"image": "https://www.ikea.com/ca/en/images/products/torared-pendant-lamp-shade-sedge-handmade__0764657_pe753261_s5.jpg",
-"price": 39.99,
-"currency": "CAD",
-"price_cad": 40,
-"type": "pendant"
-},
-{
-"id": "ikea-70641985",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Kv\u00e4llsdopp pendant lamp shade",
-"url": "https://www.ikea.com/ca/en/p/kvaellsdopp-pendant-lamp-shade-brass-color-70641985/",
-"image": "https://www.ikea.com/ca/en/images/products/kvaellsdopp-pendant-lamp-shade-brass-color__1544272_pe1019134_s5.jpg",
-"price": 24.99,
-"currency": "CAD",
-"price_cad": 25,
-"type": "pendant"
-},
-{
-"id": "ikea-00566734",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Taggtofs pendant lamp shade",
-"url": "https://www.ikea.com/ca/en/p/taggtofs-pendant-lamp-shade-white-bamboo-00566734/",
-"image": "https://www.ikea.com/ca/en/images/products/taggtofs-pendant-lamp-shade-white-bamboo__1405017_pe970318_s5.jpg",
-"price": 39.99,
-"currency": "CAD",
-"price_cad": 40,
-"type": "pendant"
-},
-{
-"id": "ikea-30520909",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Bl\u00e5sverk pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/blasverk-pendant-lamp-beige-30520909/",
-"image": "https://www.ikea.com/ca/en/images/products/blasverk-pendant-lamp-beige__1150244_pe884434_s5.jpg",
-"price": 39.99,
-"currency": "CAD",
-"price_cad": 40,
 "type": "pendant"
 },
 {
@@ -19273,12 +19237,48 @@
 "type": "pendant"
 },
 {
+"id": "ikea-20430382",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Torared pendant lamp shade",
+"url": "https://www.ikea.com/ca/en/p/torared-pendant-lamp-shade-sedge-handmade-20430382/",
+"image": "https://www.ikea.com/ca/en/images/products/torared-pendant-lamp-shade-sedge-handmade__0764657_pe753261_s5.jpg",
+"price": 39.99,
+"currency": "CAD",
+"price_cad": 40,
+"type": "pendant"
+},
+{
+"id": "ikea-00566734",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Taggtofs pendant lamp shade",
+"url": "https://www.ikea.com/ca/en/p/taggtofs-pendant-lamp-shade-white-bamboo-00566734/",
+"image": "https://www.ikea.com/ca/en/images/products/taggtofs-pendant-lamp-shade-white-bamboo__1405017_pe970318_s5.jpg",
+"price": 39.99,
+"currency": "CAD",
+"price_cad": 40,
+"type": "pendant"
+},
+{
 "id": "ikea-20430377",
 "store": "IKEA Canada",
 "brand": "IKEA",
 "name": "Regnskur pendant lamp shade",
 "url": "https://www.ikea.com/ca/en/p/regnskur-pendant-lamp-shade-round-white-20430377/",
 "image": "https://www.ikea.com/ca/en/images/products/regnskur-pendant-lamp-shade-round-white__0813129_pe772291_s5.jpg",
+"price": 39.99,
+"currency": "CAD",
+"price_cad": 40,
+"type": "pendant"
+},
+{
+"id": "ikea-50333049",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Jakobsbyn pendant lamp shade",
+"url": "https://www.ikea.com/ca/en/p/jakobsbyn-pendant-lamp-shade-smoked-50333049/",
+"image": "https://www.ikea.com/ca/en/images/products/jakobsbyn-pendant-lamp-shade-smoked__0491396_pe625036_s5.jpg",
 "price": 39.99,
 "currency": "CAD",
 "price_cad": 40,
@@ -19297,12 +19297,12 @@
 "type": "pendant"
 },
 {
-"id": "ikea-50333049",
+"id": "ikea-30520909",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Jakobsbyn pendant lamp shade",
-"url": "https://www.ikea.com/ca/en/p/jakobsbyn-pendant-lamp-shade-smoked-50333049/",
-"image": "https://www.ikea.com/ca/en/images/products/jakobsbyn-pendant-lamp-shade-smoked__0491396_pe625036_s5.jpg",
+"name": "Bl\u00e5sverk pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/blasverk-pendant-lamp-beige-30520909/",
+"image": "https://www.ikea.com/ca/en/images/products/blasverk-pendant-lamp-beige__1150244_pe884434_s5.jpg",
 "price": 39.99,
 "currency": "CAD",
 "price_cad": 40,
@@ -19357,16 +19357,16 @@
 "type": "pendant"
 },
 {
-"id": "ikea-00637487",
+"id": "ikea-20531748",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Str\u00e5la portable led light source",
-"url": "https://www.ikea.com/ca/en/p/strala-portable-led-light-source-battery-operated-00637487/",
-"image": "https://www.ikea.com/ca/en/images/products/strala-portable-led-light-source-battery-operated__1508481_pe1009541_s5.jpg",
-"price": 22.99,
+"name": "Ikea Ps 2014 pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/ikea-ps-2014-pendant-lamp-black-20531748/",
+"image": "https://www.ikea.com/ca/en/images/products/ikea-ps-2014-pendant-lamp-black__1120764_pe873940_s5.jpg",
+"price": 79.99,
 "currency": "CAD",
-"price_cad": 23,
-"type": "table"
+"price_cad": 80,
+"type": "pendant"
 },
 {
 "id": "ikea-s79618198",
@@ -19378,18 +19378,6 @@
 "price": 89.99,
 "currency": "CAD",
 "price_cad": 90,
-"type": "pendant"
-},
-{
-"id": "ikea-20531748",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Ikea Ps 2014 pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/ikea-ps-2014-pendant-lamp-black-20531748/",
-"image": "https://www.ikea.com/ca/en/images/products/ikea-ps-2014-pendant-lamp-black__1120764_pe873940_s5.jpg",
-"price": 79.99,
-"currency": "CAD",
-"price_cad": 80,
 "type": "pendant"
 },
 {
@@ -19417,6 +19405,30 @@
 "type": "pendant"
 },
 {
+"id": "ikea-00637487",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Str\u00e5la portable led light source",
+"url": "https://www.ikea.com/ca/en/p/strala-portable-led-light-source-battery-operated-00637487/",
+"image": "https://www.ikea.com/ca/en/images/products/strala-portable-led-light-source-battery-operated__1508481_pe1009541_s5.jpg",
+"price": 22.99,
+"currency": "CAD",
+"price_cad": 23,
+"type": "table"
+},
+{
+"id": "ikea-s39618119",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "B\u00e4cknate / Havsdjup pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/baecknate-havsdjup-pendant-lamp-white-s39618119/",
+"image": "https://www.ikea.com/ca/en/images/products/baecknate-havsdjup-pendant-lamp-white__1367253_pe957290_s5.jpg",
+"price": 49.99,
+"currency": "CAD",
+"price_cad": 50,
+"type": "pendant"
+},
+{
 "id": "ikea-10488397",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -19429,12 +19441,12 @@
 "type": "pendant"
 },
 {
-"id": "ikea-s19388119",
+"id": "ikea-60325794",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Jakobsbyn / J\u00e4llby pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/jakobsbyn-jaellby-pendant-lamp-clear-glass-nickel-plated-s19388119/",
-"image": "https://www.ikea.com/ca/en/images/products/jakobsbyn-jaellby-pendant-lamp-clear-glass-nickel-plated__1335519_pe947076_s5.jpg",
+"name": "H\u00f6ljes pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/hoeljes-pendant-lamp-white-60325794/",
+"image": "https://www.ikea.com/ca/en/images/products/hoeljes-pendant-lamp-white__0607401_pe682951_s5.jpg",
 "price": 59.99,
 "currency": "CAD",
 "price_cad": 60,
@@ -19465,24 +19477,12 @@
 "type": "pendant"
 },
 {
-"id": "ikea-s39618119",
+"id": "ikea-s19388119",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "B\u00e4cknate / Havsdjup pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/baecknate-havsdjup-pendant-lamp-white-s39618119/",
-"image": "https://www.ikea.com/ca/en/images/products/baecknate-havsdjup-pendant-lamp-white__1367253_pe957290_s5.jpg",
-"price": 49.99,
-"currency": "CAD",
-"price_cad": 50,
-"type": "pendant"
-},
-{
-"id": "ikea-60325794",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "H\u00f6ljes pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/hoeljes-pendant-lamp-white-60325794/",
-"image": "https://www.ikea.com/ca/en/images/products/hoeljes-pendant-lamp-white__0607401_pe682951_s5.jpg",
+"name": "Jakobsbyn / J\u00e4llby pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/jakobsbyn-jaellby-pendant-lamp-clear-glass-nickel-plated-s19388119/",
+"image": "https://www.ikea.com/ca/en/images/products/jakobsbyn-jaellby-pendant-lamp-clear-glass-nickel-plated__1335519_pe947076_s5.jpg",
 "price": 59.99,
 "currency": "CAD",
 "price_cad": 60,
@@ -19537,42 +19537,6 @@
 "type": "pendant"
 },
 {
-"id": "ikea-s79392608",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Regnskur / Sunneby pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/regnskur-sunneby-pendant-lamp-white-s79392608/",
-"image": "https://www.ikea.com/ca/en/images/products/regnskur-sunneby-pendant-lamp-white__0928627_pe789930_s5.jpg",
-"price": 56.99,
-"currency": "CAD",
-"price_cad": 57,
-"type": "pendant"
-},
-{
-"id": "ikea-s29626902",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Kv\u00e4llsdopp / Havsdjup pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/kvaellsdopp-havsdjup-pendant-lamp-black-s29626902/",
-"image": "https://www.ikea.com/ca/en/images/products/kvaellsdopp-havsdjup-pendant-lamp-black__1544234_pe1019105_s5.jpg",
-"price": 39.99,
-"currency": "CAD",
-"price_cad": 40,
-"type": "pendant"
-},
-{
-"id": "ikea-10364783",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Agunnaryd pendant lamp with 3 lamps",
-"url": "https://www.ikea.com/ca/en/p/agunnaryd-pendant-lamp-with-3-lamps-black-10364783/",
-"image": "https://www.ikea.com/ca/en/images/products/agunnaryd-pendant-lamp-with-3-lamps-black__0859557_pe782370_s5.jpg",
-"price": 129.0,
-"currency": "CAD",
-"price_cad": 129,
-"type": "pendant"
-},
-{
 "id": "ikea-80599472",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -19594,6 +19558,42 @@
 "price": 34.99,
 "currency": "CAD",
 "price_cad": 35,
+"type": "pendant"
+},
+{
+"id": "ikea-10364783",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Agunnaryd pendant lamp with 3 lamps",
+"url": "https://www.ikea.com/ca/en/p/agunnaryd-pendant-lamp-with-3-lamps-black-10364783/",
+"image": "https://www.ikea.com/ca/en/images/products/agunnaryd-pendant-lamp-with-3-lamps-black__0859557_pe782370_s5.jpg",
+"price": 129.0,
+"currency": "CAD",
+"price_cad": 129,
+"type": "pendant"
+},
+{
+"id": "ikea-10516022",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Fyrtiofyra pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/fyrtiofyra-pendant-lamp-chrome-effect-white-10516022/",
+"image": "https://www.ikea.com/ca/en/images/products/fyrtiofyra-pendant-lamp-chrome-effect-white__1161912_pe889572_s5.jpg",
+"price": 24.99,
+"currency": "CAD",
+"price_cad": 25,
+"type": "pendant"
+},
+{
+"id": "ikea-s29626902",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Kv\u00e4llsdopp / Havsdjup pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/kvaellsdopp-havsdjup-pendant-lamp-black-s29626902/",
+"image": "https://www.ikea.com/ca/en/images/products/kvaellsdopp-havsdjup-pendant-lamp-black__1544234_pe1019105_s5.jpg",
+"price": 39.99,
+"currency": "CAD",
+"price_cad": 40,
 "type": "pendant"
 },
 {
@@ -19633,15 +19633,27 @@
 "type": "pendant"
 },
 {
-"id": "ikea-10516022",
+"id": "ikea-10390975",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Fyrtiofyra pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/fyrtiofyra-pendant-lamp-chrome-effect-white-10516022/",
-"image": "https://www.ikea.com/ca/en/images/products/fyrtiofyra-pendant-lamp-chrome-effect-white__1161912_pe889572_s5.jpg",
-"price": 24.99,
+"name": "Ranarp pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/ranarp-pendant-lamp-off-white-10390975/",
+"image": "https://www.ikea.com/ca/en/images/products/ranarp-pendant-lamp-off-white__0613060_pe686150_s5.jpg",
+"price": 49.99,
 "currency": "CAD",
-"price_cad": 25,
+"price_cad": 50,
+"type": "pendant"
+},
+{
+"id": "ikea-s79392608",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Regnskur / Sunneby pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/regnskur-sunneby-pendant-lamp-white-s79392608/",
+"image": "https://www.ikea.com/ca/en/images/products/regnskur-sunneby-pendant-lamp-white__0928627_pe789930_s5.jpg",
+"price": 56.99,
+"currency": "CAD",
+"price_cad": 57,
 "type": "pendant"
 },
 {
@@ -19657,24 +19669,36 @@
 "type": "pendant"
 },
 {
-"id": "ikea-30492483",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Kallfront pendant lamp shade",
-"url": "https://www.ikea.com/ca/en/p/kallfront-pendant-lamp-shade-black-30492483/",
-"image": "https://www.ikea.com/ca/en/images/products/kallfront-pendant-lamp-shade-black__1045482_pe842633_s5.jpg",
-"price": 24.99,
-"currency": "CAD",
-"price_cad": 25,
-"type": "pendant"
-},
-{
 "id": "ikea-80540189",
 "store": "IKEA Canada",
 "brand": "IKEA",
 "name": "Kappeland pendant lamp shade",
 "url": "https://www.ikea.com/ca/en/p/kappeland-pendant-lamp-shade-rattan-80540189/",
 "image": "https://www.ikea.com/ca/en/images/products/kappeland-pendant-lamp-shade-rattan__1162534_pe889851_s5.jpg",
+"price": 49.99,
+"currency": "CAD",
+"price_cad": 50,
+"type": "pendant"
+},
+{
+"id": "ikea-80598123",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Sandkorn pendant lamp shade",
+"url": "https://www.ikea.com/ca/en/p/sandkorn-pendant-lamp-shade-handmade-rattan-80598123/",
+"image": "https://www.ikea.com/ca/en/images/products/sandkorn-pendant-lamp-shade-handmade-rattan__1450306_pe990284_s5.jpg",
+"price": 59.99,
+"currency": "CAD",
+"price_cad": 60,
+"type": "pendant"
+},
+{
+"id": "ikea-s49618802",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Taggtofs / Havsdjup pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/taggtofs-havsdjup-pendant-lamp-white-bamboo-s49618802/",
+"image": "https://www.ikea.com/ca/en/images/products/taggtofs-havsdjup-pendant-lamp-white-bamboo__1454265_pe991588_s5.jpg",
 "price": 49.99,
 "currency": "CAD",
 "price_cad": 50,
@@ -19705,39 +19729,15 @@
 "type": "pendant"
 },
 {
-"id": "ikea-s09623773",
+"id": "ikea-80586969",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Bl\u00e5st\u00e5ng / Havsdjup pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/blastang-havsdjup-pendant-lamp-beige-white-s09623773/",
-"image": "https://www.ikea.com/ca/en/images/products/blastang-havsdjup-pendant-lamp-beige-white__1359783_pe954297_s5.jpg",
+"name": "Sambord pendant lamp with 3 lamps",
+"url": "https://www.ikea.com/ca/en/p/sambord-pendant-lamp-with-3-lamps-black-white-80586969/",
+"image": "https://www.ikea.com/ca/en/images/products/sambord-pendant-lamp-with-3-lamps-black-white__1369070_pe958015_s5.jpg",
 "price": 39.99,
 "currency": "CAD",
 "price_cad": 40,
-"type": "pendant"
-},
-{
-"id": "ikea-80598123",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Sandkorn pendant lamp shade",
-"url": "https://www.ikea.com/ca/en/p/sandkorn-pendant-lamp-shade-handmade-rattan-80598123/",
-"image": "https://www.ikea.com/ca/en/images/products/sandkorn-pendant-lamp-shade-handmade-rattan__1450306_pe990284_s5.jpg",
-"price": 59.99,
-"currency": "CAD",
-"price_cad": 60,
-"type": "pendant"
-},
-{
-"id": "ikea-10390956",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Ranarp pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/ranarp-pendant-lamp-black-10390956/",
-"image": "https://www.ikea.com/ca/en/images/products/ranarp-pendant-lamp-black__0613059_pe686147_s5.jpg",
-"price": 49.99,
-"currency": "CAD",
-"price_cad": 50,
 "type": "pendant"
 },
 {
@@ -19753,48 +19753,48 @@
 "type": "pendant"
 },
 {
-"id": "ikea-80574240",
+"id": "ikea-30492483",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Ytl\u00e4ge pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/ytlaege-pendant-lamp-white-80574240/",
-"image": "https://www.ikea.com/ca/en/images/products/ytlaege-pendant-lamp-white__1248107_pe923610_s5.jpg",
+"name": "Kallfront pendant lamp shade",
+"url": "https://www.ikea.com/ca/en/p/kallfront-pendant-lamp-shade-black-30492483/",
+"image": "https://www.ikea.com/ca/en/images/products/kallfront-pendant-lamp-shade-black__1045482_pe842633_s5.jpg",
+"price": 24.99,
+"currency": "CAD",
+"price_cad": 25,
+"type": "pendant"
+},
+{
+"id": "ikea-s09623773",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Bl\u00e5st\u00e5ng / Havsdjup pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/blastang-havsdjup-pendant-lamp-beige-white-s09623773/",
+"image": "https://www.ikea.com/ca/en/images/products/blastang-havsdjup-pendant-lamp-beige-white__1359783_pe954297_s5.jpg",
 "price": 39.99,
 "currency": "CAD",
 "price_cad": 40,
 "type": "pendant"
 },
 {
-"id": "ikea-s49618802",
+"id": "ikea-10499621",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Taggtofs / Havsdjup pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/taggtofs-havsdjup-pendant-lamp-white-bamboo-s49618802/",
-"image": "https://www.ikea.com/ca/en/images/products/taggtofs-havsdjup-pendant-lamp-white-bamboo__1454265_pe991588_s5.jpg",
+"name": "J\u00e4rpliden pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/jaerpliden-pendant-lamp-white-glass-nickel-plated-10499621/",
+"image": "https://www.ikea.com/ca/en/images/products/jaerpliden-pendant-lamp-white-glass-nickel-plated__0998174_pe822956_s5.jpg",
 "price": 49.99,
 "currency": "CAD",
 "price_cad": 50,
 "type": "pendant"
 },
 {
-"id": "ikea-00504048",
+"id": "ikea-80574240",
 "store": "IKEA Canada",
 "brand": "IKEA",
-"name": "Nym\u00e5ne led pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/nymane-led-pendant-lamp-wireless-dimmable-white-spectrum-anthracite-00504048/",
-"image": "https://www.ikea.com/ca/en/images/products/nymane-led-pendant-lamp-wireless-dimmable-white-spectrum-anthracite__1008036_pe826684_s5.jpg",
-"price": 119.0,
-"currency": "CAD",
-"price_cad": 119,
-"type": "pendant"
-},
-{
-"id": "ikea-80586969",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Sambord pendant lamp with 3 lamps",
-"url": "https://www.ikea.com/ca/en/p/sambord-pendant-lamp-with-3-lamps-black-white-80586969/",
-"image": "https://www.ikea.com/ca/en/images/products/sambord-pendant-lamp-with-3-lamps-black-white__1369070_pe958015_s5.jpg",
+"name": "Ytl\u00e4ge pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/ytlaege-pendant-lamp-white-80574240/",
+"image": "https://www.ikea.com/ca/en/images/products/ytlaege-pendant-lamp-white__1248107_pe923610_s5.jpg",
 "price": 39.99,
 "currency": "CAD",
 "price_cad": 40,
@@ -19813,30 +19813,6 @@
 "type": "pendant"
 },
 {
-"id": "ikea-10579774",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Brunsta pendant lamp shade",
-"url": "https://www.ikea.com/ca/en/p/brunsta-pendant-lamp-shade-black-10579774/",
-"image": "https://www.ikea.com/ca/en/images/products/brunsta-pendant-lamp-shade-black__1375916_pe960377_s5.jpg",
-"price": 14.99,
-"currency": "CAD",
-"price_cad": 15,
-"type": "pendant"
-},
-{
-"id": "ikea-10499621",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "J\u00e4rpliden pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/jaerpliden-pendant-lamp-white-glass-nickel-plated-10499621/",
-"image": "https://www.ikea.com/ca/en/images/products/jaerpliden-pendant-lamp-white-glass-nickel-plated__0998174_pe822956_s5.jpg",
-"price": 49.99,
-"currency": "CAD",
-"price_cad": 50,
-"type": "pendant"
-},
-{
 "id": "ikea-s69617873",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -19846,6 +19822,30 @@
 "price": 29.99,
 "currency": "CAD",
 "price_cad": 30,
+"type": "pendant"
+},
+{
+"id": "ikea-80503832",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Nym\u00e5ne led pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/nymane-led-pendant-lamp-wireless-dimmable-white-spectrum-white-80503832/",
+"image": "https://www.ikea.com/ca/en/images/products/nymane-led-pendant-lamp-wireless-dimmable-white-spectrum-white__1008045_pe826687_s5.jpg",
+"price": 119.0,
+"currency": "CAD",
+"price_cad": 119,
+"type": "pendant"
+},
+{
+"id": "ikea-10579774",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Brunsta pendant lamp shade",
+"url": "https://www.ikea.com/ca/en/p/brunsta-pendant-lamp-shade-black-10579774/",
+"image": "https://www.ikea.com/ca/en/images/products/brunsta-pendant-lamp-shade-black__1375916_pe960377_s5.jpg",
+"price": 14.99,
+"currency": "CAD",
+"price_cad": 15,
 "type": "pendant"
 },
 {
@@ -19861,6 +19861,18 @@
 "type": "pendant"
 },
 {
+"id": "ikea-80625367",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Varmblixt led pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/varmblixt-led-pendant-lamp-dimmable-smart-white-glass-white-spectrum-80625367/",
+"image": "https://www.ikea.com/ca/en/images/products/varmblixt-led-pendant-lamp-dimmable-smart-white-glass-white-spectrum__1507499_pe1009356_s5.jpg",
+"price": 239.0,
+"currency": "CAD",
+"price_cad": 239,
+"type": "pendant"
+},
+{
 "id": "ikea-60578791",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -19870,18 +19882,6 @@
 "price": 39.99,
 "currency": "CAD",
 "price_cad": 40,
-"type": "pendant"
-},
-{
-"id": "ikea-s39623328",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Grejsimojs / Havsdjup pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/grejsimojs-havsdjup-pendant-lamp-white-yellow-s39623328/",
-"image": "https://www.ikea.com/ca/en/images/products/grejsimojs-havsdjup-pendant-lamp-white-yellow__1455800_pe992000_s5.jpg",
-"price": 19.99,
-"currency": "CAD",
-"price_cad": 20,
 "type": "pendant"
 },
 {
@@ -19897,6 +19897,18 @@
 "type": "pendant"
 },
 {
+"id": "ikea-s39623328",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Grejsimojs / Havsdjup pendant lamp",
+"url": "https://www.ikea.com/ca/en/p/grejsimojs-havsdjup-pendant-lamp-white-yellow-s39623328/",
+"image": "https://www.ikea.com/ca/en/images/products/grejsimojs-havsdjup-pendant-lamp-white-yellow__1455800_pe992000_s5.jpg",
+"price": 19.99,
+"currency": "CAD",
+"price_cad": 20,
+"type": "pendant"
+},
+{
 "id": "ikea-s49620409",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -19906,18 +19918,6 @@
 "price": 96.99,
 "currency": "CAD",
 "price_cad": 97,
-"type": "pendant"
-},
-{
-"id": "ikea-80625367",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Varmblixt led pendant lamp",
-"url": "https://www.ikea.com/ca/en/p/varmblixt-led-pendant-lamp-dimmable-smart-white-glass-white-spectrum-80625367/",
-"image": "https://www.ikea.com/ca/en/images/products/varmblixt-led-pendant-lamp-dimmable-smart-white-glass-white-spectrum__1507499_pe1009356_s5.jpg",
-"price": 239.0,
-"currency": "CAD",
-"price_cad": 239,
 "type": "pendant"
 },
 {
@@ -19945,12 +19945,12 @@
 "type": "table"
 },
 {
-"id": "ikea-20509554",
+"id": "ikea-20509549",
 "store": "IKEA Canada",
 "brand": "IKEA",
 "name": "Skottorp lamp shade",
-"url": "https://www.ikea.com/ca/en/p/skottorp-lamp-shade-white-20509554/",
-"image": "https://www.ikea.com/ca/en/images/products/skottorp-lamp-shade-white__0984224_pe816169_s5.jpg",
+"url": "https://www.ikea.com/ca/en/p/skottorp-lamp-shade-light-gray-20509549/",
+"image": "https://www.ikea.com/ca/en/images/products/skottorp-lamp-shade-light-gray__0984223_pe816168_s5.jpg",
 "price": 9.99,
 "currency": "CAD",
 "price_cad": 10,
@@ -20065,18 +20065,6 @@
 "type": "table"
 },
 {
-"id": "ikea-50604960",
-"store": "IKEA Canada",
-"brand": "IKEA",
-"name": "Blomprakt bluetooth speaker lamp",
-"url": "https://www.ikea.com/ca/en/p/blomprakt-bluetooth-speaker-lamp-black-50604960/",
-"image": "https://www.ikea.com/ca/en/images/products/blomprakt-bluetooth-speaker-lamp-black__1452975_pe991266_s5.jpg",
-"price": 79.99,
-"currency": "CAD",
-"price_cad": 80,
-"type": "table"
-},
-{
 "id": "ikea-50612842",
 "store": "IKEA Canada",
 "brand": "IKEA",
@@ -20099,6 +20087,18 @@
 "currency": "CAD",
 "price_cad": 23,
 "type": "arm"
+},
+{
+"id": "ikea-00604948",
+"store": "IKEA Canada",
+"brand": "IKEA",
+"name": "Blomprakt bluetooth speaker lamp",
+"url": "https://www.ikea.com/ca/en/p/blomprakt-bluetooth-speaker-lamp-beige-00604948/",
+"image": "https://www.ikea.com/ca/en/images/products/blomprakt-bluetooth-speaker-lamp-beige__1452973_pe991265_s5.jpg",
+"price": 79.99,
+"currency": "CAD",
+"price_cad": 80,
+"type": "table"
 }
 ]
 }
