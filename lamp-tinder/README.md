@@ -1,6 +1,6 @@
 # Lamp Tinder
 
-Swipe right on 1,200 Blender-generated lamps you like, left on the ones you don't. Your likes are blended into a lamp of your own (shown in 3D, downloadable as an STL), and matched against ~1,500 real lamps you can buy.
+Swipe right on 1,200 Blender-generated lamps you like, left on the ones you don't. Your likes are blended into a lamp of your own (shown in 3D, downloadable as a print-ready desk model), and matched against ~1,500 real lamps you can buy.
 
 Live: https://julian-pietraroia.github.io/lamp-tinder/
 
@@ -19,6 +19,7 @@ Built in one session with Claude; the conversation is in [CHAT.md](CHAT.md).
 - **Blending:** each style's lamp is a weighted blend: typical and super-liked lamps count more, and the numbers are pulled halfway toward the most representative liked lamp so the result keeps some character.
 - **Share links:** the results page encodes likes, super-likes, passes and budget in the URL; opening it shows the same results.
 - **3D view:** `site/lamp3d.js` is a three.js port of the Blender builder. "In a room" shows the lamp at real size next to simple furniture and a 175 cm person.
+- **Desk model:** `site/display.js` turns the blended lamp into a ~16 cm model that prints without supports: the shade is solid and sits on its opening (a globe is cut into two halves at its widest point), the stem, arm, cords and tripod legs print lying flat with octagonal pegs, the base prints upright with a socket, and a tripod hub prints upside down with angled leg sockets. All parts are laid out on one 220 mm plate and push together (0.25 mm clearance). Checked on all 1,200 lamps: every part fits the plate, with no unsupported overhangs beyond small socket ceilings.
 - **Build it yourself:** `site/kit.js` turns the blended lamp into a zip of printable STLs (mm, Z-up, already in print orientation) designed around standard lamp hardware (1/8 IPS threaded pipe, E26 socket, cord set): a ballast base with pipe bore, a shade with 2 mm walls and a washer fitter (or socket hole for pendants/desk lamps), printed ball joints for desk lamps, a tripod hub for dowel legs, stem sleeves, a canopy for pendants. Parts wider than a 250 mm bed are cut into wedges/quadrants. The README inside has a parts list with rough CAD prices, assembly steps, safety notes, and a filament / print-time / cost estimate (also shown on the results page next to the closest real lamp's price).
 - **Catalog refresh:** `.github/workflows/lamp-tinder-catalog.yml` runs weekly. It re-pulls store feeds, fingerprints only new product photos in memory (`tools/embed_new.mjs`), and keeps a store's previous listings if its feed can't be reached (most stores block GitHub's servers, so a full refresh is best run locally).
 

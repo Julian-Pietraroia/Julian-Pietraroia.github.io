@@ -121,3 +121,10 @@ This project was built in a single session with Claude (Anthropic), working in t
 **Me:** update it
 
 *Claude added everything since then to this file.*
+
+*Claude then made the GIFs for my slides (accurate build animations rendered in Blender on my PC, a Blender screen capture, a same-seed demo, a recording of swiping on the live site, and the blend), plus a workflow diagram.*
+
+**Me:** right now the stl it provides at the end is very hard to 3d print because the lamp shade floats. can you make it easier?
+
+*Claude replaced the one-piece display STL (which had the shade hanging in mid-air) with a print-ready desk model: separate parts laid out on one plate, each oriented to print without supports, pushed together with pegs. It checked all 1,200 lamps in Chrome with the site's own three.js: every model builds and fits a 220 mm plate.*
+

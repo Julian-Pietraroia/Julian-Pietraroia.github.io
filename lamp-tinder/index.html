@@ -175,7 +175,8 @@
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { showLamp, lampSTL, realHeightCm } from './site/lamp3d.js';
+import { showLamp, realHeightCm } from './site/lamp3d.js';
+import { displaySTL } from './site/display.js';
 import { buildKit, kitZip } from './site/kit.js';
 
 // ---------- vocabulary (mirrors gen_lamps.py) ----------
@@ -642,7 +643,8 @@ function renderStyle(i) {
         <div class="eyebrow">Make it yourself</div>
         <div class="make" id="make"><div><b>…</b><span>filament</span></div><div><b>…</b><span>printing</span></div><div><b>…</b><span>total cost</span></div></div>
         <p class="note" id="makenote">Printable parts built around standard lamp hardware (1/8 IPS pipe, E26 socket, cord set), with a parts list and assembly steps.</p>
-        <div class="row" style="margin-top:12px"><button class="cta" id="kit">Download build kit (.zip)</button><button class="ghost" id="stl">Display model (.stl)</button></div>
+        <div class="row" style="margin-top:12px"><button class="cta" id="kit">Download build kit (.zip)</button><button class="ghost" id="stl">Desk model (.stl)</button></div>
+        <p class="note" id="stlnote" style="margin-top:10px">Desk model: a ~16 cm version that prints without supports. Its parts are laid out flat on one plate and push together.</p>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:18px">
@@ -661,7 +663,15 @@ function renderStyle(i) {
   $('#viewer').querySelectorAll('.viewbar button').forEach(b => b.onclick = () => draw(b.dataset.room === '1'));
   draw(false);
   const name = `lamp-tinder-${tags.type}-${tags.shade_shape}`;
-  $('#stl').onclick = () => save(lampSTL(params), `${name}.stl`);
+  $('#stl').onclick = async () => {
+    const b = $('#stl'); b.disabled = true; b.textContent = 'Building model…';
+    try {
+      const m = await displaySTL(params);
+      save(m.blob, `${name}-desk-model.stl`);
+      $('#stlnote').textContent = `Desk model, ${m.heightMm} mm tall, ${m.parts.length} parts on one plate, no supports needed. ${m.notes.join(' ')} A drop of glue helps if a joint is loose.`;
+    } catch (e) { console.error(e); toast('Could not build the model: ' + e.message); }
+    b.disabled = false; b.textContent = 'Desk model (.stl)';
+  };
   $('#kit').onclick = async () => {
     const b = $('#kit'); b.disabled = true; b.textContent = 'Building kit…';
     try { const { blob } = await kitZip(params, `Lamp Tinder: ${tags.size} ${tags.type === 'arm' ? 'desk' : tags.type} lamp with a ${tags.shade_shape} shade`); save(blob, `${name}-kit.zip`); }
