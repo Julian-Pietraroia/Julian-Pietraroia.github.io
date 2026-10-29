@@ -128,3 +128,7 @@ This project was built in a single session with Claude (Anthropic), working in t
 
 *Claude replaced the one-piece display STL (which had the shade hanging in mid-air) with a print-ready desk model: separate parts laid out on one plate, each oriented to print without supports, pushed together with pegs. It checked all 1,200 lamps in Chrome with the site's own three.js: every model builds and fits a 220 mm plate.*
 
+
+**Me:** can you make it so there is only 1 super like per session
+
+*Claude limited super-likes to one per session: the star button greys out once it's used, swiping up or pressing ↑ again shows a short note instead, and undoing the super-like frees it for another lamp.*

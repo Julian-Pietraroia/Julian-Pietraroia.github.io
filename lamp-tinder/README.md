@@ -15,7 +15,7 @@ Built in one session with Claude; the conversation is in [CHAT.md](CHAT.md).
 - **Styles:** liked lamps are clustered (k-means on the fingerprints, k chosen by silhouette); distinct tastes, e.g. desk lamps and pendants, each get their own blended lamp and recommendations.
 - **What your swipes say:** tag values you liked or passed on much more often than average (e.g. "♥ brass bodies", "✕ globe shades").
 - **Budget:** optional price cap (CAD; US prices converted at a fixed rough rate).
-- **Swiping:** drag or use the buttons/keys: right = like, left = pass, up = super-like (counts double), Backspace = undo. "Not quite? Keep swiping" goes back from the results without losing anything.
+- **Swiping:** drag or use the buttons/keys: right = like, left = pass, up = super-like (one per session; counts double), Backspace = undo. "Not quite? Keep swiping" goes back from the results without losing anything.
 - **Blending:** each style's lamp is a weighted blend: typical and super-liked lamps count more, and the numbers are pulled halfway toward the most representative liked lamp so the result keeps some character.
 - **Share links:** the results page encodes likes, super-likes, passes and budget in the URL; opening it shows the same results.
 - **3D view:** `site/lamp3d.js` is a three.js port of the Blender builder. "In a room" shows the lamp at real size next to simple furniture and a 175 cm person.
