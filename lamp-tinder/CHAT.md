@@ -132,3 +132,7 @@ This project was built in a single session with Claude (Anthropic), working in t
 **Me:** can you make it so there is only 1 super like per session
 
 *Claude limited super-likes to one per session: the star button greys out once it's used, swiping up or pressing ↑ again shows a short note instead, and undoing the super-like frees it for another lamp.*
+
+**Me:** can you remove the build kit from the website
+
+*Claude removed the full-size build kit (the zip of printable parts around real lamp hardware, and its filament/time/cost estimate) from the results page and the repo. The print-ready desk model stays as the 3D-printing option.*

@@ -84,10 +84,6 @@
   .viewbar button { border: 0; background: none; padding: 5px 12px; border-radius: 999px; font-size: 13px; color: var(--muted); }
   .viewbar button.on { background: var(--ink); color: var(--paper); }
   .viewer .size { position: absolute; right: 14px; bottom: 12px; font-size: 12px; color: var(--muted); background: rgba(247,244,239,.85); padding: 4px 10px; border-radius: 999px; }
-  .make { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
-  .make div { background: var(--bg); border-radius: 12px; padding: 10px 12px; }
-  .make b { display: block; font-family: Fraunces, serif; font-size: 22px; font-weight: 500; }
-  .make span { font-size: 12px; color: var(--muted); }
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 999px; font-size: 14px; z-index: 20; opacity: 0; transition: opacity .2s; pointer-events: none; }
   .toast.on { opacity: 1; }
   @media (max-width: 600px) {
@@ -95,7 +91,6 @@
     .deck { width: min(380px, 100%); max-height: 62vh; aspect-ratio: auto; height: min(500px, 62vh); }
     .round { width: 58px; height: 58px; } .round.small { width: 44px; height: 44px; }
     #results { padding: 64px 14px 40px; }
-    .make { grid-template-columns: 1fr 1fr 1fr; } .make b { font-size: 18px; }
     h2 { font-size: 28px; }
     header.bar { position: absolute; }                 /* scrolls away instead of covering content */
     .peek { gap: 6px; } .peek img { width: 58px; height: 58px; border-radius: 11px; }
@@ -177,7 +172,6 @@
 <script type="module">
 import { showLamp, realHeightCm } from './site/lamp3d.js';
 import { displaySTL } from './site/display.js';
-import { buildKit, kitZip } from './site/kit.js';
 
 // ---------- vocabulary (mirrors gen_lamps.py) ----------
 const BODY = { black:'#1c1c1c', white:'#f2f0eb', brass:'#c9a25a', copper:'#b8734a', chrome:'#c8ccd0', sage:'#9caf88',
@@ -647,10 +641,8 @@ function renderStyle(i) {
       <div class="viewer" id="viewer"><div class="viewbar"><button class="on" data-room="0">Lamp</button><button data-room="1">In a room</button></div>
         <div class="tip">Drag to rotate</div><div class="size" id="size" hidden></div></div>
       <div class="panel" style="margin-top:16px">
-        <div class="eyebrow">Make it yourself</div>
-        <div class="make" id="make"><div><b>…</b><span>filament</span></div><div><b>…</b><span>printing</span></div><div><b>…</b><span>total cost</span></div></div>
-        <p class="note" id="makenote">Printable parts built around standard lamp hardware (1/8 IPS pipe, E26 socket, cord set), with a parts list and assembly steps.</p>
-        <div class="row" style="margin-top:12px"><button class="cta" id="kit">Download build kit (.zip)</button><button class="ghost" id="stl">Desk model (.stl)</button></div>
+        <div class="eyebrow">3D print it</div>
+        <div class="row" style="margin-top:12px"><button class="cta" id="stl">Desk model (.stl)</button></div>
         <p class="note" id="stlnote" style="margin-top:10px">Desk model: a ~16 cm version that prints without supports. Its parts are laid out flat on one plate and push together.</p>
       </div>
     </div>
@@ -679,21 +671,6 @@ function renderStyle(i) {
     } catch (e) { console.error(e); toast('Could not build the model: ' + e.message); }
     b.disabled = false; b.textContent = 'Desk model (.stl)';
   };
-  $('#kit').onclick = async () => {
-    const b = $('#kit'); b.disabled = true; b.textContent = 'Building kit…';
-    try { const { blob } = await kitZip(params, `Lamp Tinder: ${tags.size} ${tags.type === 'arm' ? 'desk' : tags.type} lamp with a ${tags.shade_shape} shade`); save(blob, `${name}-kit.zip`); }
-    catch (e) { console.error(e); toast('Could not build the kit: ' + e.message); }
-    b.disabled = false; b.textContent = 'Download build kit (.zip)';
-  };
-  const real = picks[0]?.p;
-  buildKit(params).then(kit => {
-    const st = kit.stats, cells = $('#make').children;
-    cells[0].querySelector('b').textContent = `${st.grams} g`;
-    cells[1].querySelector('b').textContent = `${st.hours} h`;
-    cells[2].querySelector('b').textContent = `CA$${Math.round(st.total)}`;
-    $('#makenote').textContent = `${kit.parts.length} printed part${kit.parts.length > 1 ? 's' : ''} + standard lamp hardware (~CA$${Math.round(st.hardwareCost)})` +
-      (real ? `, vs ${money(real)} for the closest real lamp.` : '.') + ' The zip has every STL, a parts list and assembly steps.';
-  }).catch(e => { console.error(e); $('#makenote').textContent = 'Kit estimate unavailable.'; });
 }
 
 load();
