@@ -46,11 +46,11 @@ code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 <div>
 <div class="card">
 <h2>Geometry</h2>
-<div class="hint" style="margin-bottom:6px">x, y, z in one CAD frame (mm). x and y are in the plane of motion. z is along the joint axes (offsets between parts).</div>
+<div class="hint" style="margin-bottom:6px">Axes are x, y, z in one CAD frame (mm). Each pin is measured from the center of its own axis (motor pin from the motor center, wrist pin from the wrist center), along the same x, y, z directions. z is along the joint axes.</div>
 <div class="row"><label>Motor axis</label><span><input type="number" id="mx" step="0.1" style="width:62px"> <input type="number" id="my" step="0.1" style="width:62px"> <input type="number" id="mz" step="0.1" style="width:62px"></span></div>
 <div class="row"><label>Wrist axis</label><span><input type="number" id="wx" step="0.1" style="width:62px"> <input type="number" id="wy" step="0.1" style="width:62px"> <input type="number" id="wz" step="0.1" style="width:62px"></span></div>
-<div class="row"><label>Motor pin</label><span><input type="number" id="pax" step="0.1" style="width:62px"> <input type="number" id="pay" step="0.1" style="width:62px"> <input type="number" id="paz" step="0.1" style="width:62px"></span></div>
-<div class="row"><label>Wrist pin</label><span><input type="number" id="pwx" step="0.1" style="width:62px"> <input type="number" id="pwy" step="0.1" style="width:62px"> <input type="number" id="pwz" step="0.1" style="width:62px"></span></div>
+<div class="row"><label>Motor pin, from motor axis</label><span><input type="number" id="pax" step="0.1" style="width:62px"> <input type="number" id="pay" step="0.1" style="width:62px"> <input type="number" id="paz" step="0.1" style="width:62px"></span></div>
+<div class="row"><label>Wrist pin, from wrist axis</label><span><input type="number" id="pwx" step="0.1" style="width:62px"> <input type="number" id="pwy" step="0.1" style="width:62px"> <input type="number" id="pwz" step="0.1" style="width:62px"></span></div>
 <div class="hint" id="derived"></div>
 </div>
 <div class="card" style="margin-top:12px">
@@ -146,16 +146,18 @@ function toC(pr){const r=(a,l)=>[l*Math.cos(a*D),l*Math.sin(a*D)];const a=r(pr.a
  return{mx:0,my:0,mz:0,wx:pr.G,wy:0,wz:0,pax:a[0],pay:a[1],paz:0,pwx:pr.G+b[0],pwy:b[1],pwz:0}}
 const P0={...toC(PRESETS.t50),mz:0,wz:0,paz:0,pwz:0,T:50,mu:30,rodmin:0,hd:57,bw:56,bh:57};
 const ids=['mx','my','mz','wx','wy','wz','pax','pay','paz','pwx','pwy','pwz','T','mu','rodmin','hd','bw','bh'];
-let st;try{st=JSON.parse(localStorage.getItem('linksim4'))}catch(e){}
-st=Object.assign({},P0,st||{});
+function rel(pr){const o={...pr};['x','y','z'].forEach(c=>{o['pa'+c]=pr['pa'+c]-pr['m'+c];o['pw'+c]=pr['pw'+c]-pr['w'+c]});return o}
+let st;try{st=JSON.parse(localStorage.getItem('linksim5'))}catch(e){}
+st=Object.assign({},rel(P0),st||{});
 ids.forEach(k=>{$(k).value=+(+st[k]).toFixed(3);$(k).addEventListener('input',()=>{run()})});
-function get(){const o={};ids.forEach(k=>o[k]=parseFloat($(k).value)||0);
+function raw(){const o={};ids.forEach(k=>o[k]=parseFloat($(k).value)||0);return o}
+function get(){const o=raw();['x','y','z'].forEach(c=>{o['pa'+c]+=o['m'+c];o['pw'+c]+=o['w'+c]});
  const phi=Math.atan2(o.wy-o.my,o.wx-o.mx);o.phi=phi;o.G=Math.hypot(o.wx-o.mx,o.wy-o.my)||1;
  o.ra=Math.hypot(o.pax-o.mx,o.pay-o.my)||0.01;o.rw=Math.hypot(o.pwx-o.wx,o.pwy-o.wy)||0.01;
  o.a0=(Math.atan2(o.pay-o.my,o.pax-o.mx)-phi)/D;o.b0=(Math.atan2(o.pwy-o.wy,o.pwx-o.wx)-phi)/D;return o}
 function setPins(p,a0,b0){const ph=p.phi;
- $('pax').value=+(p.mx+p.ra*Math.cos(a0*D+ph)).toFixed(3);$('pay').value=+(p.my+p.ra*Math.sin(a0*D+ph)).toFixed(3);
- $('pwx').value=+(p.wx+p.rw*Math.cos(b0*D+ph)).toFixed(3);$('pwy').value=+(p.wy+p.rw*Math.sin(b0*D+ph)).toFixed(3)}
+ $('pax').value=+(p.ra*Math.cos(a0*D+ph)).toFixed(3);$('pay').value=+(p.ra*Math.sin(a0*D+ph)).toFixed(3);
+ $('pwx').value=+(p.rw*Math.cos(b0*D+ph)).toFixed(3);$('pwy').value=+(p.rw*Math.sin(b0*D+ph)).toFixed(3)}
 
 function sweep(p,dir,maxIn=180,step=0.5,stopAt=null){
  const a0=p.a0*D,b0=p.b0*D,G=p.G,ra=p.ra,rw=p.rw;
@@ -195,7 +197,7 @@ function analyze(p,full=true){
 const f1=v=>(v>=0?'+':'')+v.toFixed(1)+'°';
 let cur=null,mNow=0;
 function run(){
- const p=get();try{localStorage.setItem('linksim4',JSON.stringify(p))}catch(e){}
+ const p=get();try{localStorage.setItem('linksim5',JSON.stringify(raw()))}catch(e){}
  cur={p,...analyze(p)};
  const s=cur.sides,lo=Math.min(...s.map(x=>x.pts[x.pts.length-1].m)),hi=Math.max(...s.map(x=>x.pts[x.pts.length-1].m));
  $('sl').min=Math.floor(lo);$('sl').max=Math.ceil(hi);
@@ -300,7 +302,7 @@ let gr=[],px3,py3;
 function grAt(m){let b=null;for(const q of gr)if(!b||Math.abs(q.m-m)<Math.abs(b.m-m))b=q;return b}
 $('sl').addEventListener('input',e=>{mNow=+e.target.value;draw()});
 ['al','mi'].forEach(k=>$(k).addEventListener('change',draw));
-document.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>{const pr=PRESETS[b.dataset.p].mx!==undefined?PRESETS[b.dataset.p]:toC(PRESETS[b.dataset.p]);
+document.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>{const pr=rel(PRESETS[b.dataset.p].mx!==undefined?PRESETS[b.dataset.p]:toC(PRESETS[b.dataset.p]));
  for(const k in pr)$(k).value=+pr[k].toFixed(3);mNow=0;run()}));
 function score(p){const s=[sweep(p,1,180,1,p.T),sweep(p,-1,180,1,p.T)];let worst=180,sg=[];
  for(const S of s){const pts=S.pts,last=pts[pts.length-1];if(Math.abs(last.w)<p.T)return -1;sg.push(Math.sign(last.w));
@@ -315,7 +317,7 @@ $('opt').addEventListener('click',()=>{
   for(let a=-180;a<180;a+=4)for(let b=-180;b<180;b+=4){const s=score({...p,a0:a,b0:b});if(s>best.s)best={s,a,b}}
   if(best.s<0){$('optmsg').innerHTML='<span class="bad">No geometry reaches the required travel with these arm lengths and constraints.</span>';return}
   for(let a=best.a-4;a<=best.a+4;a+=0.5)for(let b=best.b-4;b<=best.b+4;b+=0.5){const s=score({...p,a0:a,b0:b});if(s>best.s)best={s,a,b}}
-  setPins(p,best.a,best.b);mNow=0;run();const q=get();
+  setPins(p,best.a,best.b);mNow=0;run();const q=raw();
   $('optmsg').innerHTML=`Best: motor pin (${q.pax}, ${q.pay}), wrist pin (${q.pwx}, ${q.pwy}), worst transmission angle <b>${best.s.toFixed(1)}°</b> within ±${p.T}°.`},30)});
 run();
 </script>
