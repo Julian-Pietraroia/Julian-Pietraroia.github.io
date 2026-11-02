@@ -72,6 +72,7 @@ code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 <div class="card" style="margin-top:12px">
 <h2>Presets</h2>
 <div class="btns">
+<button data-p="yam">YAM wrist (from drawing)</button>
 <button data-p="nero">Agile Nero (measured)</button>
 <button data-p="nerostyle">Nero-style ±50°</button>
 <button data-p="nerostyle25">Nero-style ±50°, 25 mm motor arm</button>
@@ -129,6 +130,7 @@ const PRESETS={
  smooth335:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:15.98,pay:-29.44,paz:0,pwx:108.24,pwy:29.57,pwz:0},
  s2525:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:8.96,pay:-23.34,paz:0,pwx:112.83,pwy:24.15,pwz:0},
  s2527:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:6.47,pay:-24.15,paz:0,pwx:109.19,pwy:25.03,pwz:0},
+ yam:{mx:0,my:0,mz:0,wx:106,wy:0,wz:0,pax:8.13,pay:29.68,paz:0,pwx:85.27,pwy:-27.74,pwz:0},
  nero:{mx:5,my:-84.614,mz:0,wx:0,wy:-215.614,wz:-10.8,pax:-21.35,pay:-85.59,paz:-5.9,pwx:24.0,pwy:-195.11,pwz:-4.6}};
 function toC(pr){const r=(a,l)=>[l*Math.cos(a*D),l*Math.sin(a*D)];const a=r(pr.a0,pr.ra),b=r(pr.b0,pr.rw);
  return{mx:0,my:0,mz:0,wx:pr.G,wy:0,wz:0,pax:a[0],pay:a[1],paz:0,pwx:pr.G+b[0],pwy:b[1],pwz:0}}
