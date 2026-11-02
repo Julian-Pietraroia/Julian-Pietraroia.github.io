@@ -73,6 +73,7 @@ code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 <h2>Presets</h2>
 <div class="btns">
 <button data-p="nero">Agile Nero (measured)</button>
+<button data-p="nerostyle">Nero-style ±50°</button>
 <button data-p="t50">Tuned ±50° (angled)</button>
 <button data-p="max">Max travel (angled)</button>
 <button data-p="para">Parallelogram</button>
@@ -115,6 +116,7 @@ const PRESETS={
  para:{G:119.3,ra:25,rw:25,a0:90,b0:90},
  diag:{G:119.3,ra:25,rw:25,a0:-90,b0:Math.atan2(28.5,-28)/D},
  orig:{G:149.3,ra:25,rw:25,a0:-90,b0:90},
+ nerostyle:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:12.05,pay:-25.27,paz:0,pwx:106.61,pwy:28.91,pwz:0},
  nero:{mx:5,my:-84.614,mz:0,wx:0,wy:-215.614,wz:-10.8,pax:-21.35,pay:-85.59,paz:-5.9,pwx:24.0,pwy:-195.11,pwz:-4.6}};
 function toC(pr){const r=(a,l)=>[l*Math.cos(a*D),l*Math.sin(a*D)];const a=r(pr.a0,pr.ra),b=r(pr.b0,pr.rw);
  return{mx:0,my:0,mz:0,wx:pr.G,wy:0,wz:0,pax:a[0],pay:a[1],paz:0,pwx:pr.G+b[0],pwy:b[1],pwz:0}}
