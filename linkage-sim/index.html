@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wrist four-bar linkage simulator</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--ink:#1f1f1d;--mut:#6b6a65;--line:#dcdad3;--motor:#1D9E75;--wrist:#D85A30;--rod:#888780;--warn:#BA7517;--bad:#E24B4A;--acc:#185FA5}
+@media (prefers-color-scheme:dark){:root{--bg:#1c1c1b;--card:#262624;--ink:#ecebe6;--mut:#a3a19a;--line:#3d3c39;--rod:#a8a69e;--acc:#85B7EB}}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px}
+h1{font-size:20px;font-weight:500;margin:0 0 4px}
+.sub{color:var(--mut);margin:0 0 16px}
+.grid{display:grid;grid-template-columns:320px 1fr;gap:16px}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card h2{font-size:14px;font-weight:500;margin:0 0 10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0}
+.row label{color:var(--mut)}
+.row input[type=number]{width:96px;padding:5px 7px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;text-align:right}
+.hint{font-size:12px;color:var(--mut)}
+button{font:inherit;padding:7px 11px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--mut)}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}
+.stat{background:var(--bg);border-radius:8px;padding:8px 10px}
+.stat .k{font-size:12px;color:var(--mut)}
+.stat .v{font-size:16px;font-weight:500}
+svg{display:block;width:100%;height:auto}
+.slider{display:flex;align-items:center;gap:10px;margin-top:8px}
+.slider input{flex:1}
+.plots{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+@media (max-width:860px){.plots{grid-template-columns:1fr}}
+.ok{color:var(--motor)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
+#optmsg{margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Wrist four-bar linkage simulator</h1>
+<p class="sub">Enter the axis and pin positions from your sketch. Arm lengths, rest angles and rod length are worked out from them. The top view is drawn in your coordinates; the side view shows the z offsets.</p>
+<div class="grid">
+<div>
+<div class="card">
+<h2>Geometry</h2>
+<div class="hint" style="margin-bottom:6px">x, y, z in one CAD frame (mm). x and y are in the plane of motion. z is along the joint axes (offsets between parts).</div>
+<div class="row"><label>Motor axis</label><span><input type="number" id="mx" step="0.1" style="width:62px"> <input type="number" id="my" step="0.1" style="width:62px"> <input type="number" id="mz" step="0.1" style="width:62px"></span></div>
+<div class="row"><label>Wrist axis</label><span><input type="number" id="wx" step="0.1" style="width:62px"> <input type="number" id="wy" step="0.1" style="width:62px"> <input type="number" id="wz" step="0.1" style="width:62px"></span></div>
+<div class="row"><label>Motor pin</label><span><input type="number" id="pax" step="0.1" style="width:62px"> <input type="number" id="pay" step="0.1" style="width:62px"> <input type="number" id="paz" step="0.1" style="width:62px"></span></div>
+<div class="row"><label>Wrist pin</label><span><input type="number" id="pwx" step="0.1" style="width:62px"> <input type="number" id="pwy" step="0.1" style="width:62px"> <input type="number" id="pwz" step="0.1" style="width:62px"></span></div>
+<div class="hint" id="derived"></div>
+</div>
+<div class="card" style="margin-top:12px">
+<h2>Requirements</h2>
+<div class="row"><label for="T">Required wrist travel ± (°)</label><input type="number" id="T" step="1"></div>
+<div class="row"><label for="mu">Min transmission angle (°)</label><input type="number" id="mu" step="1"></div>
+<div class="row"><label for="rodmin">Min rod angle, optimizer (°)</label><input type="number" id="rodmin" step="1"></div>
+<div class="btns" style="margin-top:10px"><button class="pri" id="opt">Optimize pin positions</button></div>
+<div class="hint" id="optmsg">Swings both pins around their axes (arm lengths fixed) to get the highest worst-case transmission angle across ± the required travel.</div>
+</div>
+<div class="card" style="margin-top:12px">
+<h2>Display</h2>
+<div class="row"><label for="al">Joint line horizontal</label><input type="checkbox" id="al" checked></div>
+<div class="row"><label for="mi">Mirror (to match a bottom view)</label><input type="checkbox" id="mi"></div>
+<div class="row"><label for="hd">Motor housing Ø (mm)</label><input type="number" id="hd" step="0.5"></div>
+<div class="row"><label for="bw">Wrist body width (mm)</label><input type="number" id="bw" step="0.5"></div>
+<div class="row"><label for="bh">Wrist body height (mm)</label><input type="number" id="bh" step="0.5"></div>
+</div>
+<div class="card" style="margin-top:12px">
+<h2>Presets</h2>
+<div class="btns">
+<button data-p="nero">Agile Nero (measured)</button>
+<button data-p="t50">Tuned ±50° (angled)</button>
+<button data-p="max">Max travel (angled)</button>
+<button data-p="para">Parallelogram</button>
+<button data-p="diag">Diagonal pin sketch</button>
+<button data-p="orig">Original 149.3 crossed</button>
+</div>
+</div>
+</div>
+<div>
+<div class="card">
+<svg id="view" viewBox="0 0 760 360"></svg>
+<svg id="side" viewBox="0 0 760 172" style="border-top:1px solid var(--line);margin-top:6px"></svg>
+<div class="slider"><span class="hint">Motor</span><input type="range" id="sl" step="0.25"><span id="mv" style="min-width:64px;text-align:right"></span></div>
+<div class="stats">
+<div class="stat"><div class="k">Wrist angle</div><div class="v" id="sw"></div></div>
+<div class="stat"><div class="k">Transmission angle</div><div class="v" id="smu"></div></div>
+<div class="stat"><div class="k">Gear ratio here</div><div class="v" id="sgr"></div></div>
+<div class="stat"><div class="k">Rod length, in plane (sets the motion)</div><div class="v" id="sL"></div></div>
+<div class="stat"><div class="k">Rod, 3D pin to pin (z step)</div><div class="v" id="s3d"></div></div>
+<div class="stat"><div class="k">Rod angle at rest</div><div class="v" id="sang"></div></div>
+<div class="stat"><div class="k">Travel at the transmission-angle minimum</div><div class="v" id="str"></div></div>
+<div class="stat"><div class="k">Worst transmission angle within ± required</div><div class="v" id="sworst"></div></div>
+<div class="stat"><div class="k">Motor angle for ± required</div><div class="v" id="smot"></div></div>
+<div class="stat"><div class="k">Arm lengths (motor / wrist)</div><div class="v" id="spins" style="font-size:13px"></div></div>
+</div>
+</div>
+<div class="plots">
+<div class="card"><h2>Wrist angle vs motor angle</h2><svg id="p1" viewBox="0 0 420 260"></svg></div>
+<div class="card"><h2>Transmission angle vs wrist angle</h2><svg id="p2" viewBox="0 0 420 260"></svg></div>
+<div class="card"><h2>Gear ratio vs wrist angle</h2><svg id="p3" viewBox="0 0 420 260"></svg><div class="hint">Gear ratio = motor degrees per wrist degree = wrist torque ÷ motor torque (ignoring friction). Above 1, the wrist gets more torque but moves slower.</div></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+const $=id=>document.getElementById(id),D=Math.PI/180;
+const PRESETS={
+ t50:{G:119.3,ra:25,rw:25,a0:-60,b0:104},
+ max:{G:119.3,ra:25,rw:25,a0:-66,b0:100},
+ para:{G:119.3,ra:25,rw:25,a0:90,b0:90},
+ diag:{G:119.3,ra:25,rw:25,a0:-90,b0:Math.atan2(28.5,-28)/D},
+ orig:{G:149.3,ra:25,rw:25,a0:-90,b0:90},
+ nero:{mx:5,my:-84.614,mz:0,wx:0,wy:-215.614,wz:-10.8,pax:-21.35,pay:-85.59,paz:0,pwx:24.0,pwy:-195.11,pwz:-10.8}};
+function toC(pr){const r=(a,l)=>[l*Math.cos(a*D),l*Math.sin(a*D)];const a=r(pr.a0,pr.ra),b=r(pr.b0,pr.rw);
+ return{mx:0,my:0,mz:0,wx:pr.G,wy:0,wz:0,pax:a[0],pay:a[1],paz:0,pwx:pr.G+b[0],pwy:b[1],pwz:0}}
+const P0={...toC(PRESETS.t50),mz:0,wz:0,paz:0,pwz:0,T:50,mu:30,rodmin:0,hd:57,bw:56,bh:57};
+const ids=['mx','my','mz','wx','wy','wz','pax','pay','paz','pwx','pwy','pwz','T','mu','rodmin','hd','bw','bh'];
+let st;try{st=JSON.parse(localStorage.getItem('linksim4'))}catch(e){}
+st=Object.assign({},P0,st||{});
+ids.forEach(k=>{$(k).value=+(+st[k]).toFixed(3);$(k).addEventListener('input',()=>{run()})});
+function get(){const o={};ids.forEach(k=>o[k]=parseFloat($(k).value)||0);
+ const phi=Math.atan2(o.wy-o.my,o.wx-o.mx);o.phi=phi;o.G=Math.hypot(o.wx-o.mx,o.wy-o.my)||1;
+ o.ra=Math.hypot(o.pax-o.mx,o.pay-o.my)||0.01;o.rw=Math.hypot(o.pwx-o.wx,o.pwy-o.wy)||0.01;
+ o.a0=(Math.atan2(o.pay-o.my,o.pax-o.mx)-phi)/D;o.b0=(Math.atan2(o.pwy-o.wy,o.pwx-o.wx)-phi)/D;return o}
+function setPins(p,a0,b0){const ph=p.phi;
+ $('pax').value=+(p.mx+p.ra*Math.cos(a0*D+ph)).toFixed(3);$('pay').value=+(p.my+p.ra*Math.sin(a0*D+ph)).toFixed(3);
+ $('pwx').value=+(p.wx+p.rw*Math.cos(b0*D+ph)).toFixed(3);$('pwy').value=+(p.wy+p.rw*Math.sin(b0*D+ph)).toFixed(3)}
+
+function sweep(p,dir,maxIn=180,step=0.5,stopAt=null){
+ const a0=p.a0*D,b0=p.b0*D,G=p.G,ra=p.ra,rw=p.rw;
+ const pa0=[ra*Math.cos(a0),ra*Math.sin(a0)],pw0=[G+rw*Math.cos(b0),rw*Math.sin(b0)];
+ const L=Math.hypot(pw0[0]-pa0[0],pw0[1]-pa0[1]);
+ let b=b0,pts=[{m:0,w:0,mu:mu(pa0,pw0,G,rw)}],lastd=0;
+ for(let d=step;d<=maxIn+1e-9;d+=step){
+  const a=a0+dir*d*D,pa=[ra*Math.cos(a),ra*Math.sin(a)];
+  const dx=G-pa[0],dy=-pa[1],dd=Math.hypot(dx,dy);
+  if(dd>L+rw||dd<Math.abs(L-rw))break;
+  const x=(L*L-rw*rw+dd*dd)/(2*dd),h=Math.sqrt(Math.max(L*L-x*x,0));
+  const bx=pa[0]+x*dx/dd,by=pa[1]+x*dy/dd,px=-dy/dd,py=dx/dd;
+  let best=null;
+  for(const s of[1,-1]){const cx=bx+s*h*px,cy=by+s*h*py;let nb=Math.atan2(cy,cx-G);nb=b+((nb-b+3*Math.PI)%(2*Math.PI)-Math.PI);
+   if(!best||Math.abs(nb-b)<Math.abs(best.b-b))best={b:nb,pw:[cx,cy]}}
+  const dw=best.b-b;
+  if(lastd!==0&&Math.sign(dw)!==Math.sign(lastd)&&Math.abs(dw)>1e-9)break;
+  if(Math.abs(dw)>1e-9)lastd=dw;
+  b=best.b;const w=(b-b0)/D;
+  pts.push({m:dir*d,w,mu:mu(pa,best.pw,G,rw),pa,pw:best.pw});
+  if(stopAt!==null&&Math.abs(w)>=stopAt)break;
+ }
+ return{pts,L,pa0,pw0};
+}
+function mu(pa,pw,G,rw){const c=[pa[0]-pw[0],pa[1]-pw[1]],r=[pw[0]-G,pw[1]];
+ return Math.acos(Math.min(1,Math.abs(c[0]*r[0]+c[1]*r[1])/Math.hypot(...c)/rw))/D}
+function analyze(p,full=true){
+ const A=sweep(p,1,180,full?0.25:1,full?null:p.T),B=sweep(p,-1,180,full?0.25:1,full?null:p.T);
+ const sides=[A,B].map(S=>{const pts=S.pts;
+  let lim=pts[pts.length-1],why='max swing';
+  for(let i=1;i<pts.length;i++)if(pts[i].mu<p.mu){lim=pts[i-1];why='transmission';break}
+  let reach=null,worst=180;
+  for(let i=1;i<pts.length;i++){worst=Math.min(worst,pts[i].mu);if(Math.abs(pts[i].w)>=p.T){reach=pts[i];break}}
+  return{lim,why,reach,worst:reach?worst:null,pts}});
+ return{A,B,sides,L:A.L,pa0:A.pa0,pw0:A.pw0};
+}
+const f1=v=>(v>=0?'+':'')+v.toFixed(1)+'°';
+let cur=null,mNow=0;
+function run(){
+ const p=get();try{localStorage.setItem('linksim4',JSON.stringify(p))}catch(e){}
+ cur={p,...analyze(p)};
+ const s=cur.sides,lo=Math.min(...s.map(x=>x.pts[x.pts.length-1].m)),hi=Math.max(...s.map(x=>x.pts[x.pts.length-1].m));
+ $('sl').min=Math.floor(lo);$('sl').max=Math.ceil(hi);
+ if(mNow<lo||mNow>hi)mNow=0;$('sl').value=mNow;
+ $('sL').textContent=cur.L.toFixed(2)+' mm';
+ const ang=Math.atan2(cur.pw0[1]-cur.pa0[1],cur.pw0[0]-cur.pa0[0])/D;$('sang').textContent=ang.toFixed(1)+'°';
+ const t=s.map(x=>x.lim.w).sort((a,b)=>a-b);
+ $('str').innerHTML=`${f1(t[0])} / ${f1(t[1])}`;
+ const ok=s.every(x=>x.reach);
+ if(ok){const w=Math.min(...s.map(x=>x.worst));$('sworst').innerHTML=`<span class="${w<p.mu?'bad':w<p.mu+10?'warn':'ok'}">${w.toFixed(1)}°</span>`;
+  const r=s.map(x=>x.reach).sort((a,b)=>a.w-b.w);$('smot').textContent=`${f1(r[0].m)} / ${f1(r[1].m)}`;
+  if(Math.sign(r[0].w)===Math.sign(r[1].w)){$('sworst').innerHTML='<span class="bad">wrist moves one way only</span>';$('smot').textContent='–'}}
+ else{$('sworst').innerHTML='<span class="bad">not reached</span>';$('smot').textContent='–'}
+ $('spins').textContent=`${p.ra.toFixed(2)} / ${p.rw.toFixed(2)} mm`;
+ const dz=p.pwz-p.paz;$('s3d').textContent=`${Math.hypot(cur.L,dz).toFixed(2)} mm (${dz>=0?'+':''}${dz.toFixed(2)})`;
+ const n=a=>((a+540)%360-180).toFixed(1);
+ $('derived').textContent=`Joint spacing ${p.G.toFixed(2)} mm · motor arm at ${n(p.a0)}°, wrist arm at ${n(p.b0)}° from the motor→wrist line`;
+ plots();draw();
+}
+function stateAt(m){const S=m>=0?cur.A:cur.B,pts=S.pts;let best=pts[0];
+ for(const q of pts){if(Math.abs(q.m-m)<Math.abs(best.m-m))best=q}
+ return best.pa?best:{...best,pa:cur.pa0,pw:cur.pw0}}
+function draw(){
+ const p=cur.p,q=stateAt(mNow),v=$('view'),c=Math.cos(p.phi),sn=Math.sin(p.phi);
+ const gl=(x,y)=>[p.mx+x*c-y*sn,p.my+x*sn+y*c];
+ const R=Math.max(p.ra,p.rw,p.hd/2,Math.hypot(p.bw,p.bh)/2)+6;
+ const xs=[p.mx,p.wx],ys=[p.my,p.wy],bw=Math.max(...xs)-Math.min(...xs)+2*R,bh=Math.max(...ys)-Math.min(...ys)+2*R;
+ const al=$('al').checked,mi=$('mi').checked;
+ const S=al?Math.min(720/(p.G+2*R),320/(2*R)):Math.min(720/bw,320/bh),cx=(p.mx+p.wx)/2,cy=(p.my+p.wy)/2;
+ const X=x=>380+S*(x-cx),Y=y=>175-S*(y-cy),P=(lx,ly)=>{const t=gl(lx,ly);return[X(t[0]),Y(t[1])]};
+ const w=q.w,col=q.mu<p.mu?'var(--bad)':q.mu<p.mu+10?'var(--warn)':'var(--rod)';
+ const M=[X(p.mx),Y(p.my)],W=[X(p.wx),Y(p.wy)],A=P(q.pa[0],q.pa[1]),B=P(q.pw[0],q.pw[1]);
+ const rot=-(p.phi/D+w),ax=Math.atan2(W[1]-M[1],W[0]-M[0]),ex=1200;
+ v.innerHTML=`<g transform="translate(380 175) scale(${mi?-1:1} 1) rotate(${al?-ax/D:0}) translate(-380 -175)">
+ <line x1="${M[0]-ex*Math.cos(ax)}" y1="${M[1]-ex*Math.sin(ax)}" x2="${M[0]+ex*Math.cos(ax)}" y2="${M[1]+ex*Math.sin(ax)}" stroke="var(--line)" stroke-dasharray="5 5"/>
+ <circle cx="${M[0]}" cy="${M[1]}" r="${S*p.hd/2}" fill="none" stroke="var(--line)" stroke-width="1.5"/>
+ <circle cx="${M[0]}" cy="${M[1]}" r="${S*p.ra}" fill="none" stroke="var(--motor)" stroke-dasharray="3 4" opacity=".6"/>
+ <circle cx="${W[0]}" cy="${W[1]}" r="${S*p.rw}" fill="none" stroke="var(--wrist)" stroke-dasharray="3 4" opacity=".6"/>
+ <g transform="rotate(${rot} ${W[0]} ${W[1]})"><rect x="${W[0]-S*p.bw/2}" y="${W[1]-S*p.bh/2}" width="${S*p.bw}" height="${S*p.bh}" rx="6" fill="var(--wrist)" fill-opacity=".07" stroke="var(--wrist)"/>
+ <line x1="${W[0]}" y1="${W[1]}" x2="${W[0]+S*p.bw/2+30}" y2="${W[1]}" stroke="var(--wrist)" stroke-dasharray="2 3"/></g>
+ <line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="${col}" stroke-width="8" stroke-linecap="round"/>
+ <line x1="${M[0]}" y1="${M[1]}" x2="${A[0]}" y2="${A[1]}" stroke="var(--motor)" stroke-width="10" stroke-linecap="round"/>
+ <line x1="${W[0]}" y1="${W[1]}" x2="${B[0]}" y2="${B[1]}" stroke="var(--wrist)" stroke-width="10" stroke-linecap="round"/>
+ <circle cx="${M[0]}" cy="${M[1]}" r="5" fill="var(--ink)"/><circle cx="${W[0]}" cy="${W[1]}" r="5" fill="var(--ink)"/>
+ <circle cx="${A[0]}" cy="${A[1]}" r="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>
+ <circle cx="${B[0]}" cy="${B[1]}" r="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>
+ </g><text x="12" y="352" fill="var(--mut)" font-size="12">${al||mi?"Plan view"+(al?", joint line horizontal":"")+(mi?", mirrored":""):"Plan view (x right, y up)"}</text>`;
+ const zs=[p.mz,p.wz,p.paz,p.pwz],z0=Math.min(...zs),z1=Math.max(...zs),zc=(z0+z1)/2;
+ const S2=Math.min(680/(p.G+2*Math.max(p.ra,p.rw)+10),90/Math.max(z1-z0,1)),Hx=x=>380+S2*(x-p.G/2),Hz=z=>80-S2*(z-zc);
+ const za=Hz(p.paz),zb=Hz(p.pwz),xa=Hx(q.pa[0]),xb=Hx(q.pw[0]);
+ $('side').innerHTML=`<g transform="translate(380 0) scale(${mi?-1:1} 1) translate(-380 0)">
+ <line x1="${Hx(0)}" y1="10" x2="${Hx(0)}" y2="150" stroke="var(--motor)" stroke-dasharray="4 4"/>
+ <line x1="${Hx(p.G)}" y1="10" x2="${Hx(p.G)}" y2="150" stroke="var(--wrist)" stroke-dasharray="4 4"/>
+ <line x1="${Hx(0)}" y1="${za}" x2="${xa}" y2="${za}" stroke="var(--motor)" stroke-width="8" stroke-linecap="round"/>
+ <line x1="${Hx(p.G)}" y1="${zb}" x2="${xb}" y2="${zb}" stroke="var(--wrist)" stroke-width="8" stroke-linecap="round"/>
+ <line x1="${xa}" y1="${za}" x2="${xb}" y2="${zb}" stroke="${col}" stroke-width="6" stroke-linecap="round"/>
+ <circle cx="${xa}" cy="${za}" r="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/><circle cx="${xb}" cy="${zb}" r="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>
+ </g><text x="12" y="166" fill="var(--mut)" font-size="12">Side view along the motor→wrist line (z up) · pin z step ${(p.pwz-p.paz).toFixed(2)} mm</text>`;
+ $('mv').textContent=f1(mNow);$('sw').textContent=f1(w);
+ $('smu').innerHTML=`<span class="${q.mu<p.mu?'bad':q.mu<p.mu+10?'warn':'ok'}">${q.mu.toFixed(1)}°</span>`;
+ const m1=$('mk1'),m2=$('mk2');if(m1){m1.setAttribute('cx',px1(q.m));m1.setAttribute('cy',py1(q.w))}
+ if(m2){m2.setAttribute('cx',px2(q.w));m2.setAttribute('cy',py2(q.mu))}
+ const g=grAt(q.m),m3=$('mk3');if(g){$('sgr').textContent=g.g.toFixed(2)+' : 1';if(m3){m3.setAttribute('cx',px3(q.w));m3.setAttribute('cy',py3(Math.min(g.g,+$('p3').dataset.gmax||99)))}}
+}
+let px1,py1,px2,py2;
+function axes(svg,xr,yr,xl,yl,extra){
+ const L=44,R=410,T=26,B=222,sx=v=>L+(v-xr[0])/(xr[1]-xr[0])*(R-L),sy=v=>B-(v-yr[0])/(yr[1]-yr[0])*(B-T);
+ let g='';const step=(r)=>{const s=(r[1]-r[0]);return s>200?60:s>100?30:s>50?15:s>12?10:s>3?1:0.5};
+ for(let v=Math.ceil(xr[0]/step(xr))*step(xr);v<=xr[1];v+=step(xr))g+=`<line x1="${sx(v)}" y1="${T}" x2="${sx(v)}" y2="${B}" stroke="var(--line)"/><text x="${sx(v)}" y="${B+15}" text-anchor="middle" font-size="11" fill="var(--mut)">${v}</text>`;
+ for(let v=Math.ceil(yr[0]/step(yr))*step(yr);v<=yr[1];v+=step(yr))g+=`<line x1="${L}" y1="${sy(v)}" x2="${R}" y2="${sy(v)}" stroke="var(--line)"/><text x="${L-6}" y="${sy(v)+4}" text-anchor="end" font-size="11" fill="var(--mut)">${v}</text>`;
+ g+=`<text x="${(L+R)/2}" y="252" text-anchor="middle" font-size="12" fill="var(--mut)">${xl}</text><text x="6" y="12" font-size="12" fill="var(--mut)">${yl}</text>`;
+ svg.innerHTML=g+extra(sx,sy);return[sx,sy];
+}
+function plots(){
+ const p=cur.p,all=[...cur.B.pts.slice().reverse(),...cur.A.pts.slice(1)];
+ const ms=all.map(q=>q.m),ws=all.map(q=>q.w);
+ const xr=[Math.min(...ms)-5,Math.max(...ms)+5],yr=[Math.min(-p.T,...ws)-8,Math.max(p.T,...ws)+8];
+ [px1,py1]=axes($('p1'),xr,yr,'Motor angle (°)','Wrist (°)',(sx,sy)=>
+  `<rect x="${sx(xr[0])}" y="${sy(p.T)}" width="${sx(xr[1])-sx(xr[0])}" height="${sy(-p.T)-sy(p.T)}" fill="var(--acc)" opacity=".07"/>
+  <line x1="${sx(xr[0])}" y1="${sy(0)}" x2="${sx(xr[1])}" y2="${sy(0)}" stroke="var(--mut)" stroke-dasharray="2 3"/>
+  <line x1="${sx(Math.max(xr[0],yr[0]))}" y1="${sy(Math.max(xr[0],yr[0]))}" x2="${sx(Math.min(xr[1],yr[1]))}" y2="${sy(Math.min(xr[1],yr[1]))}" stroke="var(--mut)" stroke-dasharray="1 4"/><line x1="${sx(Math.max(xr[0],-yr[1]))}" y1="${sy(-Math.max(xr[0],-yr[1]))}" x2="${sx(Math.min(xr[1],-yr[0]))}" y2="${sy(-Math.min(xr[1],-yr[0]))}" stroke="var(--mut)" stroke-dasharray="1 4"/>
+  <polyline fill="none" stroke="var(--acc)" stroke-width="2" points="${all.map(q=>sx(q.m)+','+sy(q.w)).join(' ')}"/>
+  <circle id="mk1" r="5" fill="var(--wrist)"/>`);
+ const wr=[Math.min(...ws)-5,Math.max(...ws)+5],ur=[0,90];
+ [px2,py2]=axes($('p2'),wr,ur,'Wrist angle (°)','μ (°)',(sx,sy)=>
+  `<rect x="${sx(wr[0])}" y="${sy(p.mu)}" width="${sx(wr[1])-sx(wr[0])}" height="${sy(0)-sy(p.mu)}" fill="var(--bad)" opacity=".08"/>
+  <line x1="${sx(Math.max(-p.T,wr[0]))}" y1="${sy(0)}" x2="${sx(Math.max(-p.T,wr[0]))}" y2="${sy(90)}" stroke="var(--acc)" stroke-dasharray="3 3"/>
+  <line x1="${sx(Math.min(p.T,wr[1]))}" y1="${sy(0)}" x2="${sx(Math.min(p.T,wr[1]))}" y2="${sy(90)}" stroke="var(--acc)" stroke-dasharray="3 3"/>
+  <polyline fill="none" stroke="var(--rod)" stroke-width="2" points="${all.map(q=>sx(q.w)+','+sy(q.mu)).join(' ')}"/>
+  <circle id="mk2" r="5" fill="var(--wrist)"/>`);
+ gr=[];for(let i=1;i<all.length-1;i++){const dw=all[i+1].w-all[i-1].w,dm=all[i+1].m-all[i-1].m;if(Math.abs(dw)>1e-6)gr.push({w:all[i].w,m:all[i].m,g:Math.abs(dm/dw)})}
+ const gmax=Math.min(5,Math.max(2,...gr.filter(q=>Math.abs(q.w)<=p.T).map(q=>q.g))*1.15);
+ const cl=v=>Math.min(v,gmax);$("p3").dataset.gmax=gmax;
+ [px3,py3]=axes($('p3'),wr,[0,gmax],'Wrist angle (°)','Ratio',(sx,sy)=>
+  `<line x1="${sx(wr[0])}" y1="${sy(1)}" x2="${sx(wr[1])}" y2="${sy(1)}" stroke="var(--mut)" stroke-dasharray="2 3"/>
+  <line x1="${sx(Math.max(-p.T,wr[0]))}" y1="${sy(0)}" x2="${sx(Math.max(-p.T,wr[0]))}" y2="${sy(gmax)}" stroke="var(--acc)" stroke-dasharray="3 3"/>
+  <line x1="${sx(Math.min(p.T,wr[1]))}" y1="${sy(0)}" x2="${sx(Math.min(p.T,wr[1]))}" y2="${sy(gmax)}" stroke="var(--acc)" stroke-dasharray="3 3"/>
+  <polyline fill="none" stroke="var(--motor)" stroke-width="2" points="${gr.slice().sort((a,b)=>a.w-b.w).map(q=>sx(q.w)+','+sy(cl(q.g))).join(' ')}"/>
+  <circle id="mk3" r="5" fill="var(--wrist)"/>`);
+}
+let gr=[],px3,py3;
+function grAt(m){let b=null;for(const q of gr)if(!b||Math.abs(q.m-m)<Math.abs(b.m-m))b=q;return b}
+$('sl').addEventListener('input',e=>{mNow=+e.target.value;draw()});
+['al','mi'].forEach(k=>$(k).addEventListener('change',draw));
+document.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>{const pr=PRESETS[b.dataset.p].mx!==undefined?PRESETS[b.dataset.p]:toC(PRESETS[b.dataset.p]);
+ for(const k in pr)$(k).value=+pr[k].toFixed(3);mNow=0;run()}));
+function score(p){const s=[sweep(p,1,180,1,p.T),sweep(p,-1,180,1,p.T)];let worst=180,sg=[];
+ for(const S of s){const pts=S.pts,last=pts[pts.length-1];if(Math.abs(last.w)<p.T)return -1;sg.push(Math.sign(last.w));
+  for(let i=1;i<pts.length;i++)worst=Math.min(worst,pts[i].mu)}
+ if(sg[0]===sg[1])return -1;
+ const pa=[p.ra*Math.cos(p.a0*D),p.ra*Math.sin(p.a0*D)],pw=[p.G+p.rw*Math.cos(p.b0*D),p.rw*Math.sin(p.b0*D)];
+ const ang=Math.abs(Math.atan2(pw[1]-pa[1],pw[0]-pa[0])/D);if(Math.min(ang,180-ang)<p.rodmin)return -1;
+ return worst}
+$('opt').addEventListener('click',()=>{
+ $('optmsg').textContent='Searching…';
+ setTimeout(()=>{const p=get();let best={s:-1};
+  for(let a=-180;a<180;a+=4)for(let b=-180;b<180;b+=4){const s=score({...p,a0:a,b0:b});if(s>best.s)best={s,a,b}}
+  if(best.s<0){$('optmsg').innerHTML='<span class="bad">No geometry reaches the required travel with these arm lengths and constraints.</span>';return}
+  for(let a=best.a-4;a<=best.a+4;a+=0.5)for(let b=best.b-4;b<=best.b+4;b+=0.5){const s=score({...p,a0:a,b0:b});if(s>best.s)best={s,a,b}}
+  setPins(p,best.a,best.b);mNow=0;run();const q=get();
+  $('optmsg').innerHTML=`Best: motor pin (${q.pax}, ${q.pay}), wrist pin (${q.pwx}, ${q.pwy}), worst transmission angle <b>${best.s.toFixed(1)}°</b> within ±${p.T}°.`},30)});
+run();
+</script>
+</body>
+</html>
