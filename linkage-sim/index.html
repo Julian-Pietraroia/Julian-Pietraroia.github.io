@@ -34,6 +34,7 @@ svg{display:block;width:100%;height:auto}
 .plots{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
 @media (max-width:860px){.plots{grid-template-columns:1fr}}
 .ok{color:var(--motor)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.xyz input{flex:1;min-width:0;padding:5px 7px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;text-align:right}
 code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 #optmsg{margin-top:8px}
 </style>
@@ -47,11 +48,11 @@ code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 <div class="card">
 <h2>Geometry</h2>
 <div class="hint" style="margin-bottom:6px">Axes are x, y, z in one CAD frame (mm). Each pin is measured from the center of its own axis (motor pin from the motor center, wrist pin from the wrist center), along the same x, y, z directions. z is along the joint axes.</div>
-<div class="row"><label>Motor axis</label><span><input type="number" id="mx" step="0.1" style="width:62px"> <input type="number" id="my" step="0.1" style="width:62px"> <input type="number" id="mz" step="0.1" style="width:62px"></span></div>
-<div class="row"><label>Wrist axis</label><span><input type="number" id="wx" step="0.1" style="width:62px"> <input type="number" id="wy" step="0.1" style="width:62px"> <input type="number" id="wz" step="0.1" style="width:62px"></span></div>
-<div class="row"><label>Motor pin, from motor axis</label><span><input type="number" id="pax" step="0.1" style="width:62px"> <input type="number" id="pay" step="0.1" style="width:62px"> <input type="number" id="paz" step="0.1" style="width:62px"></span></div>
-<div class="row"><label>Wrist pin, from wrist axis</label><span><input type="number" id="pwx" step="0.1" style="width:62px"> <input type="number" id="pwy" step="0.1" style="width:62px"> <input type="number" id="pwz" step="0.1" style="width:62px"></span></div>
-<div class="hint" id="derived"></div>
+<div style="margin:8px 0"><label style="color:var(--mut)">Motor axis</label><div class="xyz" style="display:flex;gap:6px;margin-top:3px"><input type="number" id="mx" step="0.1"> <input type="number" id="my" step="0.1"> <input type="number" id="mz" step="0.1"></div></div>
+<div style="margin:8px 0"><label style="color:var(--mut)">Wrist axis</label><div class="xyz" style="display:flex;gap:6px;margin-top:3px"><input type="number" id="wx" step="0.1"> <input type="number" id="wy" step="0.1"> <input type="number" id="wz" step="0.1"></div></div>
+<div style="margin:8px 0"><label style="color:var(--mut)">Motor pin, from motor axis</label><div class="xyz" style="display:flex;gap:6px;margin-top:3px"><input type="number" id="pax" step="0.1"> <input type="number" id="pay" step="0.1"> <input type="number" id="paz" step="0.1"></div></div>
+<div style="margin:8px 0"><label style="color:var(--mut)">Wrist pin, from wrist axis</label><div class="xyz" style="display:flex;gap:6px;margin-top:3px"><input type="number" id="pwx" step="0.1"> <input type="number" id="pwy" step="0.1"> <input type="number" id="pwz" step="0.1"></div></div>
+<div class="hint" id="derived" style="margin-top:6px"></div>
 </div>
 <div class="card" style="margin-top:12px">
 <h2>Requirements</h2>
@@ -214,7 +215,7 @@ function run(){
  $('spins').textContent=`${p.ra.toFixed(2)} / ${p.rw.toFixed(2)} mm`;
  const dz=p.pwz-p.paz;$('s3d').textContent=`${Math.hypot(cur.L,dz).toFixed(2)} mm (${dz>=0?'+':''}${dz.toFixed(2)})`;
  const n=a=>((a+540)%360-180).toFixed(1);
- $('derived').textContent=`Joint spacing ${p.G.toFixed(2)} mm · motor arm at ${n(p.a0)}°, wrist arm at ${n(p.b0)}° from the motor→wrist line`;
+ $('derived').textContent=`Motor arm ${p.ra.toFixed(2)} mm · wrist arm ${p.rw.toFixed(2)} mm · joint spacing ${p.G.toFixed(2)} mm · motor arm at ${n(p.a0)}°, wrist arm at ${n(p.b0)}° from the motor→wrist line`;
  plots();draw();
 }
 function stateAt(m){const S=m>=0?cur.A:cur.B,pts=S.pts;let best=pts[0];
