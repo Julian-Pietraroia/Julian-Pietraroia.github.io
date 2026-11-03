@@ -50,8 +50,8 @@ code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 <div class="hint" style="margin-bottom:6px">Axes are x, y, z in one CAD frame (mm). Each pin is measured from the center of its own axis (motor pin from the motor center, wrist pin from the wrist center), along the same x, y, z directions. z is along the joint axes.</div>
 <div style="margin:8px 0"><label style="color:var(--mut)">Motor axis</label><div class="xyz" style="display:flex;gap:6px;margin-top:3px"><input type="number" id="mx" step="0.1"> <input type="number" id="my" step="0.1"> <input type="number" id="mz" step="0.1"></div></div>
 <div style="margin:8px 0"><label style="color:var(--mut)">Wrist axis</label><div class="xyz" style="display:flex;gap:6px;margin-top:3px"><input type="number" id="wx" step="0.1"> <input type="number" id="wy" step="0.1"> <input type="number" id="wz" step="0.1"></div></div>
-<div style="margin:8px 0"><label style="color:var(--mut)">Motor pin, from motor axis</label><div class="xyz" style="display:flex;gap:6px;margin-top:3px"><input type="number" id="pax" step="0.1"> <input type="number" id="pay" step="0.1"> <input type="number" id="paz" step="0.1"></div></div>
-<div style="margin:8px 0"><label style="color:var(--mut)">Wrist pin, from wrist axis</label><div class="xyz" style="display:flex;gap:6px;margin-top:3px"><input type="number" id="pwx" step="0.1"> <input type="number" id="pwy" step="0.1"> <input type="number" id="pwz" step="0.1"></div></div>
+<div style="margin:8px 0"><label style="color:var(--mut)">Motor pin, from motor axis</label><div class="xyz" style="display:flex;gap:6px;margin-top:3px"><input type="number" id="pax" step="0.1"> <input type="number" id="pay" step="0.1"> <input type="number" id="paz" step="0.1"></div><div class="xyz" style="display:flex;gap:6px;margin-top:6px;align-items:center"><span class="hint" style="white-space:nowrap">Angle °</span><input type="number" id="paang" step="0.5"><span class="hint" style="white-space:nowrap">Length</span><input type="number" id="palen" step="0.1"></div></div>
+<div style="margin:8px 0"><label style="color:var(--mut)">Wrist pin, from wrist axis</label><div class="xyz" style="display:flex;gap:6px;margin-top:3px"><input type="number" id="pwx" step="0.1"> <input type="number" id="pwy" step="0.1"> <input type="number" id="pwz" step="0.1"></div><div class="xyz" style="display:flex;gap:6px;margin-top:6px;align-items:center"><span class="hint" style="white-space:nowrap">Angle °</span><input type="number" id="pwang" step="0.5"><span class="hint" style="white-space:nowrap">Length</span><input type="number" id="pwlen" step="0.1"></div><div class="hint" style="margin-top:4px">Pin angles are measured counter-clockwise from the +x direction of your CAD frame (0° = +x, 90° = +y). Edit x, y or angle and length; the other pair updates.</div></div>
 <div class="hint" id="derived" style="margin-top:6px"></div>
 </div>
 <div class="card" style="margin-top:12px">
@@ -198,7 +198,12 @@ function analyze(p,full=true){
 }
 const f1=v=>(v>=0?'+':'')+v.toFixed(1)+'°';
 let cur=null,mNow=0;
-function run(){
+function syncPolar(){for(const k of ['pa','pw']){const x=+$(k+'x').value||0,y=+$(k+'y').value||0;
+ if(document.activeElement!==$(k+'ang'))$(k+'ang').value=+(Math.atan2(y,x)/D).toFixed(2);
+ if(document.activeElement!==$(k+'len'))$(k+'len').value=+Math.hypot(x,y).toFixed(3)}}
+for(const k of ['pa','pw'])for(const f of ['ang','len'])$(k+f).addEventListener('input',()=>{const a=(+$(k+'ang').value||0)*D,l=+$(k+'len').value||0;
+ $(k+'x').value=+(l*Math.cos(a)).toFixed(3);$(k+'y').value=+(l*Math.sin(a)).toFixed(3);run()});
+function run(){syncPolar();
  const p=get();try{localStorage.setItem('linksim5',JSON.stringify(raw()))}catch(e){}
  cur={p,...analyze(p)};
  const s=cur.sides,lo=Math.min(...s.map(x=>x.pts[x.pts.length-1].m)),hi=Math.max(...s.map(x=>x.pts[x.pts.length-1].m));
