@@ -77,6 +77,8 @@ code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 <button data-p="nero">Agile Nero (measured)</button>
 <button data-p="nerostyle">Nero-style ±50°</button>
 <button data-p="nerostyle25">Nero-style ±50°, 25 mm motor arm</button>
+<button data-p="pm50a">±50° corner lean 25/25 (18° back)</button>
+<button data-p="pm50b">±50° corner lean 25/25 (22° back)</button>
 <button data-p="lean25a">Corner lean 25/25, 55°/45° (26° back)</button>
 <button data-p="lean25b">Corner lean 25/25, 55°/45° (23° back)</button>
 <button data-p="lean119">Corner lean 30/31.6, 55°/45° (29° back)</button>
@@ -145,6 +147,8 @@ const PRESETS={
  lean115:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:9.27,pay:-28.53,paz:0,pwx:105.95,pwy:28.64,pwz:0},
  lean25a:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:3.48,pay:-24.76,paz:0,pwx:108.34,pwy:22.47,pwz:0},
  lean25b:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:5.84,pay:-24.31,paz:0,pwx:109.53,pwy:23.01,pwz:0},
+ pm50a:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:7.73,pay:-23.78,paz:0,pwx:111.57,pwy:23.78,pwz:0},
+ pm50b:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:4.98,pay:-24.5,paz:0,pwx:109.93,pwy:23.18,pwz:0},
  nero:{mx:5,my:-84.614,mz:0,wx:0,wy:-215.614,wz:-10.8,pax:-21.35,pay:-85.59,paz:-5.9,pwx:24.0,pwy:-195.11,pwz:-4.6}};
 function toC(pr){const r=(a,l)=>[l*Math.cos(a*D),l*Math.sin(a*D)];const a=r(pr.a0,pr.ra),b=r(pr.b0,pr.rw);
  return{mx:0,my:0,mz:0,wx:pr.G,wy:0,wz:0,pax:a[0],pay:a[1],paz:0,pwx:pr.G+b[0],pwy:b[1],pwz:0}}
