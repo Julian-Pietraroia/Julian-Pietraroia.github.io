@@ -104,6 +104,8 @@ code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 <div class="stats">
 <div class="stat"><div class="k">Wrist angle</div><div class="v" id="sw"></div></div>
 <div class="stat"><div class="k">Transmission angle (rod vs wrist arm)</div><div class="v" id="smu"></div><div class="hint" id="smu2"></div></div>
+<div class="stat"><div class="k">Motor pin angle (live)</div><div class="v" id="spa"></div><div class="hint">from +x, counter-clockwise</div></div>
+<div class="stat"><div class="k">Wrist pin angle (live)</div><div class="v" id="spw"></div><div class="hint">from +x, counter-clockwise</div></div>
 <div class="stat"><div class="k">Gear ratio here</div><div class="v" id="sgr"></div></div>
 <div class="stat"><div class="k">Rod length, in plane (sets the motion)</div><div class="v" id="sL"></div></div>
 <div class="stat"><div class="k">Rod, 3D pin to pin (z step)</div><div class="v" id="s3d"></div></div>
@@ -270,7 +272,8 @@ function draw(){
  <line x1="${xa}" y1="${za}" x2="${xb}" y2="${zb}" stroke="${col}" stroke-width="6" stroke-linecap="round"/>
  <circle cx="${xa}" cy="${za}" r="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/><circle cx="${xb}" cy="${zb}" r="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>
  </g><text x="12" y="166" fill="var(--mut)" font-size="12">Side view along the motor→wrist line (z up) · pin z step ${(p.pwz-p.paz).toFixed(2)} mm</text>`;
- $('mv').textContent=f1(mNow);$('sw').textContent=f1(w);
+ $('mv').textContent=f1(mNow);
+ {const n=v=>((v+540)%360-180).toFixed(1)+'°';$('spa').textContent=n(Math.atan2(q.pa[1],q.pa[0])/D+p.phi/D);$('spw').textContent=n(Math.atan2(q.pw[1],q.pw[0]-p.G)/D+p.phi/D);}$('sw').textContent=f1(w);
  $('smu').innerHTML=`<span class="${q.mu<p.mu?'bad':q.mu<p.mu+10?'warn':'ok'}">${q.mu.toFixed(1)}°</span>`;
  $('smu2').textContent=`${Math.round(Math.sin(q.mu*D)*100)}% of the rod force turns the wrist`;
  const m1=$('mk1'),m2=$('mk2');if(m1){m1.setAttribute('cx',px1(q.m));m1.setAttribute('cy',py1(q.w))}
