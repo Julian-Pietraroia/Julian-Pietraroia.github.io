@@ -100,9 +100,10 @@ code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 <svg id="view" viewBox="0 0 760 360"></svg>
 <svg id="side" viewBox="0 0 760 172" style="border-top:1px solid var(--line);margin-top:6px"></svg>
 <div class="slider"><span class="hint">Motor</span><input type="range" id="sl" step="0.25"><span id="mv" style="min-width:64px;text-align:right"></span></div>
+<div class="hint" style="margin-top:8px">Transmission angle = the angle between the rod and the wrist arm, measured at the wrist pin (the arc in the view). 90° means the rod pushes square on the arm and all its force turns the wrist; near 0° the rod pushes straight into the wrist pivot and the linkage locks. It isn't measured from any fixed plane, so it moves with the parts.</div>
 <div class="stats">
 <div class="stat"><div class="k">Wrist angle</div><div class="v" id="sw"></div></div>
-<div class="stat"><div class="k">Transmission angle</div><div class="v" id="smu"></div></div>
+<div class="stat"><div class="k">Transmission angle (rod vs wrist arm)</div><div class="v" id="smu"></div><div class="hint" id="smu2"></div></div>
 <div class="stat"><div class="k">Gear ratio here</div><div class="v" id="sgr"></div></div>
 <div class="stat"><div class="k">Rod length, in plane (sets the motion)</div><div class="v" id="sL"></div></div>
 <div class="stat"><div class="k">Rod, 3D pin to pin (z step)</div><div class="v" id="s3d"></div></div>
@@ -232,6 +233,12 @@ function draw(){
  const w=q.w,col=q.mu<p.mu?'var(--bad)':q.mu<p.mu+10?'var(--warn)':'var(--rod)';
  const M=[X(p.mx),Y(p.my)],W=[X(p.wx),Y(p.wy)],A=P(q.pa[0],q.pa[1]),B=P(q.pw[0],q.pw[1]);
  const rot=-(p.phi/D+w),ax=Math.atan2(W[1]-M[1],W[0]-M[0]),ex=1200;
+ let u1=[W[0]-B[0],W[1]-B[1]];const u2=[A[0]-B[0],A[1]-B[1]];const n1=Math.hypot(...u1),n2=Math.hypot(...u2);
+ if((u1[0]*u2[0]+u1[1]*u2[1])<0)u1=[-u1[0],-u1[1]];
+ const ar=42,e1=[B[0]+ar*u1[0]/n1,B[1]+ar*u1[1]/n1],e2=[B[0]+ar*u2[0]/n2,B[1]+ar*u2[1]/n2];
+ const sw=(u1[0]*u2[1]-u1[1]*u2[0])>0?1:0;
+ const ext=[B[0]+60*u1[0]/n1,B[1]+60*u1[1]/n1];
+ const arc=`<line x1="${B[0]}" y1="${B[1]}" x2="${ext[0]}" y2="${ext[1]}" stroke="var(--wrist)" stroke-dasharray="3 3" opacity=".8"/><path d="M${B[0]} ${B[1]} L${e1[0]} ${e1[1]} A${ar} ${ar} 0 0 ${sw} ${e2[0]} ${e2[1]} Z" fill="${q.mu<p.mu?'var(--bad)':q.mu<p.mu+10?'var(--warn)':'var(--motor)'}" fill-opacity=".3" stroke="${q.mu<p.mu?'var(--bad)':q.mu<p.mu+10?'var(--warn)':'var(--motor)'}" stroke-width="2"/>`;
  v.innerHTML=`<g transform="translate(380 175) scale(${mi?-1:1} 1) rotate(${al?-ax/D:0}) translate(-380 -175)">
  <line x1="${M[0]-ex*Math.cos(ax)}" y1="${M[1]-ex*Math.sin(ax)}" x2="${M[0]+ex*Math.cos(ax)}" y2="${M[1]+ex*Math.sin(ax)}" stroke="var(--line)" stroke-dasharray="5 5"/>
  <circle cx="${M[0]}" cy="${M[1]}" r="${S*p.hd/2}" fill="none" stroke="var(--line)" stroke-width="1.5"/>
@@ -243,6 +250,7 @@ function draw(){
  <line x1="${M[0]}" y1="${M[1]}" x2="${A[0]}" y2="${A[1]}" stroke="var(--motor)" stroke-width="10" stroke-linecap="round"/>
  <line x1="${W[0]}" y1="${W[1]}" x2="${B[0]}" y2="${B[1]}" stroke="var(--wrist)" stroke-width="10" stroke-linecap="round"/>
  <circle cx="${M[0]}" cy="${M[1]}" r="5" fill="var(--ink)"/><circle cx="${W[0]}" cy="${W[1]}" r="5" fill="var(--ink)"/>
+ ${arc}
  <circle cx="${A[0]}" cy="${A[1]}" r="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>
  <circle cx="${B[0]}" cy="${B[1]}" r="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>
  </g><text x="12" y="352" fill="var(--mut)" font-size="12">${al||mi?"Plan view"+(al?", joint line horizontal":"")+(mi?", mirrored":""):"Plan view (x right, y up)"}</text>`;
@@ -259,6 +267,7 @@ function draw(){
  </g><text x="12" y="166" fill="var(--mut)" font-size="12">Side view along the motor→wrist line (z up) · pin z step ${(p.pwz-p.paz).toFixed(2)} mm</text>`;
  $('mv').textContent=f1(mNow);$('sw').textContent=f1(w);
  $('smu').innerHTML=`<span class="${q.mu<p.mu?'bad':q.mu<p.mu+10?'warn':'ok'}">${q.mu.toFixed(1)}°</span>`;
+ $('smu2').textContent=`${Math.round(Math.sin(q.mu*D)*100)}% of the rod force turns the wrist`;
  const m1=$('mk1'),m2=$('mk2');if(m1){m1.setAttribute('cx',px1(q.m));m1.setAttribute('cy',py1(q.w))}
  if(m2){m2.setAttribute('cx',px2(q.w));m2.setAttribute('cy',py2(q.mu))}
  const g=grAt(q.m),m3=$('mk3');if(g){$('sgr').textContent=g.g.toFixed(2)+' : 1';if(m3){m3.setAttribute('cx',px3(q.w));m3.setAttribute('cy',py3(Math.min(g.g,+$('p3').dataset.gmax||99)))}}
