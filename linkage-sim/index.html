@@ -74,27 +74,15 @@ code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 <div class="card" style="margin-top:12px">
 <h2>Presets</h2>
 <div class="btns">
+<button data-p="pm50a">±50° · 25/25 · 18° lean</button>
+<button data-p="pm50b">±50° · 25/25 · 22° lean</button>
+<button data-p="long40">±50° · long pin near corner (40 mm, 40° lean)</button>
+<button data-p="longc">±50° · long pin at corner (40 mm, 45° lean)</button>
+<button data-p="s2525">±50° · 25/25 · smoothest (15° lean)</button>
+<button data-p="lean25a">+55°/−45° · 25/25 · 26° lean</button>
+<button data-p="para">Parallelogram (reference)</button>
 <button data-p="yam">YAM wrist (I2RT config, exact)</button>
 <button data-p="nero">Agile Nero (measured)</button>
-<button data-p="nerostyle">Nero-style ±50°</button>
-<button data-p="nerostyle25">Nero-style ±50°, 25 mm motor arm</button>
-<button data-p="pm50a">±50° corner lean 25/25 (18° back)</button>
-<button data-p="pm50b">±50° corner lean 25/25 (22° back)</button>
-<button data-p="lean25a">Corner lean 25/25, 55°/45° (26° back)</button>
-<button data-p="lean25b">Corner lean 25/25, 55°/45° (23° back)</button>
-<button data-p="lean119">Corner lean 30/31.6, 55°/45° (29° back)</button>
-<button data-p="lean115">Corner lean 30/31.6, 55°/45° (25° back)</button>
-<button data-p="s5545">Smooth 25/25, +55° / −45°</button>
-<button data-p="s2525">Smooth 25/25 mm</button>
-<button data-p="s2527">Smooth 25/27 mm (more Nero lean)</button>
-<button data-p="smooth28">Nero-style smooth, 28 mm motor arm</button>
-<button data-p="smooth335">Nero-style smoothest, 33.5 mm motor arm</button>
-<button data-p="nerostyleflat">Nero-style ±50°, 25 mm, flattest ratio</button>
-<button data-p="t50">Tuned ±50° (angled)</button>
-<button data-p="max">Max travel (angled)</button>
-<button data-p="para">Parallelogram</button>
-<button data-p="diag">Diagonal pin sketch</button>
-<button data-p="orig">Original 149.3 crossed</button>
 </div>
 </div>
 </div>
@@ -134,33 +122,21 @@ code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 <script>
 const $=id=>document.getElementById(id),D=Math.PI/180;
 const PRESETS={
- t50:{G:119.3,ra:25,rw:25,a0:-60,b0:104},
- max:{G:119.3,ra:25,rw:25,a0:-66,b0:100},
- para:{G:119.3,ra:25,rw:25,a0:90,b0:90},
- diag:{G:119.3,ra:25,rw:25,a0:-90,b0:Math.atan2(28.5,-28)/D},
- orig:{G:149.3,ra:25,rw:25,a0:-90,b0:90},
- nerostyle:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:12.05,pay:-25.27,paz:0,pwx:106.61,pwy:28.91,pwz:0},
- nerostyle25:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:8.35,pay:-23.57,paz:0,pwx:106.61,pwy:28.91,pwz:0},
- nerostyleflat:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:7.52,pay:-23.84,paz:0,pwx:108.37,pwy:29.62,pwz:0},
- smooth28:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:8.65,pay:-26.63,paz:0,pwx:106.71,pwy:28.95,pwz:0},
- smooth335:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:15.98,pay:-29.44,paz:0,pwx:108.24,pwy:29.57,pwz:0},
- s2525:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:8.96,pay:-23.34,paz:0,pwx:112.83,pwy:24.15,pwz:0},
- s2527:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:6.47,pay:-24.15,paz:0,pwx:109.19,pwy:25.03,pwz:0},
- yam:{mx:0,my:0,mz:0,wx:106.9892,wy:0,wz:0,pax:17.375,pay:-25.331,paz:0,pwx:90.943,pwy:34.81,pwz:0},
- s5545:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:10.17,pay:-22.84,paz:0,pwx:113.89,pwy:24.41,pwz:0},
- lean119:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:8.02,pay:-28.91,paz:0,pwx:103.98,pwy:27.64,pwz:0},
- lean115:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:9.27,pay:-28.53,paz:0,pwx:105.95,pwy:28.64,pwz:0},
- lean25a:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:3.48,pay:-24.76,paz:0,pwx:108.34,pwy:22.47,pwz:0},
- lean25b:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:5.84,pay:-24.31,paz:0,pwx:109.53,pwy:23.01,pwz:0},
  pm50a:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:7.73,pay:-23.78,paz:0,pwx:111.57,pwy:23.78,pwz:0},
  pm50b:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:4.98,pay:-24.5,paz:0,pwx:109.93,pwy:23.18,pwz:0},
+ long40:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:28.47,pay:-34.85,paz:0,pwx:93.59,pwy:30.64,pwz:0},
+ longc:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:28.32,pay:-34.97,paz:0,pwx:91.26,pwy:28.53,pwz:0},
+ s2525:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:8.96,pay:-23.34,paz:0,pwx:112.83,pwy:24.15,pwz:0},
+ lean25a:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:3.48,pay:-24.76,paz:0,pwx:108.34,pwy:22.47,pwz:0},
+ para:{G:119.3,ra:25,rw:25,a0:90,b0:90},
+ yam:{mx:0,my:0,mz:0,wx:106.9892,wy:0,wz:0,pax:17.375,pay:-25.331,paz:0,pwx:90.943,pwy:34.81,pwz:0},
  nero:{mx:5,my:-84.614,mz:0,wx:0,wy:-215.614,wz:-10.8,pax:-21.35,pay:-85.59,paz:-5.9,pwx:24.0,pwy:-195.11,pwz:-4.6}};
 function toC(pr){const r=(a,l)=>[l*Math.cos(a*D),l*Math.sin(a*D)];const a=r(pr.a0,pr.ra),b=r(pr.b0,pr.rw);
  return{mx:0,my:0,mz:0,wx:pr.G,wy:0,wz:0,pax:a[0],pay:a[1],paz:0,pwx:pr.G+b[0],pwy:b[1],pwz:0}}
-const P0={...toC(PRESETS.t50),mz:0,wz:0,paz:0,pwz:0,T:50,mu:30,rodmin:0,hd:57,bw:56,bh:57};
+const P0={...PRESETS.pm50a,T:50,mu:30,rodmin:0,hd:57,bw:56,bh:57};
 const ids=['mx','my','mz','wx','wy','wz','pax','pay','paz','pwx','pwy','pwz','T','mu','rodmin','hd','bw','bh'];
 function rel(pr){const o={...pr};['x','y','z'].forEach(c=>{o['pa'+c]=pr['pa'+c]-pr['m'+c];o['pw'+c]=pr['pw'+c]-pr['w'+c]});return o}
-let st;try{st=JSON.parse(localStorage.getItem('linksim5'))}catch(e){}
+let st;try{st=JSON.parse(localStorage.getItem('linksim6'))}catch(e){}
 st=Object.assign({},rel(P0),st||{});
 ids.forEach(k=>{$(k).value=+(+st[k]).toFixed(3);$(k).addEventListener('input',()=>{run()})});
 function raw(){const o={};ids.forEach(k=>o[k]=parseFloat($(k).value)||0);return o}
@@ -215,7 +191,7 @@ function syncPolar(){for(const k of ['pa','pw']){const x=+$(k+'x').value||0,y=+$
 for(const k of ['pa','pw'])for(const f of ['ang','len'])$(k+f).addEventListener('input',()=>{const a=(+$(k+'ang').value||0)*D,l=+$(k+'len').value||0;
  $(k+'x').value=+(l*Math.cos(a)).toFixed(3);$(k+'y').value=+(l*Math.sin(a)).toFixed(3);run()});
 function run(){syncPolar();
- const p=get();try{localStorage.setItem('linksim5',JSON.stringify(raw()))}catch(e){}
+ const p=get();try{localStorage.setItem('linksim6',JSON.stringify(raw()))}catch(e){}
  cur={p,...analyze(p)};
  const s=cur.sides,lo=Math.min(...s.map(x=>x.pts[x.pts.length-1].m)),hi=Math.max(...s.map(x=>x.pts[x.pts.length-1].m));
  $('sl').min=Math.floor(lo);$('sl').max=Math.ceil(hi);
