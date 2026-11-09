@@ -26,6 +26,7 @@ button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
 .btns{display:flex;flex-wrap:wrap;gap:6px}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}
 .stat{background:var(--bg);border-radius:8px;padding:8px 10px}
+.sec{grid-column:1/-1;font-size:12px;color:var(--mut);margin-top:6px;border-bottom:1px solid var(--line);padding-bottom:3px}
 .stat .k{font-size:12px;color:var(--mut)}
 .stat .v{font-size:16px;font-weight:500}
 svg{display:block;width:100%;height:auto}
@@ -102,20 +103,24 @@ code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 <svg id="view" viewBox="0 0 760 360"></svg>
 <svg id="side" viewBox="0 0 760 172" style="border-top:1px solid var(--line);margin-top:6px"></svg>
 <div class="slider"><span class="hint">Motor</span><input type="range" id="sl" step="0.25"><span id="mv" style="min-width:64px;text-align:right"></span></div>
-<div class="hint" style="margin-top:8px">Transmission angle = the angle between the rod and the wrist arm, measured at the wrist pin (the arc in the view). 90° means the rod pushes square on the arm and all its force turns the wrist; near 0° the rod pushes straight into the wrist pivot and the linkage locks. It isn't measured from any fixed plane, so it moves with the parts.</div>
 <div class="stats">
-<div class="stat"><div class="k">Wrist angle</div><div class="v" id="sw"></div></div>
-<div class="stat"><div class="k">Transmission angle (rod vs wrist arm)</div><div class="v" id="smu"></div><div class="hint" id="smu2"></div></div>
-<div class="stat"><div class="k">Motor pin angle (live)</div><div class="v" id="spa"></div><div class="hint">from +x, counter-clockwise</div></div>
-<div class="stat"><div class="k">Wrist pin angle (live)</div><div class="v" id="spw"></div><div class="hint">from +x, counter-clockwise</div></div>
-<div class="stat"><div class="k">Gear ratio here</div><div class="v" id="sgr"></div></div>
-<div class="stat"><div class="k">Rod length, in plane (sets the motion)</div><div class="v" id="sL"></div></div>
-<div class="stat"><div class="k">Rod, 3D pin to pin (z step)</div><div class="v" id="s3d"></div></div>
-<div class="stat"><div class="k">Rod angle at rest</div><div class="v" id="sang"></div></div>
-<div class="stat"><div class="k">Travel at the transmission-angle minimum</div><div class="v" id="str"></div></div>
-<div class="stat"><div class="k">Worst transmission angle within ± required</div><div class="v" id="sworst"></div></div>
-<div class="stat"><div class="k">Motor angle for ± required</div><div class="v" id="smot"></div></div>
-<div class="stat"><div class="k">Arm lengths (motor / wrist)</div><div class="v" id="spins" style="font-size:13px"></div></div>
+<div class="sec">Rotation from the rest pose</div>
+<div class="stat"><div class="k">Motor rotation</div><div class="v" id="smr"></div><div class="hint">slider value · 0 = rest</div></div>
+<div class="stat"><div class="k">Wrist rotation</div><div class="v" id="sw"></div><div class="hint">0 = rest · + = counter-clockwise</div></div>
+<div class="stat"><div class="k">Gear ratio here</div><div class="v" id="sgr"></div><div class="hint">motor degrees per wrist degree</div></div>
+<div class="sec">Linkage strength</div>
+<div class="stat"><div class="k">Transmission angle μ</div><div class="v" id="smu"></div><div class="hint">rod vs wrist arm (shaded wedge) · <span id="smu2"></span></div></div>
+<div class="stat"><div class="k">Worst μ within ± required</div><div class="v" id="sworst"></div><div class="hint">over the required wrist travel</div></div>
+<div class="stat"><div class="k">Wrist travel before μ &lt; min</div><div class="v" id="str"></div><div class="hint">each side, from rest</div></div>
+<div class="stat"><div class="k">Motor rotation for ± required</div><div class="v" id="smot"></div><div class="hint">each side, from rest</div></div>
+<div class="sec">Directions in your CAD frame (live) · measured from +x, counter-clockwise</div>
+<div class="stat"><div class="k">Motor arm</div><div class="v" id="spa"></div><div class="hint">motor axis → motor pin</div></div>
+<div class="stat"><div class="k">Wrist arm</div><div class="v" id="spw"></div><div class="hint">wrist axis → wrist pin</div></div>
+<div class="stat"><div class="k">Rod</div><div class="v" id="sang"></div><div class="hint">motor pin → wrist pin</div></div>
+<div class="sec">Lengths</div>
+<div class="stat"><div class="k">Arms (motor / wrist)</div><div class="v" id="spins"></div><div class="hint">axis center to pin center</div></div>
+<div class="stat"><div class="k">Rod, in plane</div><div class="v" id="sL"></div><div class="hint">pin to pin · sets the motion</div></div>
+<div class="stat"><div class="k">Rod, 3D</div><div class="v" id="s3d"></div><div class="hint">pin to pin (z step)</div></div>
 </div>
 </div>
 <div class="plots">
@@ -216,7 +221,7 @@ function run(){syncPolar();
  $('sl').min=Math.floor(lo);$('sl').max=Math.ceil(hi);
  if(mNow<lo||mNow>hi)mNow=0;$('sl').value=mNow;
  $('sL').textContent=cur.L.toFixed(2)+' mm';
- const ang=Math.atan2(cur.pw0[1]-cur.pa0[1],cur.pw0[0]-cur.pa0[0])/D;$('sang').textContent=ang.toFixed(1)+'°';
+
  const t=s.map(x=>x.lim.w).sort((a,b)=>a-b);
  $('str').innerHTML=`${f1(t[0])} / ${f1(t[1])}`;
  const ok=s.every(x=>x.reach);
@@ -264,7 +269,10 @@ function draw(){
  ${arc}
  <circle cx="${A[0]}" cy="${A[1]}" r="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>
  <circle cx="${B[0]}" cy="${B[1]}" r="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>
- </g><text x="12" y="352" fill="var(--mut)" font-size="12">${al||mi?"Plan view"+(al?", joint line horizontal":"")+(mi?", mirrored":""):"Plan view (x right, y up)"}</text>`;
+ </g>${(()=>{const ra=-(al?ax:0),sx=mi?-1:1,T=(x,y)=>{const dx=x-380,dy=y-175,r=ra,c=Math.cos(r),s2=Math.sin(r);return[380+sx*(dx*c-dy*s2),175+(dx*s2+dy*c)]};
+ const wl=T(W[0],W[1]),ml=T(M[0],M[1]),bl=T(B[0]+(u1[0]/n1+u2[0]/n2)*30,B[1]+(u1[1]/n1+u2[1]/n2)*30);
+ const lab=(p0,t,c)=>`<text x="${p0[0]}" y="${p0[1]}" text-anchor="middle" font-size="13" font-weight="500" fill="${c}" stroke="var(--card)" stroke-width="4" paint-order="stroke">${t}</text>`;
+ return lab([ml[0],ml[1]+S*p.hd/2+18],'motor '+f1(mNow),'var(--motor)')+lab([wl[0],wl[1]+S*Math.hypot(p.bw,p.bh)/2+16],'wrist '+f1(w),'var(--wrist)')+lab(bl,'μ '+q.mu.toFixed(0)+'°','var(--ink)')})()}<text x="12" y="352" fill="var(--mut)" font-size="12">${al||mi?"Plan view"+(al?", joint line horizontal":"")+(mi?", mirrored":""):"Plan view (x right, y up)"}</text>`;
  const zs=[p.mz,p.wz,p.paz,p.pwz],z0=Math.min(...zs),z1=Math.max(...zs),zc=(z0+z1)/2;
  const S2=Math.min(680/(p.G+2*Math.max(p.ra,p.rw)+10),90/Math.max(z1-z0,1)),Hx=x=>380+S2*(x-p.G/2),Hz=z=>80-S2*(z-zc);
  const za=Hz(p.paz),zb=Hz(p.pwz),xa=Hx(q.pa[0]),xb=Hx(q.pw[0]);
@@ -277,9 +285,9 @@ function draw(){
  <circle cx="${xa}" cy="${za}" r="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/><circle cx="${xb}" cy="${zb}" r="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>
  </g><text x="12" y="166" fill="var(--mut)" font-size="12">Side view along the motor→wrist line (z up) · pin z step ${(p.pwz-p.paz).toFixed(2)} mm</text>`;
  $('mv').textContent=f1(mNow);
- {const n=v=>((v+540)%360-180).toFixed(1)+'°';$('spa').textContent=n(Math.atan2(q.pa[1],q.pa[0])/D+p.phi/D);$('spw').textContent=n(Math.atan2(q.pw[1],q.pw[0]-p.G)/D+p.phi/D);}$('sw').textContent=f1(w);
+ {const n=v=>((v+540)%360-180).toFixed(1)+'°';$('smr').textContent=f1(mNow);$('sang').textContent=n(Math.atan2(q.pw[1]-q.pa[1],q.pw[0]-q.pa[0])/D+p.phi/D);$('spa').textContent=n(Math.atan2(q.pa[1],q.pa[0])/D+p.phi/D);$('spw').textContent=n(Math.atan2(q.pw[1],q.pw[0]-p.G)/D+p.phi/D);}$('sw').textContent=f1(w);
  $('smu').innerHTML=`<span class="${q.mu<p.mu?'bad':q.mu<p.mu+10?'warn':'ok'}">${q.mu.toFixed(1)}°</span>`;
- $('smu2').textContent=`${Math.round(Math.sin(q.mu*D)*100)}% of the rod force turns the wrist`;
+ $('smu2').textContent=`${Math.round(Math.sin(q.mu*D)*100)}% of rod force turns the wrist`;
  const m1=$('mk1'),m2=$('mk2');if(m1){m1.setAttribute('cx',px1(q.m));m1.setAttribute('cy',py1(q.w))}
  if(m2){m2.setAttribute('cx',px2(q.w));m2.setAttribute('cy',py2(q.mu))}
  const g=grAt(q.m),m3=$('mk3');if(g){$('sgr').textContent=g.g.toFixed(2)+' : 1';if(m3){m3.setAttribute('cx',px3(q.w));m3.setAttribute('cy',py3(Math.min(g.g,+$('p3').dataset.gmax||99)))}}
