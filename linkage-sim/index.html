@@ -76,10 +76,8 @@ code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 <div class="btns">
 <button data-p="pm50a">±50° · 25/25 · 18° lean</button>
 <button data-p="pm50b">±50° · 25/25 · 22° lean</button>
-<button data-p="m28a">±50° · 28 mm motor / 28 mm wrist · 26° lean</button>
-<button data-p="m28b">±50° · 28 mm motor / 31 mm wrist · 22° lean</button>
-<button data-p="m28c">±50° · 28 mm motor / 32 mm wrist · pin 14 mm left</button>
-<button data-p="m28d">±50° · 28 mm motor / 33 mm wrist · pin 16 mm left</button>
+<button data-p="m26a">±50° · 26 mm motor / 28 mm wrist · pin 11 mm left</button>
+<button data-p="m26b">±50° · 26 mm motor / 29 mm wrist · pin 14 mm left</button>
 <button data-p="long40">±50° · long pin near corner (40 mm, 40° lean)</button>
 <button data-p="longc">±50° · long pin at corner (40 mm, 45° lean)</button>
 <button data-p="s2525">±50° · 25/25 · smoothest (15° lean)</button>
@@ -128,10 +126,8 @@ const $=id=>document.getElementById(id),D=Math.PI/180;
 const PRESETS={
  pm50a:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:7.73,pay:-23.78,paz:0,pwx:111.57,pwy:23.78,pwz:0},
  pm50b:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:4.98,pay:-24.5,paz:0,pwx:109.93,pwy:23.18,pwz:0},
- m28a:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:9.0,pay:-26.51,paz:0,pwx:107.03,pwy:25.17,pwz:0},
- m28b:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:9.12,pay:-26.47,paz:0,pwx:107.69,pwy:28.74,pwz:0},
- m28c:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:9.12,pay:-26.47,paz:0,pwx:105.3,pwy:28.77,pwz:0},
- m28d:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:7.72,pay:-26.92,paz:0,pwx:103.3,pwy:28.86,pwz:0},
+ m26a:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:8.89,pay:-24.43,paz:0,pwx:108.3,pwy:25.75,pwz:0},
+ m26b:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:7.38,pay:-24.93,paz:0,pwx:105.3,pwy:25.4,pwz:0},
  long40:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:28.47,pay:-34.85,paz:0,pwx:93.59,pwy:30.64,pwz:0},
  longc:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:28.32,pay:-34.97,paz:0,pwx:91.26,pwy:28.53,pwz:0},
  s2525:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:8.96,pay:-23.34,paz:0,pwx:112.83,pwy:24.15,pwz:0},
