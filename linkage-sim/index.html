@@ -76,6 +76,7 @@ code{font-size:12px;background:var(--bg);padding:1px 5px;border-radius:5px}
 <div class="btns">
 <button data-p="pm50a">±50° · 25/25 · 18° lean</button>
 <button data-p="pm50b">±50° · 25/25 · 22° lean</button>
+<button data-p="g100c">±50° · 100 mm spacing · 26/30.9 · pin 15 left, 1 mm up (screw clearance)</button>
 <button data-p="g100a">±50° · 100 mm spacing · 26/29 · pin 13 mm left</button>
 <button data-p="g100b">±50° · 100 mm spacing · 26/30 · pin 15 mm left</button>
 <button data-p="m26a">±50° · 26 mm motor / 28 mm wrist · pin 11 mm left</button>
@@ -136,6 +137,7 @@ const PRESETS={
  m26d:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:6.07,pay:-25.28,paz:0,pwx:104.3,pwy:25.98,pwz:0},
  g100a:{mx:0,my:0,mz:0,wx:100,wy:0,wz:0,pax:10.16,pay:-23.93,paz:0,pwx:87,pwy:25.92,pwz:0},
  g100b:{mx:0,my:0,mz:0,wx:100,wy:0,wz:0,pax:8.89,pay:-24.43,paz:0,pwx:85,pwy:25.98,pwz:0},
+ g100c:{mx:0,my:0,mz:0,wx:100,wy:0,wz:0,pax:8.14,pay:-24.69,paz:0,pwx:85,pwy:26.98,pwz:0},
  long40:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:28.47,pay:-34.85,paz:0,pwx:93.59,pwy:30.64,pwz:0},
  longc:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:28.32,pay:-34.97,paz:0,pwx:91.26,pwy:28.53,pwz:0},
  s2525:{mx:0,my:0,mz:0,wx:119.3,wy:0,wz:0,pax:8.96,pay:-23.34,paz:0,pwx:112.83,pwy:24.15,pwz:0},
@@ -145,7 +147,7 @@ const PRESETS={
  nero:{mx:5,my:-84.614,mz:0,wx:0,wy:-215.614,wz:-10.8,pax:-21.35,pay:-85.59,paz:-5.9,pwx:24.0,pwy:-195.11,pwz:-4.6}};
 function toC(pr){const r=(a,l)=>[l*Math.cos(a*D),l*Math.sin(a*D)];const a=r(pr.a0,pr.ra),b=r(pr.b0,pr.rw);
  return{mx:0,my:0,mz:0,wx:pr.G,wy:0,wz:0,pax:a[0],pay:a[1],paz:0,pwx:pr.G+b[0],pwy:b[1],pwz:0}}
-const P0={...PRESETS.pm50a,T:50,mu:30,rodmin:0,hd:57,bw:56,bh:57};
+const P0={...PRESETS.g100c,T:50,mu:30,rodmin:0,hd:57,bw:56,bh:57};
 const ids=['mx','my','mz','wx','wy','wz','pax','pay','paz','pwx','pwy','pwz','T','mu','rodmin','hd','bw','bh'];
 function rel(pr){const o={...pr};['x','y','z'].forEach(c=>{o['pa'+c]=pr['pa'+c]-pr['m'+c];o['pw'+c]=pr['pw'+c]-pr['w'+c]});return o}
 let st;try{st=JSON.parse(localStorage.getItem('linksim6'))}catch(e){}
