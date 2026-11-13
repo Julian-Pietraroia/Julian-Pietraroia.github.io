@@ -129,6 +129,17 @@ details summary{cursor:pointer;color:var(--mut);font-size:13px;margin-top:6px}
 .badge{position:absolute;left:12px;bottom:12px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13px;box-shadow:var(--sh);font-variant-numeric:tabular-nums}
 .busy{position:absolute;right:12px;top:12px;font-size:12px;color:var(--mut);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;opacity:0;transition:.2s}
 .busy.on{opacity:1}
+.variants{display:grid;gap:8px}
+.num.tier input{width:44px;padding:5px 2px 5px 6px;font-size:13px}
+.num.tier span{padding-right:6px;font-size:12px}
+.chip{flex-wrap:nowrap}
+.chip .meta span{white-space:nowrap}
+.chip .seg button{padding:5px 6px}
+.variant{display:flex;gap:12px;align-items:center;text-align:left;border:1.5px solid var(--line);border-radius:12px;padding:8px;background:var(--surface);cursor:pointer;width:100%}
+.variant.on{border-color:var(--ink)}
+.variant canvas{width:64px;height:64px;flex:none;border-radius:8px;background:var(--soft)}
+.variant b{display:block;font-size:14px;font-weight:600}
+.variant span{display:block;font-size:12px;color:var(--mut);line-height:1.35}
 .zoomctl{position:absolute;right:12px;bottom:12px;display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px;box-shadow:var(--sh)}
 .zoomctl button{border:0;background:none;min-width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:16px;font-weight:600}
 .zoomctl button:hover{background:var(--soft)}
@@ -268,6 +279,10 @@ footer a{color:inherit}
             <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6M4 4v6M20 20h-6M20 20v-6M20 4h-6M20 4v6M4 20h6M4 20v-6"/></svg></div>
             <div><b>Use my board's graphic</b><span>Draw a box around any part of your board photo</span></div>
           </button>
+          <button class="opt" id="optAuto">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></div>
+            <div><b>Auto-design from my board</b><span>Reads your board's colors and art style and designs a pad to match</span></div>
+          </button>
           <button class="opt" id="optUpload">
             <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></div>
             <div><b>Upload my own design</b><span>A logo, drawing or sticker art: PNG, JPG or SVG</span></div>
@@ -297,6 +312,20 @@ footer a{color:inherit}
             <button class="btn" id="selUndo">Undo</button>
             <button class="btn" id="selClear">Clear</button>
             <span class="note" id="selInfo" style="margin:auto 0 auto 4px"></span>
+          </div>
+        </div>
+        <div id="autoUI" class="hidden" style="margin-top:14px">
+          <div style="font-size:14px;margin-bottom:6px">Your stance</div>
+          <div class="seg" id="autoStance" style="display:inline-flex"><button data-v="regular">Regular</button><button data-v="goofy">Goofy</button></div>
+          <div class="sec" style="margin-top:16px">
+            <h3>What we read from your board</h3>
+            <div class="swatches" id="autoPalette" style="margin-bottom:8px"></div>
+            <ul class="tips" id="autoRead"></ul>
+          </div>
+          <div class="sec">
+            <h3>Pick a design</h3>
+            <div class="variants" id="autoVariants"></div>
+            <button class="btn" id="autoShuffle" style="margin-top:10px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Shuffle</button>
           </div>
         </div>
         <div id="uploadUI" class="hidden" style="margin-top:12px">
@@ -391,6 +420,8 @@ footer a{color:inherit}
             <input type="range" id="detail" min="0.4" max="4" step="0.1" value="1.2">
           </div>
           <label class="toggle">Rounded top edge<input type="checkbox" id="round" checked></label>
+          <label class="toggle">Each colour at its own height<input type="checkbox" id="tiered"></label>
+          <p class="note hidden" id="tierNote">Set each raised colour's height in <b>Colors in your design</b> above.</p>
         </div>
 
         <div class="sec">
@@ -486,7 +517,7 @@ const S = {
   quant: null, roles: [], colors: [], k: 3,
   baseColor: null, boardPalette: [],
   params: { size: 140, pad: 4, smooth: 4, fillHoles: true, base: 2.6, raise: 1.6, detail: 1.2, round: true },
-  sizeTouched: false, stance: 'regular', padShape: 'rounded', zoneC: null, zoneW: null, zoneL: null, surface: 'art', patType: 'ridges', pitch: 7, patternColor: [240, 240, 240],
+  sizeTouched: false, tiered: false, heights: {}, stance: 'regular', padShape: 'rounded', zoneC: null, zoneW: null, zoneL: null, surface: 'art', patType: 'ridges', pitch: 7, patternColor: [240, 240, 240],
   result: null, preview: null, place: null, view: 'top'
 };
 
@@ -701,7 +732,7 @@ const toImage = (x, y) => [(x - view.ox) / view.s, (y - view.oy) / view.s];
 
 function drawPhoto() {
   if (S.step >= 2 && S.view === 'top') return drawTopView();
-  if (S.step === 1 && S.source === 'board') return drawRectView();
+  if (S.step === 1 && (S.source === 'board' || S.source === 'auto')) return drawRectView();
   if (S.step >= 2 && S.view === 'board' && S.zoneMode && S.rect) return drawRectView();
   fitPhoto();
   const dpr = devicePixelRatio || 1, img = S.board.img;
@@ -789,13 +820,13 @@ photo.addEventListener('pointerdown', e => {
   } else if (rectInteractive()) {
     const R = S.rect;
     const [X, Y] = screenToRect(x, y);
-    if (S.padShape !== 'art' && S.zoneC) {
+    if (S.source !== 'auto' && S.padShape !== 'art' && S.zoneC) {
       const hit = zoneHandles().find(h => Math.hypot(h[0] - X, h[1] - Y) * rview.s < 14);
       if (hit) { photo.setPointerCapture(e.pointerId); drag = { kind: 'resize', dx: hit[2], dy: hit[3] }; return; }
     }
     pinchPts.set(e.pointerId, [x, y]); photo.setPointerCapture(e.pointerId);
     if (pinchPts.size === 2) { const [a, b] = [...pinchPts.values()]; drag = { kind: 'pinch', d: Math.hypot(a[0] - b[0], a[1] - b[1]) }; return; }
-    const inZone = S.padShape !== 'art' && S.zoneC && Math.abs(X - S.zoneC[0]) < S.zoneW / R.mmPerPx / 2 && Math.abs(Y - S.zoneC[1]) < S.zoneL / R.mmPerPx / 2;
+    const inZone = S.source !== 'auto' && S.padShape !== 'art' && S.zoneC && Math.abs(X - S.zoneC[0]) < S.zoneW / R.mmPerPx / 2 && Math.abs(Y - S.zoneC[1]) < S.zoneL / R.mmPerPx / 2;
     if (inZone) { drag = { kind: 'zone', start: [X, Y], orig: S.zoneC.slice() }; return; }
     drag = { kind: 'pan', sx: x, sy: y, c0: (S.rc || [0, 0]).slice(), moved: false, tap: [X, Y] };
     return;
@@ -848,7 +879,7 @@ const endDrag = e => {
     if (moved) return;
     if (!R || !(X >= 0 && Y >= 0 && X < R.W && Y < R.H) || R.data.data[(Y * R.W + X) * 4 + 3] < 128) return;
     // a tap (no drag) picks art in Follow-the-art mode, or moves the pad there otherwise
-    if (S.step >= 2) return;   // in Customize, taps don't move the pad (drag it instead)
+    if (S.step >= 2 || S.source === 'auto') return;   // taps only pick art / move the box in the Design step
     if (S.padShape === 'art') { S.ops.push([X, Y]); replaySelection(); designFromSelection(); }
     else { S.zoneC = [X, Y]; zoneDesign(); }
     return;
@@ -870,7 +901,7 @@ photo.addEventListener('pointercancel', endDrag);
 function clampImg(p) { const img = S.board.img; return [Math.max(0, Math.min(img.width, p[0])), Math.max(0, Math.min(img.height, p[1]))]; }
 
 // ============================================================ STEP 2
-$('#optBoard').addEventListener('click', () => { S.source = 'board'; ensureRect(); boardDesign(); refreshSourceUI(); });
+$('#optBoard').addEventListener('click', () => { S.source = 'board'; S.autoMode = false; S.patAngle = 0; ensureRect(); boardDesign(); refreshSourceUI(); });
 $('#stanceSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.stance = b.dataset.v; S.zoneC = null; boardDesign(); refreshSourceUI(); });
 $('#flipBack').addEventListener('click', () => { S.flipBack = !S.flipBack; S.zoneC = null; boardDesign(); refreshSourceUI(); });
 $('#shapeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.padShape = b.dataset.v; boardDesign(); refreshSourceUI(); });
@@ -1128,6 +1159,176 @@ function designFromSelection() {
   S.place = R.toPhoto((x0 + x1) / 2, (y0 + y1) / 2);
   refreshSourceUI();
 }
+// ====================================================== AUTO-DESIGN
+// Reads the straightened board (palette, contrast, busyness, line direction, geometric vs organic)
+// and generates pad designs from rules. No network, no AI model: it all runs here.
+const AUTO_MM = 0.4;   // mm per px of generated designs
+$('#optAuto').addEventListener('click', () => { S.source = 'auto'; ensureRect(); startAuto(); refreshSourceUI(); });
+$('#autoStance').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.stance = b.dataset.v; S.zoneC = null; if (S.auto) { placeAuto(); applyAuto(); } refreshSourceUI(); });
+$('#autoShuffle').addEventListener('click', () => { if (!S.auto) return; S.auto.seed++; makeVariants(); applyAuto(); refreshSourceUI(); });
+function startAuto() {
+  if (!S.rect) return;
+  if (!S.auto || S.auto.rect !== S.rect) S.auto = { rect: S.rect, read: analyzeBoard(), seed: 1, pick: 0 };
+  placeAuto(); makeVariants(); applyAuto();
+}
+function analyzeBoard() {
+  const R = S.rect, W = R.W, H = R.H, d = R.data.data;
+  // palette of the board itself
+  const q = PadCore.quantize(d, W, H, 6);
+  const tot = q.counts.reduce((a, b) => a + b, 0);
+  const pal = q.centers.map((c, i) => ({ c, share: q.counts[i] / tot, L: lab(c) }));
+  const top = pal[0];
+  const chroma = L => Math.hypot(L[1], L[2]);
+  const accents = pal.slice(1).filter(p => p.share > 0.015)
+    .map(p => ({ ...p, score: chroma(p.L) * 0.7 + Math.hypot(p.L[0] - top.L[0], p.L[1] - top.L[1], p.L[2] - top.L[2]) * 0.5 }))
+    .sort((a, b) => b.score - a.score);
+  let satSum = 0; pal.forEach(p => satSum += chroma(p.L) * p.share);
+  // edge statistics on the board interior (away from its outline)
+  const inner = PadCore.erode(Uint8Array.from({ length: W * H }, (_, i) => d[i * 4 + 3] > 128 ? 1 : 0), W, H, 15 / R.mmPerPx);
+  const bins = new Float64Array(18); let eSum = 0, n = 0, Ls = 0, Ls2 = 0;
+  for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+    const i = y * W + x; if (!inner[i]) continue;
+    const L = R.L;
+    const gx = (L[i + 1 - W] + 2 * L[i + 1] + L[i + 1 + W]) - (L[i - 1 - W] + 2 * L[i - 1] + L[i - 1 + W]);
+    const gy = (L[i - 1 + W] + 2 * L[i + W] + L[i + 1 + W]) - (L[i - 1 - W] + 2 * L[i - W] + L[i + 1 - W]);
+    const m = Math.hypot(gx, gy); n++; Ls += L[i]; Ls2 += L[i] * L[i];
+    if (m > 40) { eSum++; let a = Math.atan2(gy, gx) + Math.PI / 2; a = ((a % Math.PI) + Math.PI) % Math.PI; bins[Math.floor(a / Math.PI * 18) % 18] += m; }
+  }
+  const busy = n ? eSum / n : 0, Lmean = Ls / n, contrast = Math.sqrt(Math.max(0, Ls2 / n - Lmean * Lmean));
+  const bsum = bins.reduce((a, b) => a + b, 0) || 1;
+  let bi = 0; for (let k = 1; k < 18; k++) if (bins[k] > bins[bi]) bi = k;
+  const peak = (bins[bi] + bins[(bi + 1) % 18] + bins[(bi + 17) % 18]) / bsum;   // share of edges in the main direction
+  const geometric = peak > 0.3;
+  let ang = (bi + 0.5) / 18 * 180;               // line direction, degrees from "across the board"
+  const axisAligned = Math.min(ang % 90, 90 - (ang % 90)) < 15;
+  return { pal, top, accents, colorful: satSum > 14, busy, contrast, geometric, angle: ang, axisAligned, peak };
+}
+function placeAuto() {
+  const R = S.rect; if (!R.bind) R.bind = findBindings();
+  const bd = R.bind, mm = R.mmPerPx;
+  const frontIsHighY = ((bd.heel > 0) === (S.stance === 'regular')) !== !!S.flipBack;
+  const tRear = frontIsHighY ? Math.min(bd.t1, bd.t2) : Math.max(bd.t1, bd.t2);
+  R.rearT = tRear; R.frontT = tRear === Math.min(bd.t1, bd.t2) ? Math.max(bd.t1, bd.t2) : Math.min(bd.t1, bd.t2);
+  const dir = tRear < 0.5 ? 1 : -1;
+  S.auto.center = [R.W / 2, tRear * R.H + dir * (95 + 55) / mm];
+}
+// tiny seeded random
+function rnd(seed) { let t = seed * 2654435761 >>> 0; return () => { t = (t + 0x6D2B79F5) >>> 0; let r = Math.imul(t ^ t >>> 15, 1 | t); r ^= r + Math.imul(r ^ r >>> 7, 61 | r); return ((r ^ r >>> 14) >>> 0) / 4294967296; }; }
+function makeVariants() {
+  const A = S.auto, rd = A.read, rand = rnd(A.seed * 97 + 13);
+  const waist = effectiveWaist() || 250;
+  const accent = rd.accents[0] ? rd.accents[0].c : (rd.top.L[0] > 55 ? [27, 27, 29] : [243, 243, 241]);
+  const accent2 = rd.accents[1] ? rd.accents[1].c : accent;
+  const light = [243, 243, 241], dark = [27, 27, 29];
+  const contrastOf = c => lab(c)[0] > 55 ? dark : light;
+  const ang = rd.angle * Math.PI / 180;
+  const pick = arr => arr[Math.floor(rand() * arr.length)];
+  const shapesGeo = rd.axisAligned ? ['roundrect', 'hex', 'shield'] : ['parallelogram', 'hex', 'roundrect'];
+  const shapesOrg = ['blob', 'oval', 'pebble'];
+  const calm = rd.busy > 0.12;   // busy board -> quieter pad
+  const w = Math.round(Math.max(100, Math.min(150, waist * 0.52)) / 5) * 5;
+  const why = [];
+  const vars = [
+    { name: 'Blend in', note: `Same ${nearestFil(rd.top.c)[0].toLowerCase()} as your topsheet${calm ? ', quiet grip so it doesn\'t fight the busy art' : ''}.`,
+      shape: rd.geometric ? shapesGeo[0] : shapesOrg[0], base: rd.top.c, grip: rd.colorful ? accent : contrastOf(rd.top.c),
+      pattern: calm ? pick(['dots', 'spikes']) : (rd.geometric ? 'diamonds' : 'dots'), angle: 0, band: false },
+    { name: 'Echo the art', note: `Grip lines follow the art's main direction (${Math.round(rd.angle)}°), in its accent colour.`,
+      shape: rd.geometric ? pick(shapesGeo) : pick(shapesOrg), base: rd.top.c, grip: accent,
+      pattern: rd.geometric ? pick(['ridges', 'chevrons']) : 'ridges', angle: ang, band: rd.colorful },
+    { name: 'Pop', note: `Built around your board's accent colour so the pad stands out.`,
+      shape: pick(rd.geometric ? shapesGeo : shapesOrg), base: accent, grip: contrastOf(accent),
+      pattern: pick(rd.geometric ? ['hex', 'diamonds', 'spikes'] : ['spikes', 'dots', 'hex']), angle: rd.geometric ? ang : 0, band: false }
+  ];
+  vars.forEach(v => {
+    v.w = w; v.l = Math.round(w * (v.shape === 'oval' || v.shape === 'blob' || v.shape === 'pebble' ? 0.78 : 0.82));
+    v.pitch = v.pattern === 'spikes' ? 9 : v.pattern === 'dots' ? 7 : 7.5;
+    v.seed = Math.floor(rand() * 1e6); v.accent2 = accent2;
+    v.canvas = drawAutoShape(v);
+    v.preview = autoPreview(v);
+  });
+  A.vars = vars; A.pick = Math.min(A.pick || 0, 2);
+  renderAuto();
+}
+// outline of a generated pad, as a filled canvas (base colour + optional raised accent band)
+function drawAutoShape(v) {
+  const W = Math.round(v.w / AUTO_MM) + 8, H = Math.round(v.l / AUTO_MM) + 8, cx = W / 2, cy = H / 2, a = v.w / AUTO_MM / 2, b = v.l / AUTO_MM / 2;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'), r = rnd(v.seed);
+  x.beginPath();
+  const poly = pts => pts.forEach((p, i) => i ? x.lineTo(cx + p[0], cy + p[1]) : x.moveTo(cx + p[0], cy + p[1]));
+  switch (v.shape) {
+    case 'oval': x.ellipse(cx, cy, a, b, 0, 0, Math.PI * 2); break;
+    case 'hex': poly([[-a, 0], [-a * 0.55, -b], [a * 0.55, -b], [a, 0], [a * 0.55, b], [-a * 0.55, b]]); break;
+    case 'shield': poly([[-a, -b], [a, -b], [a, b * 0.35], [0, b], [-a, b * 0.35]]); break;
+    case 'parallelogram': { const k = Math.max(-0.35, Math.min(0.35, Math.tan(Math.PI / 2 - (S.auto.read.angle * Math.PI / 180)) * 0.3)) * a; poly([[-a + k, -b], [a + k, -b], [a - k, b], [-a - k, b]]); break; }
+    case 'blob': case 'pebble': {
+      const n = 120, f1 = 2 + Math.floor(r() * 2), p1 = r() * 6.28, f2 = 3 + Math.floor(r() * 2), p2 = r() * 6.28, amp = v.shape === 'blob' ? 0.09 : 0.05;
+      const pts = [];
+      for (let i = 0; i < n; i++) { const t = i / n * Math.PI * 2, m = 1 + amp * Math.sin(f1 * t + p1) + amp * 0.6 * Math.sin(f2 * t + p2), e = 2.6; const ct = Math.cos(t), st = Math.sin(t); pts.push([a * m * Math.sign(ct) * Math.pow(Math.abs(ct), 2 / e) * 0.94, b * m * Math.sign(st) * Math.pow(Math.abs(st), 2 / e) * 0.94]); }
+      poly(pts); break;
+    }
+    default: { const rr = Math.min(a, b) * 0.45; x.moveTo(cx - a + rr, cy - b); x.arcTo(cx + a, cy - b, cx + a, cy + b, rr); x.arcTo(cx + a, cy + b, cx - a, cy + b, rr); x.arcTo(cx - a, cy + b, cx - a, cy - b, rr); x.arcTo(cx - a, cy - b, cx + a, cy - b, rr); }
+  }
+  x.closePath(); x.fillStyle = rgb2hex(v.base); x.fill();
+  if (v.band) {   // a raised stripe in the second accent, along the art's direction
+    x.save(); x.clip(); x.translate(cx, cy); x.rotate(-(S.auto.read.angle * Math.PI / 180));
+    x.fillStyle = rgb2hex(v.accent2); x.fillRect(-W, -b * 0.16 + b * 0.35, 2 * W, b * 0.16); x.restore();
+  }
+  return c;
+}
+// quick 2D preview with the grip pattern, used for the variant cards and the board view
+function autoPreview(v) {
+  const c = v.canvas, W = c.width, H = c.height;
+  const o = document.createElement('canvas'); o.width = W; o.height = H;
+  const x = o.getContext('2d'); x.drawImage(c, 0, 0);
+  const base = c.getContext('2d').getImageData(0, 0, W, H).data;
+  const pat = v.pattern === 'spikes' ? PadCore.patternMask(W, H, AUTO_MM, { type: 'dots', pitch: v.pitch, line: v.pitch * 0.4 })
+    : PadCore.patternMask(W, H, AUTO_MM, { type: v.pattern, pitch: v.pitch, line: v.pitch * 0.4, angle: v.angle });
+  const inner = PadCore.erode(Uint8Array.from({ length: W * H }, (_, i) => base[i * 4 + 3] > 128 ? 1 : 0), W, H, 3 / AUTO_MM);
+  const id = x.getImageData(0, 0, W, H);
+  for (let i = 0; i < W * H; i++) if (pat[i] && inner[i]) { id.data[i * 4] = v.grip[0]; id.data[i * 4 + 1] = v.grip[1]; id.data[i * 4 + 2] = v.grip[2]; }
+  x.putImageData(id, 0, 0);
+  return o;
+}
+function renderAuto() {
+  const A = S.auto, rd = A.read;
+  const pal = $('#autoPalette'); pal.innerHTML = '';
+  rd.pal.filter(p => p.share > 0.015).forEach(p => { const b = document.createElement('button'); b.style.background = rgb2hex(p.c); b.title = `${nearestFil(p.c)[0]} · ${Math.round(p.share * 100)}%`; pal.appendChild(b); });
+  const lines = [
+    `<b>Main colour:</b> ${nearestFil(rd.top.c)[0]}${rd.accents[0] ? `, accent ${nearestFil(rd.accents[0].c)[0].toLowerCase()}` : ''}`,
+    `<b>Art style:</b> ${rd.geometric ? 'geometric, with lines mostly at ' + Math.round(rd.angle) + '°' : 'organic and free-form'}`,
+    `<b>Busyness:</b> ${rd.busy > 0.12 ? 'busy, so the pad keeps its grip simple' : rd.busy > 0.05 ? 'moderate' : 'clean, so the pad can carry a bolder pattern'}`,
+    `<b>Contrast:</b> ${rd.contrast > 22 ? 'high' : rd.contrast > 12 ? 'medium' : 'low'}${rd.colorful ? ', colourful' : ', mostly monochrome'}`
+  ];
+  $('#autoRead').innerHTML = lines.map(l => `<li>${l}</li>`).join('');
+  const box = $('#autoVariants'); box.innerHTML = '';
+  A.vars.forEach((v, i) => {
+    const el = document.createElement('button'); el.className = 'variant' + (i === A.pick ? ' on' : '');
+    const cv = document.createElement('canvas'); cv.width = 128; cv.height = 128;
+    const cx = cv.getContext('2d'), sc = Math.min(116 / v.preview.width, 116 / v.preview.height);
+    cx.drawImage(v.preview, (128 - v.preview.width * sc) / 2, (128 - v.preview.height * sc) / 2, v.preview.width * sc, v.preview.height * sc);
+    el.appendChild(cv);
+    el.insertAdjacentHTML('beforeend', `<div><b>${v.name}</b><span>${v.note}</span></div>`);
+    el.addEventListener('click', () => { A.pick = i; applyAuto(); renderAuto(); drawPhoto(); });
+    box.appendChild(el);
+  });
+}
+// make the chosen variant the design
+function applyAuto() {
+  const A = S.auto, v = A.vars[A.pick], R = S.rect;
+  S.zoneMode = false; S.autoMode = true; S.rot = 0;
+  S.designMmPerPx = AUTO_MM;
+  Object.assign(S.params, { detail: 1.2, smooth: 1, pad: 0, fillHoles: true });
+  setDesign(v.canvas);
+  S.baseColor = v.base.slice(); S.patternColor = v.grip.slice();
+  S.roles = S.quant.centers.map(c => { const L = lab(c), B = lab(v.base); return Math.hypot(L[0] - B[0], L[1] - B[1], L[2] - B[2]) > 20 ? 'raised' : 'flat'; });
+  S.colors = S.quant.centers.map(c => c.slice());
+  S.surface = 'pattern'; S.patType = v.pattern; S.pitch = v.pitch; S.patAngle = v.pattern === 'spikes' ? 0 : v.angle;
+  S.place = R.toPhoto(A.center[0], A.center[1]);
+  S.chipsFor = null;
+  drawPhoto();
+}
+
 // map between the stage canvas and the straightened board
 let rview = { s: 1, ox: 0, oy: 0, flat: false };
 S.rz = 1; S.rc = null;   // zoom factor and display-space centre for the board view
@@ -1138,7 +1339,7 @@ function zoneHandles() {
   for (const sx of [-1, 0, 1]) for (const sy of [-1, 0, 1]) if (sx || sy) out.push([cx + sx * w, cy + sy * h, sx, sy]);
   return out;
 }
-const rectInteractive = () => S.rect && ((S.step === 1 && S.source === 'board') || (S.step >= 2 && S.view === 'board' && S.zoneMode));
+const rectInteractive = () => S.rect && ((S.step === 1 && (S.source === 'board' || S.source === 'auto')) || (S.step >= 2 && S.view === 'board' && S.zoneMode));
 function zoomAt(x, y, f) {
   const k = rview.s, d = [(x - rview.ox) / k, (y - rview.oy) / k];
   const nz = Math.max(1, Math.min(14, S.rz * f));
@@ -1196,7 +1397,13 @@ function drawRectView() {
     for (let a = 0; a < 8; a++) pctx.drawImage(tint, ox + Math.cos(a * Math.PI / 4) * o, oy + Math.sin(a * Math.PI / 4) * o);
     pctx.drawImage(S.selArt, 0, 0);
   }
-  if (S.padShape !== 'art' && S.zoneC) {
+  if (S.source === 'auto' && S.step === 1 && S.auto && S.auto.pick != null) {
+    const v = S.auto.vars[S.auto.pick], pv = v.preview, sc = AUTO_MM / R.mmPerPx;
+    pctx.save(); pctx.shadowColor = 'rgba(0,0,0,.55)'; pctx.shadowBlur = 10;
+    pctx.drawImage(pv, S.auto.center[0] - pv.width * sc / 2, S.auto.center[1] - pv.height * sc / 2, pv.width * sc, pv.height * sc);
+    pctx.restore();
+  }
+  if (S.source !== 'auto' && S.padShape !== 'art' && S.zoneC) {
     const w = S.zoneW / S.rect.mmPerPx, h = S.zoneL / S.rect.mmPerPx, [cx, cy] = S.zoneC;
     pctx.save();
     pctx.fillStyle = 'rgba(0,0,0,.45)';
@@ -1224,7 +1431,7 @@ function drawRectView() {
 
   }
   pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  if (S.padShape !== 'art' && S.zoneC) {
+  if (S.source !== 'auto' && S.padShape !== 'art' && S.zoneC) {
     const q = rectToScreen(S.zoneC[0], S.zoneC[1]);
     if (S.step < 2) label('Your pad', [q[0], q[1]], 'rgba(20,22,26,.85)');
     const e = rectToScreen(S.zoneC[0], S.zoneC[1] + S.zoneL / R.mmPerPx / 2), e2 = rectToScreen(S.zoneC[0] + S.zoneW / R.mmPerPx / 2, S.zoneC[1]);
@@ -1240,7 +1447,7 @@ function drawRectView() {
 }
 $('#optUpload').addEventListener('click', () => { S.source = 'upload'; if (S.upload) setDesign(S.upload); else S.design = null; refreshSourceUI(); });
 wireDrop($('#designDrop'), $('#designFile'), async f => {
-  try { S.upload = await readImage(f); $('#designDropLabel').textContent = f.name; S.rot = 0; Object.assign(S.params, { detail: 1.2, smooth: 4, pad: 4 }); S.designMmPerPx = null; S.zoneMode = false; S.place = null; S.surface = 'art'; setDesign(S.upload); pickPatternColor(); refreshSourceUI(); }
+  try { S.upload = await readImage(f); $('#designDropLabel').textContent = f.name; S.rot = 0; Object.assign(S.params, { detail: 1.2, smooth: 4, pad: 4 }); S.designMmPerPx = null; S.zoneMode = false; S.autoMode = false; S.patAngle = 0; S.place = null; S.surface = 'art'; setDesign(S.upload); pickPatternColor(); refreshSourceUI(); }
   catch (e) { alert(e.message); }
 });
 $('#next1').addEventListener('click', () => go(2));
@@ -1248,9 +1455,14 @@ $('#next1').addEventListener('click', () => go(2));
 function refreshSourceUI() {
   const hasPhoto = !!S.board.img && S.board.pts.length >= 2;
   $('#optBoard').disabled = !hasPhoto;
-  if (!hasPhoto && S.source === 'board') S.source = null;
+  if (!hasPhoto && (S.source === 'board' || S.source === 'auto')) S.source = null;
   if (!S.source) S.source = hasPhoto ? null : 'upload';
   $('#optBoard').classList.toggle('on', S.source === 'board');
+  $('#optAuto').disabled = !hasPhoto;
+  $('#optAuto').classList.toggle('on', S.source === 'auto');
+  $('#optAuto').querySelector('span').textContent = hasPhoto ? 'Reads your board\'s colors and art style and designs a pad to match' : 'Needs a board photo from step 1';
+  $('#autoUI').classList.toggle('hidden', S.source !== 'auto');
+  $$('#autoStance button').forEach(b => b.classList.toggle('on', b.dataset.v === S.stance));
   $('#optUpload').classList.toggle('on', S.source === 'upload');
   $('#optBoard').querySelector('span').textContent = hasPhoto ? 'A pad for your back-binding spot, made from the art under it' : 'Needs a board photo from step 1';
   $('#designThumb').classList.toggle('hidden', !S.design || S.source === 'board');
@@ -1259,7 +1471,7 @@ function refreshSourceUI() {
   $$('#stanceSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === S.stance));
   $$('#shapeSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === S.padShape));
   $('#uploadUI').classList.toggle('hidden', S.source !== 'upload');
-  if (S.source !== 'board') $('#designThumb').classList.toggle('hidden', !S.design);
+  if (S.source === 'upload') $('#designThumb').classList.toggle('hidden', !S.design); else $('#designThumb').classList.add('hidden');
   $('#next1').disabled = !S.design;
   if (S.design) drawThumb();
   go2(S.step);
@@ -1329,7 +1541,7 @@ function rotateCanvas(cv, turns) {
 function setDesign(cv) {
   S.designSrc = cv;
   S.design = rotateCanvas(cv, S.rot);
-  S.colors = []; S.roles = []; S.baseColor = null; S.framed = false; S.sizeTouched = false;
+  S.colors = []; S.roles = []; S.baseColor = null; S.framed = false; S.sizeTouched = false; S.heights = {};
   quantizeDesign(true);
   S.result = null;
   drawPhoto();
@@ -1407,7 +1619,7 @@ function build() {
     // keep the default pad on a normal print bed: long side at most 200 mm
     const asp = bh / bw, cap = 200;
     let size = defaultSize();
-    const trueSize = S.source === 'board' && S.designMmPerPx;
+    const trueSize = (S.source === 'board' || S.source === 'auto') && S.designMmPerPx;
     if (S.zoneMode && S.zoneW) size = S.zoneW;
     else if (trueSize) size = Math.round(bw * S.designMmPerPx + 2 * P.pad);
     else if ((size - 2 * P.pad) * asp + 2 * P.pad > cap) size = Math.round((cap - 2 * P.pad) / asp + 2 * P.pad);
@@ -1427,10 +1639,11 @@ function build() {
   const id = x.getImageData(0, 0, W, H);
   const labels = PadCore.assignLabels(id.data, W, H, S.quant.centers);
   // cut colors outside the bbox must not sneak in through resampling
-  const roles = S.surface === 'art' ? S.roles : S.roles.map(r => r === 'raised' ? 'flat' : r);
+  const roles = S.surface === 'art' || (S.autoMode && S.surface === 'pattern') ? S.roles : S.roles.map(r => r === 'raised' ? 'flat' : r);
   const res = PadCore.buildPad({ labels, w: W, h: H, mm }, roles, {
     pad: P.pad, smooth: P.smooth, fillHoles: P.fillHoles, base: P.base, raise: P.raise, round: P.round, detail: P.detail,
-    pattern: S.surface === 'pattern' ? { type: S.patType, pitch: S.pitch, line: S.pitch * 0.4 } : null
+    heights: S.tiered ? tierHeights() : null,
+    pattern: S.surface === 'pattern' ? { type: S.patType, pitch: S.pitch, line: S.pitch * 0.4, angle: S.patAngle || 0 } : null
   });
   res.grid = { W, H, mm };
   return res;
@@ -1542,6 +1755,14 @@ function drawPadOnBoard() {
 }
 
 // ============================================================ STEP 3 UI
+// default stacking: biggest raised colour lowest, each next one 0.8 mm higher (user can edit)
+function tierHeights() {
+  const P = S.params, out = {};
+  const raised = S.roles.map((r, i) => r === 'raised' ? i : -1).filter(i => i >= 0).sort((a, b) => S.quant.counts[b] - S.quant.counts[a]);
+  raised.forEach((c, k) => { out[c] = S.heights[c] != null ? S.heights[c] : Math.min(6, +(P.raise + k * 0.8).toFixed(1)); });
+  return out;
+}
+$('#tiered').addEventListener('change', e => { S.tiered = e.target.checked; if (S.tiered) S.surface = 'art'; S.heights = {}; renderChips(); renderSurface(); $('#tierNote').classList.toggle('hidden', !S.tiered); rebuild(true); });
 function renderChips() {
   const box = $('#chips'); box.innerHTML = '';
   S.colors.forEach((col, i) => {
@@ -1550,9 +1771,12 @@ function renderChips() {
     const el = document.createElement('div'); el.className = 'chip';
     el.innerHTML = `<label class="sw" style="background:${rgb2hex(col)}" title="Change color"><input type="color" value="${rgb2hex(col)}"></label>
       <div class="meta"><b>${f[0]}</b><span>${Math.max(1, Math.round(S.quant.counts[i] / total * 100))}% of image</span></div>
+      ${S.tiered && S.roles[i] === 'raised' ? `<div class="num tier" title="Height above the pad"><input type="number" min="0.4" max="8" step="0.2" value="${tierHeights()[i]}"><span>mm</span></div>` : ''}
       <div class="seg">${['raised', 'flat', 'cut'].map(r => `<button data-r="${r}" class="${S.roles[i] === r ? 'on' : ''}">${r[0].toUpperCase() + r.slice(1)}</button>`).join('')}</div>`;
     el.querySelector('input').addEventListener('input', e => { S.colors[i] = hex2rgb(e.target.value); el.querySelector('.sw').style.background = e.target.value; el.querySelector('b').textContent = nearestFil(S.colors[i])[0]; recolor(); });
     el.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { S.roles[i] = b.dataset.r; renderChips(); rebuild(); }));
+    const ti = el.querySelector('.tier input');
+    if (ti) ti.addEventListener('input', () => { const v = +ti.value; if (v >= 0.4 && v <= 8) { S.heights[i] = v; rebuild(); } });
     box.appendChild(el);
   });
 }
@@ -1597,6 +1821,7 @@ function syncControls() {
   $('#rotate').classList.toggle('hidden', !!S.zoneMode);
   for (const k of Object.keys(fmt)) { $('#' + k).value = S.params[k]; $('#' + k + 'Out').textContent = fmt[k](S.params[k]); }
   $('#fillHoles').checked = S.params.fillHoles; $('#round').checked = S.params.round;
+  $('#tiered').checked = S.tiered; $('#tierNote').classList.toggle('hidden', !S.tiered);
   $('#k').value = S.k; $('#kOut').textContent = S.k;
   const w = effectiveWaist();
   $('#size').max = Math.round(Math.max(120, Math.min(300, (w || 260) * 0.95)));
@@ -1716,6 +1941,7 @@ function updateStage() {
     title = 'Design';
     if (S.source === 'board') hint = (S.padShape === 'art' ? 'Tap a graphic · tap again to remove' : 'Drag the box to move the pad') + ' · scroll or pinch to zoom';
     else if (S.source === 'upload') { if (!S.design) empty = 'Upload a design to see it here'; }
+    else if (S.source === 'auto') hint = 'Your board, with the auto-designed pad at your back binding';
     else empty = 'Choose where your design comes from';
     if (S.source === 'upload' && S.design) empty = '';
   } else {

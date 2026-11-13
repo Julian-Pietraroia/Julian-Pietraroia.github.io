@@ -589,7 +589,8 @@
       raisedMasks.push({ c, m });
       const sh = shapesAt(sdf(m, w, h, Math.min(blur, 1)), 0, 0.3);
       if (!sh.length) return;
-      layers.push({ kind: 'raised', color: c, pos: extrude(sh, T - 0.05, T + R) });
+      const hc = p.heights && p.heights[c] != null ? p.heights[c] : R;   // per-colour height when stacked
+      layers.push({ kind: 'raised', color: c, h: hc, pos: extrude(sh, T - 0.05, T + hc) });
     });
 
     // optional grip pattern across the top (kept off a flat rim)
@@ -642,7 +643,7 @@
     }
     return {
       layers, base, raisedMasks, pieces: baseShapes.length || pieces,
-      stats: { width: x1 - x0, length: y1 - y0, height: T + (layers.length > 1 ? R : 0), tris, volume: vol }
+      stats: { width: x1 - x0, length: y1 - y0, height: T + (layers.length > 1 ? Math.max(...layers.slice(1).map(L => L.h != null ? L.h : R)) : 0), tris, volume: vol }
     };
   }
 
@@ -856,8 +857,10 @@
   function patternMask(w, h, mm, pat) {
     const P = pat.pitch || 7, lw = pat.line || P * 0.4, out = new Uint8Array(w * h);
     const mod = (a, b) => ((a % b) + b) % b, r2 = Math.SQRT1_2, rowH = P * Math.sqrt(3) / 2;
+    const ca = Math.cos(pat.angle || 0), sa = Math.sin(pat.angle || 0);
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const X = (x - w / 2) * mm, Y = (y - h / 2) * mm;
+      const X0 = (x - w / 2) * mm, Y0 = (y - h / 2) * mm;
+      const X = X0 * ca + Y0 * sa, Y = -X0 * sa + Y0 * ca;   // pattern rotated by pat.angle
       let on = false;
       switch (pat.type) {
         case 'ridges': on = mod((X + Y) * r2, P) < lw; break;
