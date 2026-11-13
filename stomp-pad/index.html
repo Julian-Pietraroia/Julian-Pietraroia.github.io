@@ -196,7 +196,7 @@ footer a{color:inherit}
           <summary>Already know your waist width? Enter it instead</summary>
           <div class="field">
             <label for="waistManual">Waist width<small>From your board's spec sheet</small></label>
-            <div class="num"><input id="waistManual" type="number" min="150" max="350" step="1" placeholder="250"><span>mm</span></div>
+            <div class="num"><input id="waistManual" type="number" min="15" max="35" step="0.1" placeholder="25.0"><span>cm</span></div>
           </div>
         </details>
 
@@ -480,7 +480,7 @@ wireDrop($('#boardDrop'), $('#boardFile'), async f => {
   } catch (e) { alert(e.message); }
 });
 $('#boardLen').addEventListener('input', () => { S.board.lengthCm = +$('#boardLen').value || 0; measureChanged(); });
-$('#waistManual').addEventListener('input', () => { const v = +$('#waistManual').value; S.board.manual = v >= 150 && v <= 350 ? v : null; measureChanged(); });
+$('#waistManual').addEventListener('input', () => { const v = +$('#waistManual').value * 10; S.board.manual = v >= 150 && v <= 350 ? v : null; measureChanged(); });
 $('#resetPts').addEventListener('click', () => { S.board.pts = []; measureChanged(); });
 $('#next0').addEventListener('click', () => go(1));
 
@@ -498,6 +498,7 @@ function measuredWaist() {
   const across = Math.abs((P[3][0] - P[2][0]) * p[0] + (P[3][1] - P[2][1]) * p[1]);
   return across / pxPerMm;
 }
+const cm = mmVal => (mmVal / 10).toFixed(1) + ' cm';
 function effectiveWaist() { return S.board.manual || S.board.waist; }
 function measureChanged() {
   S.board.waist = measuredWaist();
@@ -511,10 +512,10 @@ function measureChanged() {
   $('#dragNote').classList.toggle('hidden', !P.length);
   const w = effectiveWaist();
   $('#waistResult').classList.toggle('hidden', !w);
-  $('#waistVal').textContent = w ? Math.round(w) + ' mm' : '–';
+  $('#waistVal').textContent = w ? cm(w) : '–';
   const warn = $('#waistWarn');
   if (S.board.waist && !S.board.manual && (S.board.waist < 200 || S.board.waist > 300)) {
-    warn.textContent = 'That looks unusual (most boards are 230–280 mm at the waist). Check the length and that the photo is shot from straight above.';
+    warn.textContent = 'That looks unusual (most boards are 23–28 cm at the waist). Check the length and that the photo is shot from straight above.';
     warn.classList.remove('hidden');
   } else warn.classList.add('hidden');
   $('#next0').disabled = !w;
@@ -584,7 +585,7 @@ function drawPhoto() {
       const pr = (q) => { const dx = q[0] - mid[0], dy = q[1] - mid[1]; const t = dx * u[0] + dy * u[1]; return [q[0] - u[0] * t, q[1] - u[1] * t]; };
       const a = pr(P[2]), b = pr(P[3]);
       pctx.strokeStyle = acc; pctx.lineWidth = 3; line(a, b);
-      label(Math.round(effectiveWaist()) + ' mm', [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - 18], acc);
+      label(cm(effectiveWaist()), [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - 18], acc);
     }
     const names = ['Nose', 'Tail', 'Edge', 'Edge'];
     P.forEach((q, i) => handle(q, i < 2 ? '#fff' : acc, names[i]));
@@ -891,7 +892,7 @@ function recolor() {
   if (S.step === 3) renderDownload();
 }
 const fmt = {
-  size: v => `${v} mm` + (effectiveWaist() ? ` · ${Math.round(v / effectiveWaist() * 100)}% of waist` : ''),
+  size: v => `${(v / 10).toFixed(1)} cm` + (effectiveWaist() ? ` · ${Math.round(v / effectiveWaist() * 100)}% of waist` : ''),
   pad: v => `${v} mm`, smooth: v => v ? `${v} mm` : 'Off', base: v => `${(+v).toFixed(1)} mm`, raise: v => `${(+v).toFixed(1)} mm`, detail: v => `${(+v).toFixed(1)} mm`
 };
 function syncControls() {
@@ -1016,7 +1017,7 @@ function drawDesignBig() {
 function updateBadge() {
   const b = $('#badge');
   if (S.step >= 2 && S.result) { b.textContent = `${S.result.stats.width.toFixed(0)} × ${S.result.stats.length.toFixed(0)} × ${S.result.stats.height.toFixed(1)} mm`; b.classList.remove('hidden'); }
-  else if (S.step === 0 && effectiveWaist()) { b.textContent = `Waist ${Math.round(effectiveWaist())} mm`; b.classList.remove('hidden'); }
+  else if (S.step === 0 && effectiveWaist()) { b.textContent = `Waist ${cm(effectiveWaist())}`; b.classList.remove('hidden'); }
   else b.classList.add('hidden');
 }
 $('#viewSeg').addEventListener('click', e => {
