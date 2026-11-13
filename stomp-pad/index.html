@@ -355,7 +355,7 @@ footer a{color:inherit}
             <div class="top"><span>Number of colors</span><output id="kOut">3</output></div>
             <input type="range" id="k" min="2" max="8" step="1" value="3">
           </div>
-          <p class="note"><b>Raised</b> parts become grip. <b>Flat</b> parts stay part of the pad. <b>Cut</b> colors are removed and set the pad's outline.</p>
+          <p class="note"><b>Raised</b> parts become grip. <b>Flat</b> parts stay part of the pad. <b>Hole</b> cuts a window so that art shows through. <b>Cut</b> removes a color and sets the pad's outline.</p>
         </div>
 
         <div class="sec">
@@ -403,6 +403,21 @@ footer a{color:inherit}
             <input type="range" id="smooth" min="0" max="15" step="0.5" value="4">
           </div>
           <label class="toggle">Fill holes in the outline<input type="checkbox" id="fillHoles" checked></label>
+          <div style="font-size:14px;margin:14px 0 6px">Pockets <span class="note" style="display:inline">· open the pad so your board shows through</span></div>
+          <div class="seg" id="pocketSeg" style="display:inline-flex;flex-wrap:wrap">
+            <button data-v="none">None</button><button data-v="frame">Frame</button><button data-v="lattice">Lattice</button><button data-v="circles">Circles</button><button data-v="slots">Slots</button><button data-v="studs">Studs</button>
+          </div>
+          <div id="pocketUI" class="hidden">
+            <div class="range">
+              <div class="top"><span>Pocket size</span><output id="pkSizeOut"></output></div>
+              <input type="range" id="pkSize" min="6" max="40" step="1" value="14">
+            </div>
+            <div class="range">
+              <div class="top"><span>Rib width</span><output id="pkRibOut"></output></div>
+              <input type="range" id="pkRib" min="2" max="12" step="0.5" value="4">
+            </div>
+          </div>
+          <p class="note">Tip: set a colour to <b>Hole</b> above to let that part of the art show through.</p>
         </div>
 
         <div class="sec">
@@ -438,11 +453,13 @@ footer a{color:inherit}
       <!-- STEP 4: DOWNLOAD -->
       <div data-panel="3" class="hidden">
         <h2>Ready to print</h2>
-        <p class="lead">Your pad is a watertight STL, in millimetres, flat side down.</p>
+        <p class="lead">Your pad is a watertight model in millimetres, flat side down.</p>
         <div class="stats" id="stats2"></div>
         <div style="display:grid;gap:8px;margin-top:16px">
-          <button class="btn pri big block" id="dlOne"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg>Download STL</button>
-          <button class="btn block" id="dlMulti">Download per-color STLs</button>
+          <button class="btn pri big block" id="dl3mf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg>Download 3MF with colours</button>
+          <p class="note" style="margin:0 0 4px;text-align:center">Opens in colour in Bambu Studio 2.5+, Orca and PrusaSlicer</p>
+          <button class="btn block" id="dlOne">Download STL (one colour)</button>
+          <button class="btn block" id="dlMulti">Download per-colour STLs</button>
         </div>
 
         <div class="sec">
@@ -455,7 +472,7 @@ footer a{color:inherit}
           <ul class="tips">
             <li><b>Material:</b> TPU 95A grips and flexes with the board. PETG works but is stiffer.</li>
             <li><b>Settings:</b> 0.2 mm layers, 3 walls, 25–40% infill, print slowly (about 25 mm/s for TPU).</li>
-            <li><b>One color, two colors:</b> print the pad in one color, or pause at the top of the pad layer to switch filament for the raised grip.</li>
+            <li><b>Colours:</b> open the 3MF in Bambu Studio and accept the colour dialog. Each colour maps to an AMS slot. With no AMS, print in one colour, or pause at the top of the pad layer to swap filament for the raised grip.</li>
             <li><b>Mounting:</b> back the pad with outdoor-rated double-sided tape (e.g. 3M VHB). Clean the topsheet with isopropyl alcohol, press hard, and let it cure for 24 hours before riding.</li>
           </ul>
         </div>
@@ -517,7 +534,7 @@ const S = {
   quant: null, roles: [], colors: [], k: 3,
   baseColor: null, boardPalette: [],
   params: { size: 140, pad: 4, smooth: 4, fillHoles: true, base: 2.6, raise: 1.6, detail: 1.2, round: true },
-  sizeTouched: false, tiered: false, heights: {}, stance: 'regular', padShape: 'rounded', zoneC: null, zoneW: null, zoneL: null, surface: 'art', patType: 'ridges', pitch: 7, patternColor: [240, 240, 240],
+  sizeTouched: false, tiered: false, heights: {}, pockets: { type: 'none', size: 14, rib: 4 }, stance: 'regular', padShape: 'rounded', zoneC: null, zoneW: null, zoneL: null, surface: 'art', patType: 'ridges', pitch: 7, patternColor: [240, 240, 240],
   result: null, preview: null, place: null, view: 'top'
 };
 
@@ -1643,6 +1660,7 @@ function build() {
   const res = PadCore.buildPad({ labels, w: W, h: H, mm }, roles, {
     pad: P.pad, smooth: P.smooth, fillHoles: P.fillHoles, base: P.base, raise: P.raise, round: P.round, detail: P.detail,
     heights: S.tiered ? tierHeights() : null,
+    pockets: S.pockets,
     pattern: S.surface === 'pattern' ? { type: S.patType, pitch: S.pitch, line: S.pitch * 0.4, angle: S.patAngle || 0 } : null
   });
   res.grid = { W, H, mm };
@@ -1706,7 +1724,8 @@ function drawTopView() {
   const ox = (r.width - W * k) / 2, oy = (r.height - H * k) / 2 - 10;
   pctx.imageSmoothingQuality = 'high';
   pctx.save();
-  pctx.shadowColor = 'rgba(0,0,0,.3)'; pctx.shadowBlur = 26; pctx.shadowOffsetY = 12;
+  if (S.pockets.type !== 'none' || S.roles.includes('hole')) pctx.shadowColor = 'rgba(0,0,0,.18)'; else pctx.shadowColor = 'rgba(0,0,0,.3)';
+  pctx.shadowBlur = 26; pctx.shadowOffsetY = 12;
   pctx.drawImage(S.prevBase, ox, oy, W * k, H * k);
   pctx.shadowColor = 'rgba(0,0,0,.45)'; pctx.shadowBlur = 5; pctx.shadowOffsetY = 2.5;
   pctx.drawImage(S.prevRaised, ox, oy, W * k, H * k);
@@ -1772,7 +1791,7 @@ function renderChips() {
     el.innerHTML = `<label class="sw" style="background:${rgb2hex(col)}" title="Change color"><input type="color" value="${rgb2hex(col)}"></label>
       <div class="meta"><b>${f[0]}</b><span>${Math.max(1, Math.round(S.quant.counts[i] / total * 100))}% of image</span></div>
       ${S.tiered && S.roles[i] === 'raised' ? `<div class="num tier" title="Height above the pad"><input type="number" min="0.4" max="8" step="0.2" value="${tierHeights()[i]}"><span>mm</span></div>` : ''}
-      <div class="seg">${['raised', 'flat', 'cut'].map(r => `<button data-r="${r}" class="${S.roles[i] === r ? 'on' : ''}">${r[0].toUpperCase() + r.slice(1)}</button>`).join('')}</div>`;
+      <div class="seg">${['raised', 'flat', 'hole', 'cut'].map(r => `<button data-r="${r}" class="${S.roles[i] === r ? 'on' : ''}" title="${{ raised: 'Raised grip', flat: 'Part of the pad', hole: 'Cut a window so this art shows through', cut: 'Remove from the outline' }[r]}">${r[0].toUpperCase() + r.slice(1)}</button>`).join('')}</div>`;
     el.querySelector('input').addEventListener('input', e => { S.colors[i] = hex2rgb(e.target.value); el.querySelector('.sw').style.background = e.target.value; el.querySelector('b').textContent = nearestFil(S.colors[i])[0]; recolor(); });
     el.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { S.roles[i] = b.dataset.r; renderChips(); rebuild(); }));
     const ti = el.querySelector('.tier input');
@@ -1821,6 +1840,7 @@ function syncControls() {
   $('#rotate').classList.toggle('hidden', !!S.zoneMode);
   for (const k of Object.keys(fmt)) { $('#' + k).value = S.params[k]; $('#' + k + 'Out').textContent = fmt[k](S.params[k]); }
   $('#fillHoles').checked = S.params.fillHoles; $('#round').checked = S.params.round;
+  renderPockets();
   $('#tiered').checked = S.tiered; $('#tierNote').classList.toggle('hidden', !S.tiered);
   $('#k').value = S.k; $('#kOut').textContent = S.k;
   const w = effectiveWaist();
@@ -1848,6 +1868,16 @@ $('#rotate').addEventListener('click', () => {
   S.framed = false; rebuild(true);
 });
 $('#next2').addEventListener('click', () => go(3));
+function renderPockets() {
+  $$('#pocketSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === S.pockets.type));
+  $('#pocketUI').classList.toggle('hidden', S.pockets.type === 'none' || S.pockets.type === 'frame' && false);
+  $('#pkSize').value = S.pockets.size; $('#pkSizeOut').textContent = (S.pockets.size / 10).toFixed(1) + ' cm';
+  $('#pkRib').value = S.pockets.rib; $('#pkRibOut').textContent = S.pockets.rib + ' mm';
+  $('#pkSize').closest('.range').classList.toggle('hidden', S.pockets.type === 'frame');
+}
+$('#pocketSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.pockets.type = b.dataset.v; if (b.dataset.v === 'studs') S.pockets.size = Math.max(S.pockets.size, 14); renderPockets(); rebuild(true); });
+$('#pkSize').addEventListener('input', e => { S.pockets.size = +e.target.value; renderPockets(); rebuild(); });
+$('#pkRib').addEventListener('input', e => { S.pockets.rib = +e.target.value; renderPockets(); rebuild(); });
 function renderSurface() {
   $$('#surfSeg button').forEach(b => b.classList.toggle('on', b.dataset.s === S.surface));
   $$('#patSeg button').forEach(b => b.classList.toggle('on', b.dataset.p === S.patType));
@@ -1881,7 +1911,8 @@ function statsHTML() {
     ['Pieces', r.pieces === 1 ? '1 pad' : `${r.pieces} pads`]
   ].map(([k, v]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('') +
     (big > 250 ? `<div class="stat" style="grid-column:1/-1"><div class="k" style="color:var(--warn)">Larger than most print beds (250 mm). Try a smaller size.</div></div>` : '') +
-    (r.pieces > 1 ? `<div class="stat" style="grid-column:1/-1"><div class="k">These print as separate pads, which is fine. To merge them into one pad, raise <b>Border around design</b>.</div></div>` : '');
+    (r.pieces > 1 && S.pockets.type === 'studs' ? `<div class="stat" style="grid-column:1/-1"><div class="k">Studs print as separate pieces. Stick each one down, or lay them on one sheet of double-sided tape and transfer them all at once.</div></div>` : '') +
+    (r.pieces > 1 && S.pockets.type !== 'studs' ? `<div class="stat" style="grid-column:1/-1"><div class="k">These print as separate pads, which is fine. To merge them into one pad, raise <b>Border around design</b>.</div></div>` : '');
 }
 function renderStats() { $('#stats').innerHTML = statsHTML(); updateBadge(); }
 
@@ -1897,6 +1928,7 @@ function renderDownload() {
     box.insertAdjacentHTML('beforeend', `<div class="filrow"><div class="dot" style="background:${rgb2hex(col)}"></div><div><b>${f[0]}</b> <span>· ${what}</span></div></div>`);
   });
   $('#dlMulti').disabled = S.result.layers.length < 2;
+  $('#dl3mf').querySelector('svg').nextSibling.textContent = S.result.layers.length > 1 ? 'Download 3MF with colours' : 'Download 3MF';
 }
 function download(buf, name) {
   const url = URL.createObjectURL(new Blob([buf], { type: 'model/stl' }));
@@ -1906,6 +1938,23 @@ function download(buf, name) {
 $('#dlOne').addEventListener('click', () => {
   if (!S.result) return;
   download(PadCore.toSTL(PadCore.concat(S.result.layers.map(l => l.pos)), 'stomp pad'), 'stomp-pad.stl');
+});
+$('#dl3mf').addEventListener('click', () => {
+  if (!S.result) return;
+  const used = {};
+  const parts = S.result.layers.map(l => {
+    const col = layerColor(l);
+    let nm = (l.kind === 'base' ? 'Pad ' : 'Grip ') + nearestFil(col)[0];
+    used[nm] = (used[nm] || 0) + 1; if (used[nm] > 1) nm += ' ' + used[nm];
+    return { pos: l.pos, color: col, name: nm };
+  });
+  // merge layers that share a colour so the slicer sees one filament per colour
+  const byHex = new Map();
+  for (const p of parts) { const k = rgb2hex(p.color); if (byHex.has(k)) byHex.get(k).pos = PadCore.concat([byHex.get(k).pos, p.pos]); else byHex.set(k, { ...p }); }
+  const blob = PadCore.to3MF([...byHex.values()], 'Stomp pad');
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'stomp-pad.3mf'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
 });
 $('#dlMulti').addEventListener('click', async () => {
   if (!S.result) return;
