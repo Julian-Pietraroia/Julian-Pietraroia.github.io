@@ -592,6 +592,17 @@
       layers.push({ kind: 'raised', color: c, pos: extrude(sh, T - 0.05, T + R) });
     });
 
+    // optional grip pattern across the top (kept off a flat rim)
+    if (p.pattern && p.pattern.type) {
+      const pat = patternMask(w, h, mm, p.pattern);
+      const rim = erode(top, w, h, px(p.pattern.rim == null ? 1.5 : p.pattern.rim));
+      let m = new Uint8Array(w * h);
+      for (let i = 0; i < w * h; i++) m[i] = pat[i] && rim[i] ? 1 : 0;
+      removeSmall(m, w, h, Math.max(2, px(1.2) ** 2));
+      const sh = shapesAt(sdf(m, w, h, 1), 0, 0.3);
+      if (sh.length) { raisedMasks.push({ c: -2, m }); layers.push({ kind: 'raised', color: -2, pos: extrude(sh, T - 0.05, T + R) }); }
+    }
+
     let tris = 0, vol = 0;
     for (const L of layers) { tris += L.pos.length / 9; vol += volume(L.pos); }
     // overlap correction for the raised parts sitting 0.05mm into the base
@@ -813,7 +824,38 @@
     };
   }
 
+  // Grip patterns in mm: ridges, diamonds, dots, hex (honeycomb walls), chevrons.
+  function patternMask(w, h, mm, pat) {
+    const P = pat.pitch || 7, lw = pat.line || P * 0.4, out = new Uint8Array(w * h);
+    const mod = (a, b) => ((a % b) + b) % b, r2 = Math.SQRT1_2, rowH = P * Math.sqrt(3) / 2;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const X = (x - w / 2) * mm, Y = (y - h / 2) * mm;
+      let on = false;
+      switch (pat.type) {
+        case 'ridges': on = mod((X + Y) * r2, P) < lw; break;
+        case 'diamonds': on = mod((X + Y) * r2, P) > lw * 0.6 && mod((X - Y) * r2, P) > lw * 0.6; break;
+        case 'chevrons': on = mod(Y + Math.abs(mod(X, P * 2) - P) * 0.9, P) < lw; break;
+        case 'dots': case 'hex': {
+          const r0 = Math.round(Y / rowH);
+          let d1 = Infinity, d2 = Infinity;
+          for (let rr = r0 - 1; rr <= r0 + 1; rr++) {
+            const off = (rr & 1) ? P / 2 : 0, c0 = Math.round((X - off) / P);
+            for (let cc = c0 - 1; cc <= c0 + 1; cc++) {
+              const d = Math.hypot(X - (cc * P + off), Y - rr * rowH);
+              if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d;
+            }
+          }
+          on = pat.type === 'dots' ? d1 < P * 0.3 : (d2 - d1) < lw * 0.55;
+          break;
+        }
+      }
+      out[y * w + x] = on ? 1 : 0;
+    }
+    return out;
+  }
+
   const api = {
+    patternMask,
     quantize, assignLabels, edt, dilate, erode, open, close, fillHoles, removeSmall, sdf,
     contours, simplifyClosed, detectBoard, median3, toLab, signedArea, buildShapes, triangulate, extrude, normals, volume,
     concat, toSTL, buildPad
