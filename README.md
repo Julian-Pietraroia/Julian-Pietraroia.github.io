@@ -18,6 +18,26 @@ assets/projects/    project videos and stills (see the README in there)
 assets/*.pdf        resume
 ```
 
+## Stomp Pad Studio
+
+`stomp-pad/` (live at `/stomp-pad/`) turns a snowboard's own graphic, or an
+uploaded design, into a 3D-printable stomp pad. The steps:
+
+1. **Board:** upload a top-down photo, enter the length, and tap the nose,
+   tail and both waist edges to measure the waist width. You can also type
+   the width in.
+2. **Design:** drag a box over the board photo, or upload a PNG, JPG or SVG.
+3. **Customize:** colors are clustered automatically. Each color is set to
+   Raised (grip), Flat (pad) or Cut (removed). The pad outline follows the
+   design's silhouette. Size, border, thickness and detail all update live in
+   3D and as an overlay on the board photo.
+4. **Download:** one STL, or one STL per color for multi-material printers.
+
+Like the rest of the site it has no dependencies. `core.js` holds the geometry:
+k-means colors, distance-transform morphology, marching-squares contours, ear
+clipping, extrusion and binary STL. `index.html` holds the UI and a small
+WebGL viewer. Everything runs client-side.
+
 ## Adding the hero banner
 
 Save a wide photo as `assets/banner.jpg` and it appears across the top of the
