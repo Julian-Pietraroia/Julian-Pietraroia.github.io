@@ -592,6 +592,17 @@
       layers.push({ kind: 'raised', color: c, pos: extrude(sh, T - 0.05, T + R) });
     });
 
+    // optional grip pattern across the top (kept off a flat rim)
+    if (p.pattern && p.pattern.type) {
+      const pat = patternMask(w, h, mm, p.pattern);
+      const rim = erode(top, w, h, px(p.pattern.rim == null ? 1.5 : p.pattern.rim));
+      let m = new Uint8Array(w * h);
+      for (let i = 0; i < w * h; i++) m[i] = pat[i] && rim[i] ? 1 : 0;
+      removeSmall(m, w, h, Math.max(2, px(1.2) ** 2));
+      const sh = shapesAt(sdf(m, w, h, 1), 0, 0.3);
+      if (sh.length) { raisedMasks.push({ c: -2, m }); layers.push({ kind: 'raised', color: -2, pos: extrude(sh, T - 0.05, T + R) }); }
+    }
+
     let tris = 0, vol = 0;
     for (const L of layers) { tris += L.pos.length / 9; vol += volume(L.pos); }
     // overlap correction for the raised parts sitting 0.05mm into the base
@@ -607,9 +618,246 @@
     };
   }
 
+  // ------------------------------------------------------- board detection
+  function toLab(data, n) {
+    const L = new Float32Array(n), A = new Float32Array(n), B = new Float32Array(n);
+    const lin = new Float32Array(256);
+    for (let i = 0; i < 256; i++) { const v = i / 255; lin[i] = v > 0.04045 ? Math.pow((v + 0.055) / 1.055, 2.4) : v / 12.92; }
+    const f = t => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+    for (let i = 0; i < n; i++) {
+      const r = lin[data[i * 4]], g = lin[data[i * 4 + 1]], b = lin[data[i * 4 + 2]];
+      const x = f((r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047), y = f(r * 0.2126 + g * 0.7152 + b * 0.0722), z = f((r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883);
+      L[i] = 116 * y - 16; A[i] = 500 * (x - y); B[i] = 200 * (y - z);
+    }
+    return [L, A, B];
+  }
+  function median3(ch, w, h) {
+    const o = new Float32Array(w * h), v = new Float32Array(9);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      let k = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const yy = Math.min(h - 1, Math.max(0, y + dy)), xx = Math.min(w - 1, Math.max(0, x + dx));
+        v[k++] = ch[yy * w + xx];
+      }
+      v.sort(); o[y * w + x] = v[4];
+    }
+    return o;
+  }
+  function labelComponents(mask, w, h) {
+    const lab = new Int32Array(w * h), sizes = [0], q = new Int32Array(w * h);
+    let n = 0;
+    for (let s = 0; s < w * h; s++) {
+      if (!mask[s] || lab[s]) continue;
+      n++; let head = 0, tail = 0; q[tail++] = s; lab[s] = n;
+      while (head < tail) {
+        const i = q[head++], x = i % w;
+        if (x > 0 && mask[i - 1] && !lab[i - 1]) { lab[i - 1] = n; q[tail++] = i - 1; }
+        if (x < w - 1 && mask[i + 1] && !lab[i + 1]) { lab[i + 1] = n; q[tail++] = i + 1; }
+        if (i >= w && mask[i - w] && !lab[i - w]) { lab[i - w] = n; q[tail++] = i - w; }
+        if (i < w * (h - 1) && mask[i + w] && !lab[i + w]) { lab[i + w] = n; q[tail++] = i + w; }
+      }
+      sizes.push(tail);
+    }
+    return { lab, sizes, n };
+  }
+  function pca(mask, w, h) {
+    let n = 0, sx = 0, sy = 0;
+    for (let i = 0; i < w * h; i++) if (mask[i]) { n++; sx += i % w; sy += (i / w) | 0; }
+    const mx = sx / n, my = sy / n;
+    let cxx = 0, cyy = 0, cxy = 0;
+    for (let i = 0; i < w * h; i++) if (mask[i]) { const dx = i % w - mx, dy = ((i / w) | 0) - my; cxx += dx * dx; cyy += dy * dy; cxy += dx * dy; }
+    const ang = 0.5 * Math.atan2(2 * cxy, cxx - cyy);
+    const u = [Math.cos(ang), Math.sin(ang)];
+    return { mu: [mx, my], u, p: [-u[1], u[0]], n };
+  }
+  function solve3(M, v) { // Gaussian elimination, 3x3
+    const a = M.map((r, i) => r.concat([v[i]]));
+    for (let c = 0; c < 3; c++) {
+      let piv = c;
+      for (let r = c + 1; r < 3; r++) if (Math.abs(a[r][c]) > Math.abs(a[piv][c])) piv = r;
+      [a[c], a[piv]] = [a[piv], a[c]];
+      if (Math.abs(a[c][c]) < 1e-12) return null;
+      for (let r = 0; r < 3; r++) if (r !== c) { const f = a[r][c] / a[c][c]; for (let k = c; k < 4; k++) a[r][k] -= f * a[c][k]; }
+    }
+    return [a[0][3] / a[0][0], a[1][3] / a[1][1], a[2][3] / a[2][2]];
+  }
+  function hull(pts) {
+    pts = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const lo = [], up = [];
+    for (const p of pts) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
+    for (let i = pts.length - 1; i >= 0; i--) { const p = pts[i]; while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); }
+    return lo.slice(0, -1).concat(up.slice(0, -1));
+  }
+
+  /* Find a snowboard in a photo. data: RGBA of a downscaled photo (long side ~400).
+   * seed: optional [x,y] the user tapped. Returns null or
+   * {nose, tail, edgeA, edgeB, waistPx, lengthPx, outline:[[x,y]...], score} in the same pixel space. */
+  function detectBoard(data, w, h, seed) {
+    const N = w * h;
+    let [L, A, B] = toLab(data, N);
+    L = median3(median3(L, w, h), w, h); A = median3(median3(A, w, h), w, h); B = median3(median3(B, w, h), w, h);
+    const wc = 3;
+    function analyze(sx, sy, thr) {
+      const vals = [[], [], []];
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+        const x = Math.min(w - 1, Math.max(0, sx + dx)), y = Math.min(h - 1, Math.max(0, sy + dy)), i = y * w + x;
+        vals[0].push(L[i]); vals[1].push(A[i]); vals[2].push(B[i]);
+      }
+      const c = vals.map(v => v.sort((a, b) => a - b)[12]);
+      let m = new Uint8Array(N);
+      const t2 = thr * thr;
+      for (let i = 0; i < N; i++) {
+        const dl = L[i] - c[0], da = A[i] - c[1], db = B[i] - c[2];
+        m[i] = dl * dl + wc * (da * da + db * db) < t2 ? 1 : 0;
+      }
+      m = open(m, w, h, 1);
+      const { lab, sizes, n } = labelComponents(m, w, h);
+      const sl = lab[sy * w + sx];
+      if (!sl || sizes[sl] < 0.01 * N) return null;
+      const m0 = new Uint8Array(N);
+      for (let i = 0; i < N; i++) m0[i] = lab[i] === sl ? 1 : 0;
+      let ax = pca(m0, w, h);
+      // half-width of the seed piece, then gather pieces lying in that corridor
+      const bs = [];
+      for (let i = 0; i < N; i++) if (m0[i]) bs.push(Math.abs((i % w - ax.mu[0]) * ax.p[0] + (((i / w) | 0) - ax.mu[1]) * ax.p[1]));
+      bs.sort((a, b) => a - b);
+      const half = bs[Math.floor(bs.length * 0.95)] * 1.15;
+      const inC = new Float64Array(n + 1), tot = new Float64Array(n + 1);
+      for (let i = 0; i < N; i++) {
+        const k = lab[i]; if (!k) continue;
+        tot[k]++;
+        const b = Math.abs((i % w - ax.mu[0]) * ax.p[0] + (((i / w) | 0) - ax.mu[1]) * ax.p[1]);
+        if (b < half) inC[k]++;
+      }
+      const U = new Uint8Array(N);
+      for (let i = 0; i < N; i++) { const k = lab[i]; if (k && (k === sl || (sizes[k] >= 0.002 * N && inC[k] / tot[k] > 0.9))) U[i] = 1; }
+      ax = pca(U, w, h);
+      const { mu, u, p } = ax;
+      const as = [], bsA = [], idx = [];
+      for (let i = 0; i < N; i++) if (U[i]) {
+        const dx = i % w - mu[0], dy = ((i / w) | 0) - mu[1];
+        as.push(dx * u[0] + dy * u[1]); bsA.push(dx * p[0] + dy * p[1]);
+      }
+      const sorted = as.slice().sort((a, b) => a - b);
+      const a0 = sorted[Math.floor(sorted.length * 0.002)], a1 = sorted[Math.floor(sorted.length * 0.998)];
+      const Lp = a1 - a0;
+      if (Lp < 20) return null;
+      const S = 50, lo = new Float64Array(S).fill(Infinity), hi = new Float64Array(S).fill(-Infinity), cnt = new Float64Array(S);
+      for (let j = 0; j < as.length; j++) {
+        const k = Math.floor((as[j] - a0) / Lp * S);
+        if (k < 0 || k >= S) continue;
+        cnt[k]++; if (bsA[j] < lo[k]) lo[k] = bsA[j]; if (bsA[j] > hi[k]) hi[k] = bsA[j];
+      }
+      const tt = [], ww = [], cc = [], all = [];
+      for (let k = 0; k < S; k++) {
+        if (cnt[k] < 4) continue;
+        const wd = hi[k] - lo[k] + 1, cov = cnt[k] / ((Lp / S) * wd);
+        const t = (k + 0.5) / S;
+        all.push(wd);
+        if (t > 0.18 && t < 0.82 && cov > 0.6) { tt.push(t - 0.5); ww.push(wd); cc.push((hi[k] + lo[k]) / 2); }
+      }
+      if (tt.length < 6) return null;
+      let keep = tt.map(() => true), coef = null;
+      for (let it = 0; it < 6; it++) {
+        const M = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], v = [0, 0, 0];
+        tt.forEach((t, j) => {
+          if (!keep[j]) return;
+          const r = [1, t, t * t];
+          for (let a = 0; a < 3; a++) { v[a] += r[a] * ww[j]; for (let b = 0; b < 3; b++) M[a][b] += r[a] * r[b]; }
+        });
+        coef = solve3(M, v);
+        if (!coef) return null;
+        const mean = ww.reduce((a, b) => a + b, 0) / ww.length;
+        keep = tt.map((t, j) => ww[j] >= coef[0] + coef[1] * t + coef[2] * t * t - 0.04 * mean);
+      }
+      const waist = coef[0];
+      if (!(waist > 3) || coef[2] < -0.01 * waist) return null;
+      const ratio = Lp / waist;
+      let area = 0, border = 0;
+      for (let i = 0; i < N; i++) area += U[i];
+      for (let x = 0; x < w; x++) border += U[x] + U[(h - 1) * w + x];
+      for (let y = 0; y < h; y++) border += U[y * w] + U[y * w + w - 1];
+      const medW = all.slice().sort((a, b) => a - b)[all.length >> 1];
+      const fill = area / (Lp * medW);
+      const score = Math.pow(area / N, 0.5) * fill * Math.exp(-(((ratio - 6.3) / 1.1) ** 2)) * (1 - Math.min(1, border / (2 * (w + h)) * 8));
+      const cs = cc.slice().sort((a, b) => a - b), off = cs[cs.length >> 1];
+      // boards are usually framed near the middle of the photo
+      const cx = mu[0] + u[0] * (a0 + a1) / 2 + p[0] * off, cy = mu[1] + u[1] * (a0 + a1) / 2 + p[1] * off;
+      const cen = Math.exp(-((Math.hypot(cx - w / 2, cy - h / 2) / (0.3 * Math.hypot(w, h))) ** 2));
+      if (typeof process !== 'undefined' && process.env && process.env.DBG) console.log(JSON.stringify({ sx, sy, thr, ratio: +ratio.toFixed(2), fill: +fill.toFixed(2), area: +(area / N).toFixed(3), cen: +cen.toFixed(2), score: +score.toFixed(3) }));
+      return { score: score * cen, U, mu, u, p, a0, a1, waist, off, coef, lo, hi, cnt, S };
+    }
+    let best = null;
+    const tryOne = (x, y, thr) => { const r = analyze(x, y, thr); if (r && r.score > 0 && (!best || r.score > best.score)) best = r; };
+    if (seed) {
+      const sx = Math.round(seed[0]), sy = Math.round(seed[1]);
+      for (const thr of [8, 12, 18, 24]) tryOne(sx, sy, thr);
+    } else {
+      const tried = [];
+      for (let gy = 0; gy < 7; gy++) for (let gx = 0; gx < 7; gx++) {
+        const x = Math.round((0.2 + 0.1 * gx) * (w - 1)), y = Math.round((0.2 + 0.1 * gy) * (h - 1)), i = y * w + x;
+        if (tried.some(t => Math.hypot(t[0] - L[i], t[1] - A[i], t[2] - B[i]) < 2.5)) continue;
+        tried.push([L[i], A[i], B[i]]);
+        for (const thr of [8, 12, 18]) tryOne(x, y, thr);
+      }
+    }
+    if (!best) return null;
+    const { mu, u, p, a0, a1, waist, off, coef, lo, hi, cnt } = best;
+    const at = (a, b) => [mu[0] + u[0] * a + p[0] * b, mu[1] + u[1] * a + p[1] * b];
+    const mid = (a0 + a1) / 2, Lp = a1 - a0, SS = best.S;
+    // board-shaped outline: fitted sidecut through the middle, measured shape at the tips
+    const left = [], right = [];
+    for (let k = 0; k < SS; k++) {
+      const t = (k + 0.5) / SS, a = a0 + t * Lp;
+      let l, r;
+      if (t > 0.15 && t < 0.85) { const tt = t - 0.5, wd = coef[0] + coef[1] * tt + coef[2] * tt * tt; l = off - wd / 2; r = off + wd / 2; }
+      else if (cnt[k] >= 4) { l = lo[k] - 0.5; r = hi[k] + 0.5; }
+      else continue;
+      left.push(at(a, l)); right.push(at(a, r));
+    }
+    const outline = [at(a0, off)].concat(left, [at(a1, off)], right.reverse());
+    return {
+      nose: at(a0, off), tail: at(a1, off),
+      edgeA: at(mid, off - waist / 2), edgeB: at(mid, off + waist / 2),
+      waistPx: waist, lengthPx: Lp, outline, score: best.score
+    };
+  }
+
+  // Grip patterns in mm: ridges, diamonds, dots, hex (honeycomb walls), chevrons.
+  function patternMask(w, h, mm, pat) {
+    const P = pat.pitch || 7, lw = pat.line || P * 0.4, out = new Uint8Array(w * h);
+    const mod = (a, b) => ((a % b) + b) % b, r2 = Math.SQRT1_2, rowH = P * Math.sqrt(3) / 2;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const X = (x - w / 2) * mm, Y = (y - h / 2) * mm;
+      let on = false;
+      switch (pat.type) {
+        case 'ridges': on = mod((X + Y) * r2, P) < lw; break;
+        case 'diamonds': on = mod((X + Y) * r2, P) > lw * 0.6 && mod((X - Y) * r2, P) > lw * 0.6; break;
+        case 'chevrons': on = mod(Y + Math.abs(mod(X, P * 2) - P) * 0.9, P) < lw; break;
+        case 'dots': case 'hex': {
+          const r0 = Math.round(Y / rowH);
+          let d1 = Infinity, d2 = Infinity;
+          for (let rr = r0 - 1; rr <= r0 + 1; rr++) {
+            const off = (rr & 1) ? P / 2 : 0, c0 = Math.round((X - off) / P);
+            for (let cc = c0 - 1; cc <= c0 + 1; cc++) {
+              const d = Math.hypot(X - (cc * P + off), Y - rr * rowH);
+              if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d;
+            }
+          }
+          on = pat.type === 'dots' ? d1 < P * 0.3 : (d2 - d1) < lw * 0.55;
+          break;
+        }
+      }
+      out[y * w + x] = on ? 1 : 0;
+    }
+    return out;
+  }
+
   const api = {
+    patternMask,
     quantize, assignLabels, edt, dilate, erode, open, close, fillHoles, removeSmall, sdf,
-    contours, simplifyClosed, signedArea, buildShapes, triangulate, extrude, normals, volume,
+    contours, simplifyClosed, detectBoard, median3, toLab, signedArea, buildShapes, triangulate, extrude, normals, volume,
     concat, toSTL, buildPad
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
