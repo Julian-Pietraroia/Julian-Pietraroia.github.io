@@ -129,6 +129,10 @@ details summary{cursor:pointer;color:var(--mut);font-size:13px;margin-top:6px}
 .badge{position:absolute;left:12px;bottom:12px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13px;box-shadow:var(--sh);font-variant-numeric:tabular-nums}
 .busy{position:absolute;right:12px;top:12px;font-size:12px;color:var(--mut);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;opacity:0;transition:.2s}
 .busy.on{opacity:1}
+.zoomctl{position:absolute;right:12px;bottom:12px;display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px;box-shadow:var(--sh)}
+.zoomctl button{border:0;background:none;min-width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:16px;font-weight:600}
+.zoomctl button:hover{background:var(--soft)}
+#zFit{font-size:12px;padding:0 8px}
 .tips{margin:0;padding-left:18px;color:var(--mut);font-size:14px}
 .tips li{margin:5px 0}
 .tips b{color:var(--ink);font-weight:600}
@@ -236,14 +240,14 @@ footer a{color:inherit}
         </div>
         <div id="boardCropUI" class="hidden" style="margin-top:12px">
           <ol class="tips" style="padding-left:18px">
-            <li><b>Tap the parts of the art</b> near your back binding that should shape the pad.</li>
+            <li><b>Tap a graphic</b> on your board (a logo, a sticker, a shape) to make the pad from it.</li>
             <li>Tap a highlighted part again to remove it.</li>
           </ol>
           <div class="range">
             <div class="top"><span>Selection spread</span><output id="tolOut">16</output></div>
             <input type="range" id="tol" min="4" max="40" step="1" value="16">
           </div>
-          <p class="note" style="margin-top:-6px">Lower picks only the exact color you tap. Higher grabs similar shades too.</p>
+          <p class="note" style="margin-top:-6px">Tapping a graphic grabs all of it, including its colours. Higher spread grabs more.</p>
           <div style="display:flex;gap:8px;margin-top:10px">
             <button class="btn" id="selUndo">Undo</button>
             <button class="btn" id="selClear">Clear</button>
@@ -306,7 +310,8 @@ footer a{color:inherit}
 
         <div class="sec">
           <h3>Size</h3>
-          <div class="range">
+          <p class="note hidden" id="sizeZoneNote">Open <b>On your board</b> and drag the handles on the pad's box to resize it. <button class="link" id="goBoardView">Show me</button></p>
+          <div class="range" id="sizeRange">
             <div class="top"><span>Width across board</span><output id="sizeOut"></output></div>
             <input type="range" id="size" min="50" max="260" step="1" value="140">
           </div>
@@ -408,6 +413,9 @@ footer a{color:inherit}
         </div>
         <div class="badge hidden" id="badge"></div>
         <div class="busy" id="busy">Updating…</div>
+        <div class="zoomctl hidden" id="zoomCtl">
+          <button id="zIn" title="Zoom in">+</button><button id="zOut" title="Zoom out">−</button><button id="zFit" title="Fit">Fit</button>
+        </div>
       </div>
     </section>
   </div>
@@ -649,6 +657,7 @@ const toImage = (x, y) => [(x - view.ox) / view.s, (y - view.oy) / view.s];
 function drawPhoto() {
   if (S.step >= 2 && S.view === 'top') return drawTopView();
   if (S.step === 1 && S.source === 'board') return drawRectView();
+  if (S.step >= 2 && S.view === 'board' && S.zoneMode && S.rect) return drawRectView();
   fitPhoto();
   const dpr = devicePixelRatio || 1, img = S.board.img;
   pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -732,12 +741,18 @@ photo.addEventListener('pointerdown', e => {
     if (hit >= 0) drag = { kind: 'pt', i: hit };
     else if (S.board.mode === 'auto') { if (!S.board.detecting) runDetect(clampImg(toImage(x, y))); }
     else if (S.board.pts.length < 4) { S.board.pts.push(clampImg(toImage(x, y))); drag = { kind: 'pt', i: S.board.pts.length - 1 }; measureChanged(); }
-  } else if (S.step === 1 && S.source === 'board') {
-    const R = S.rect; if (!R) return;
+  } else if (rectInteractive()) {
+    const R = S.rect;
     const [X, Y] = screenToRect(x, y);
-    if (S.padShape !== 'art') { if (S.zoneC) { drag = { kind: 'zone', start: [X, Y], orig: S.zoneC.slice() }; photo.setPointerCapture(e.pointerId); } return; }
-    if (X < 0 || Y < 0 || X >= R.W || Y >= R.H || R.data.data[(Y * R.W + X) * 4 + 3] < 128) return;
-    S.ops.push([X, Y]); replaySelection(); designFromSelection();
+    if (S.padShape !== 'art' && S.zoneC) {
+      const hit = zoneHandles().find(h => Math.hypot(h[0] - X, h[1] - Y) * rview.s < 14);
+      if (hit) { photo.setPointerCapture(e.pointerId); drag = { kind: 'resize', dx: hit[2], dy: hit[3] }; return; }
+    }
+    pinchPts.set(e.pointerId, [x, y]); photo.setPointerCapture(e.pointerId);
+    if (pinchPts.size === 2) { const [a, b] = [...pinchPts.values()]; drag = { kind: 'pinch', d: Math.hypot(a[0] - b[0], a[1] - b[1]) }; return; }
+    const inZone = S.padShape !== 'art' && S.zoneC && Math.abs(X - S.zoneC[0]) < S.zoneW / R.mmPerPx / 2 && Math.abs(Y - S.zoneC[1]) < S.zoneL / R.mmPerPx / 2;
+    if (inZone) { drag = { kind: 'zone', start: [X, Y], orig: S.zoneC.slice() }; return; }
+    drag = { kind: 'pan', sx: x, sy: y, c0: (S.rc || [0, 0]).slice(), moved: false, tap: [X, Y] };
     return;
   } else if (S.step >= 2 && S.view === 'board' && S.place) {
     drag = { kind: 'place', start: toImage(x, y), orig: S.place.slice() };
@@ -747,6 +762,26 @@ photo.addEventListener('pointerdown', e => {
 photo.addEventListener('pointermove', e => {
   if (!drag) return;
   const r = photo.getBoundingClientRect(), p = toImage(e.clientX - r.left, e.clientY - r.top);
+  if (drag.kind === 'pan' || drag.kind === 'pinch') {
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    if (pinchPts.has(e.pointerId)) pinchPts.set(e.pointerId, [x, y]);
+    if (drag.kind === 'pinch' && pinchPts.size === 2) {
+      const [a, b] = [...pinchPts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+      zoomAt((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, d / drag.d); drag.d = d; return;
+    }
+    if (drag.kind === 'pan') {
+      if (Math.hypot(x - drag.sx, y - drag.sy) > 5) drag.moved = true;
+      if (drag.moved && S.rc) { S.rc = [drag.c0[0] - (x - drag.sx) / rview.s, drag.c0[1] - (y - drag.sy) / rview.s]; drawPhoto(); }
+    }
+    return;
+  }
+  if (drag.kind === 'resize') {
+    const [X, Y] = screenToRect(e.clientX - r.left, e.clientY - r.top), mm = S.rect.mmPerPx;
+    const lim = v => Math.round(Math.max(40, Math.min(300, v)));
+    if (drag.dx) S.zoneW = lim(2 * Math.abs(X - S.zoneC[0]) * mm);
+    if (drag.dy) S.zoneL = lim(2 * Math.abs(Y - S.zoneC[1]) * mm);
+    drawPhoto(); return;
+  }
   if (drag.kind === 'zone') {
     const [X, Y] = screenToRect(e.clientX - r.left, e.clientY - r.top);
     S.zoneC = [Math.max(0, Math.min(S.rect.W, drag.orig[0] + X - drag.start[0])), Math.max(0, Math.min(S.rect.H, drag.orig[1] + Y - drag.start[1]))];
@@ -759,8 +794,25 @@ photo.addEventListener('pointermove', e => {
     drawPhoto();
   } else if (drag.kind === 'place') { S.place = [drag.orig[0] + p[0] - drag.start[0], drag.orig[1] + p[1] - drag.start[1]]; drawPhoto(); }
 });
-const endDrag = () => {
-  if (drag && drag.kind === 'zone') { drag = null; zoneDesign(); return; }
+const pinchPts = new Map();
+const endDrag = e => {
+  if (e && e.pointerId != null) pinchPts.delete(e.pointerId);
+  if (drag && drag.kind === 'pinch') { if (pinchPts.size < 2) drag = null; return; }
+  if (drag && drag.kind === 'pan') {
+    const R = S.rect, [X, Y] = drag.tap, moved = drag.moved; drag = null;
+    if (moved) return;
+    if (!R || !(X >= 0 && Y >= 0 && X < R.W && Y < R.H) || R.data.data[(Y * R.W + X) * 4 + 3] < 128) return;
+    // a tap (no drag) picks art in Follow-the-art mode, or moves the pad there otherwise
+    if (S.step >= 2) return;   // in Customize, taps don't move the pad (drag it instead)
+    if (S.padShape === 'art') { S.ops.push([X, Y]); replaySelection(); designFromSelection(); }
+    else { S.zoneC = [X, Y]; zoneDesign(); }
+    return;
+  }
+  if (drag && (drag.kind === 'zone' || drag.kind === 'resize')) {
+    drag = null;
+    if (S.step >= 2) { zoneDesign(true); rebuild(true); } else zoneDesign();
+    return;
+  }
   if (drag && drag.kind === 'place' && S.zoneMode && S.rect) { drag = null; S.zoneC = S.rect.fromPhoto(S.place); zoneDesign(true); rebuild(true); return; }
   if (drag && drag.kind === 'crop') {
     const c = S.crop;
@@ -848,6 +900,13 @@ function findBindings() {
   const sl = at(Lp, t1) + at(Lp, t2) - 2 * med(Lp), sr = at(Rp, t1) + at(Rp, t2) - 2 * med(Rp);
   return { t1, t2, heel: sr >= sl ? 1 : -1, ok, sure: Math.abs(sr - sl) > 0.15 };
 }
+// show the art in relief whenever the picked area has real contrast; plain areas get a grip pattern
+function chooseSurface() {
+  const tot = S.quant.counts.reduce((a, b) => a + b, 0) || 1;
+  const raisedShare = S.quant.counts.reduce((a, c, i) => a + (S.roles[i] === 'raised' ? c : 0), 0) / tot;
+  S.surface = raisedShare > 0.03 ? 'art' : 'pattern';
+  S.chipsFor = null;   // re-render the colour/surface controls
+}
 // keep = true: only re-crop the art (size/position change); keep the user's colors, roles and surface
 function zoneDesign(keep) {
   const R = S.rect; if (!R) return;
@@ -885,8 +944,7 @@ function zoneDesign(keep) {
   setDesign(cv);
   // keep the pad itself whole: only 'Cut' would remove parts of the shape
   S.roles = S.roles.map(r => r === 'cut' ? 'flat' : r);
-  const raisedShare = S.quant.counts.reduce((a, c, i) => a + (S.roles[i] === 'raised' ? c : 0), 0) / S.quant.counts.reduce((a, b) => a + b, 0);
-  S.surface = raisedShare > 0.08 ? 'art' : 'pattern';
+  chooseSurface();
   S.place = R.toPhoto(S.zoneC[0], S.zoneC[1]);
   const warn = $('#bindWarn');
   warn.textContent = '';
@@ -928,6 +986,7 @@ function ensureRect() {
     fromPhoto: q => { const a = (q[0] - n0[0]) * u[0] + (q[1] - n0[1]) * u[1], b = (q[0] - n0[0]) * p[0] + (q[1] - n0[1]) * p[1]; return [(b - bmin) * sct, (a - amin) * sct]; }
   };
   S.sel = new Uint8Array(N);
+  S.rz = 1; S.rc = null;
   replaySelection();
 }
 function wand(sel, X, Y) {
@@ -945,16 +1004,43 @@ function wand(sel, X, Y) {
     vs[0].push(R.L[j]); vs[1].push(R.A[j]); vs[2].push(R.B[j]);
   }
   const c = vs.map(v => v.sort((a, b) => a - b)[12]), t2 = S.tol * S.tol;
+  // tapping a graphic grabs the whole connected graphic (everything that isn't topsheet);
+  // tapping plain topsheet grabs similar colour
+  const tl = topLab(), dTop = (l, a, b) => Math.sqrt((l - tl[0]) ** 2 + 1.5 * ((a - tl[1]) ** 2 + (b - tl[2]) ** 2));
+  const graphic = dTop(c[0], c[1], c[2]) > 22, gThr = Math.max(8, 38 - S.tol);
   const seen = new Uint8Array(W * H), st = [i0];
   while (st.length) {
     const i = st.pop(); if (seen[i]) continue; seen[i] = 1;
     if (R.data.data[i * 4 + 3] < 128) continue;
-    const dl = R.L[i] - c[0], da = R.A[i] - c[1], db = R.B[i] - c[2];
-    if (dl * dl + 1.5 * (da * da + db * db) > t2) continue;
+    if (graphic) { if (dTop(R.L[i], R.A[i], R.B[i]) < gThr || nearEdge()[i]) continue; }
+    else { const dl = R.L[i] - c[0], da = R.A[i] - c[1], db = R.B[i] - c[2]; if (dl * dl + 1.5 * (da * da + db * db) > t2) continue; }
     sel[i] = 1;
     const x = i % W;
     if (x > 0) st.push(i - 1); if (x < W - 1) st.push(i + 1); if (i >= W) st.push(i - W); if (i < W * (H - 1)) st.push(i + W);
   }
+}
+// pixels within ~12 mm of the board's edge (sidewall glare) never join a graphic
+function nearEdge() {
+  const R = S.rect;
+  if (!R.edge) {
+    const m = new Uint8Array(R.W * R.H);
+    for (let i = 0; i < R.W * R.H; i++) m[i] = R.data.data[i * 4 + 3] > 128 ? 1 : 0;
+    const inner = PadCore.erode(m, R.W, R.H, 12 / R.mmPerPx);
+    R.edge = new Uint8Array(R.W * R.H);
+    for (let i = 0; i < R.W * R.H; i++) R.edge[i] = m[i] && !inner[i] ? 1 : 0;
+  }
+  return R.edge;
+}
+// the board's main topsheet colour (Lab), from the straightened board
+function topLab() {
+  const R = S.rect;
+  if (!R.top) {
+    const d = R.data.data, sm = [[], [], []];
+    for (let i = 0; i < R.W * R.H; i += 5) if (d[i * 4 + 3] > 128) for (let k = 0; k < 3; k++) sm[k].push(d[i * 4 + k]);
+    R.top = sm.map(v => v.sort((a, b) => a - b)[v.length >> 1]);
+  }
+  if (!R.topL) { const px = new Uint8ClampedArray([...R.top, 255]); const [l, a, b] = PadCore.toLab(px, 1); R.topL = [l[0], a[0], b[0]]; }
+  return R.topL;
 }
 function replaySelection() {
   if (!S.rect) return;
@@ -962,13 +1048,15 @@ function replaySelection() {
   for (const o of S.ops) wand(S.sel, o[0], o[1]);
   // tidy: fill pin-holes left by photo noise
   S.sel = PadCore.close(S.sel, S.rect.W, S.rect.H, 1.5);
+  // everything enclosed by what you picked comes along too (e.g. the art inside a sticker's border)
+  S.selFill = PadCore.fillHoles(S.sel, S.rect.W, S.rect.H);
   // selection overlay layers
   const R = S.rect, W = R.W, H = R.H;
   const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
   const a = mk(), ax = a.getContext('2d'), ad = ax.createImageData(W, H);
   const t = mk(), tx = t.getContext('2d'), td = tx.createImageData(W, H);
   let n = 0;
-  for (let i = 0; i < W * H; i++) if (S.sel[i]) {
+  for (let i = 0; i < W * H; i++) if (S.selFill[i] && R.data.data[i * 4 + 3] > 128) {
     n++;
     for (let k = 0; k < 4; k++) ad.data[i * 4 + k] = R.data.data[i * 4 + k];
     td.data[i * 4] = 255; td.data[i * 4 + 1] = 255; td.data[i * 4 + 2] = 255; td.data[i * 4 + 3] = 255;
@@ -982,21 +1070,46 @@ function replaySelection() {
 function designFromSelection() {
   const R = S.rect; if (!R) return;
   let x0 = Infinity, y0 = Infinity, x1 = -1, y1 = -1;
-  for (let i = 0; i < R.W * R.H; i++) if (S.sel[i]) { const x = i % R.W, y = (i / R.W) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
-  if (x1 < 0) { S.design = null; S.result = null; refreshSourceUI(); return; }
+  for (let i = 0; i < R.W * R.H; i++) if (S.selFill[i]) { const x = i % R.W, y = (i / R.W) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < 0 || !S.ops.length) { S.design = null; S.result = null; refreshSourceUI(); return; }
   const w = x1 - x0 + 1, h = y1 - y0 + 1;
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
   cv.getContext('2d').drawImage(S.selArt, x0, y0, w, h, 0, 0, w, h);
   S.designMmPerPx = R.mmPerPx; S.zoneMode = false;
   S.rot = 0;
   Object.assign(S.params, { detail: 2, smooth: 4, pad: 3 });
-  S.surface = 'pattern';
   setDesign(cv);
+  chooseSurface();
   S.place = R.toPhoto((x0 + x1) / 2, (y0 + y1) / 2);
   refreshSourceUI();
 }
 // map between the stage canvas and the straightened board
 let rview = { s: 1, ox: 0, oy: 0, flat: false };
+S.rz = 1; S.rc = null;   // zoom factor and display-space centre for the board view
+// handle positions in rect px: [x, y, dirX, dirY]; corners resize both ways, edges one way
+function zoneHandles() {
+  const R = S.rect, w = S.zoneW / R.mmPerPx / 2, h = S.zoneL / R.mmPerPx / 2, [cx, cy] = S.zoneC;
+  const out = [];
+  for (const sx of [-1, 0, 1]) for (const sy of [-1, 0, 1]) if (sx || sy) out.push([cx + sx * w, cy + sy * h, sx, sy]);
+  return out;
+}
+const rectInteractive = () => S.rect && ((S.step === 1 && S.source === 'board') || (S.step >= 2 && S.view === 'board' && S.zoneMode));
+function zoomAt(x, y, f) {
+  const k = rview.s, d = [(x - rview.ox) / k, (y - rview.oy) / k];
+  const nz = Math.max(1, Math.min(14, S.rz * f));
+  const r = photo.getBoundingClientRect(), k2 = k * nz / S.rz;
+  S.rz = nz; S.rc = [d[0] - (x - r.width / 2) / k2, d[1] - (y - r.height / 2) / k2];
+  drawPhoto();
+}
+photo.addEventListener('wheel', e => {
+  if (!rectInteractive()) return;
+  e.preventDefault();
+  const r = photo.getBoundingClientRect();
+  zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * 0.0015));
+}, { passive: false });
+$('#zIn').addEventListener('click', () => { const r = photo.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, 1.6); });
+$('#zOut').addEventListener('click', () => { const r = photo.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, 1 / 1.6); });
+$('#zFit').addEventListener('click', () => { S.rz = 1; S.rc = null; drawPhoto(); });
 function screenToRect(x, y) {
   const k = rview.s, dx = (x - rview.ox) / k, dy = (y - rview.oy) / k;
   return rview.flat ? [Math.floor(S.rect.W - dy), Math.floor(dx)] : [Math.floor(dx), Math.floor(dy)];
@@ -1013,8 +1126,11 @@ function drawRectView() {
   // lay a long board on its side when the stage is wide, so it is as big as possible
   const flat = r.width > r.height && R.H > R.W;
   const dw = flat ? R.H : R.W, dh = flat ? R.W : R.H;
-  rview.s = Math.min((r.width - 40) / dw, (r.height - 40) / dh);
-  rview.ox = (r.width - dw * rview.s) / 2; rview.oy = (r.height - dh * rview.s) / 2; rview.flat = flat;
+  const fit = Math.min((r.width - 40) / dw, (r.height - 40) / dh);
+  rview.s = fit * S.rz;
+  if (!S.rc) S.rc = [dw / 2, dh / 2];
+  S.rc = [Math.max(0, Math.min(dw, S.rc[0])), Math.max(0, Math.min(dh, S.rc[1]))];
+  rview.ox = r.width / 2 - S.rc[0] * rview.s; rview.oy = r.height / 2 - S.rc[1] * rview.s; rview.flat = flat;
   const k = rview.s;
   // rect (X,Y) -> screen: upright, or turned so the board runs left-right
   if (flat) pctx.setTransform(0, -k * dpr, k * dpr, 0, rview.ox * dpr, (rview.oy + R.W * k) * dpr);
@@ -1049,13 +1165,26 @@ function drawRectView() {
     if (S.padShape === 'oval') pctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2);
     else { const r = Math.min(w, h) * 0.22; pctx.moveTo(cx - w / 2 + r, cy - h / 2); pctx.arcTo(cx + w / 2, cy - h / 2, cx + w / 2, cy + h / 2, r); pctx.arcTo(cx + w / 2, cy + h / 2, cx - w / 2, cy + h / 2, r); pctx.arcTo(cx - w / 2, cy + h / 2, cx - w / 2, cy - h / 2, r); pctx.arcTo(cx - w / 2, cy - h / 2, cx + w / 2, cy - h / 2, r); }
     pctx.stroke(); pctx.restore();
-    // mark the bindings
+    // in Customize, show the actual pad inside the box
+    if (S.step >= 2 && S.preview && S.result) {
+      const sc = S.result.grid.mm / R.mmPerPx, pv = S.preview;
+      pctx.save(); pctx.shadowColor = 'rgba(0,0,0,.5)'; pctx.shadowBlur = 8;
+      pctx.drawImage(pv, cx - pv.width * sc / 2, cy - pv.height * sc / 2, pv.width * sc, pv.height * sc);
+      pctx.restore();
+    }
+    // resize handles: corners and edge midpoints
+    const hs = 9 / k;
+    pctx.fillStyle = '#fff'; pctx.strokeStyle = acc; pctx.lineWidth = 2 / k;
+    for (const [hx, hy] of zoneHandles()) { pctx.beginPath(); pctx.rect(hx - hs / 2, hy - hs / 2, hs, hs); pctx.fill(); pctx.stroke(); }
 
   }
   pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   if (S.padShape !== 'art' && S.zoneC) {
     const q = rectToScreen(S.zoneC[0], S.zoneC[1]);
-    label('Your pad', [q[0], q[1]], 'rgba(20,22,26,.85)');
+    if (S.step < 2) label('Your pad', [q[0], q[1]], 'rgba(20,22,26,.85)');
+    const e = rectToScreen(S.zoneC[0], S.zoneC[1] + S.zoneL / R.mmPerPx / 2), e2 = rectToScreen(S.zoneC[0] + S.zoneW / R.mmPerPx / 2, S.zoneC[1]);
+    const below = rview.flat ? [q[0], Math.max(e[1], e2[1]) + 22] : [q[0], Math.max(e[1], e2[1]) + 22];
+    label(`${cm(S.zoneW)} × ${cm(S.zoneL)}`, below, 'rgba(37,87,214,.9)');
     if (R.bind && R.rearT != null) {
       const b = rectToScreen(R.W / 2, R.rearT * R.H), f = rectToScreen(R.W / 2, R.frontT * R.H);
       const off = rview.flat ? [0, -(R.W * rview.s) / 2 - 16] : [-(R.W * rview.s) / 2 - 50, 0];
@@ -1186,10 +1315,10 @@ function quantizeDesign(auto) {
   let q;
   if (auto) {
     // pick the most colors where every color is still a real part of the design
-    for (let k = 2; k <= (S.source === 'board' ? 4 : 6); k++) {
+    for (let k = 2; k <= (S.source === 'board' ? 5 : 6); k++) {
       const t = PadCore.quantize(d.data, d.width, d.height, k);
       const tot = t.counts.reduce((a, b) => a + b, 0) || 1;
-      if (k === 2 || (t.centers.length === k && Math.min(...t.counts) / tot >= 0.02)) { q = t; S.k = t.centers.length; }
+      if (k === 2 || (t.centers.length === k && Math.min(...t.counts) / tot >= (S.source === 'board' ? 0.015 : 0.02))) { q = t; S.k = t.centers.length; }
     }
   } else q = PadCore.quantize(d.data, d.width, d.height, S.k);
   S.quant = q;
@@ -1207,7 +1336,7 @@ function quantizeDesign(auto) {
   if (S.source === 'board') {
     // the topsheet is the pad; only colors that clearly stand out from it become grip
     const L0 = lab(q.centers[0]);
-    S.roles = q.centers.map((c, i) => { if (!i) return 'flat'; const L = lab(c); return Math.hypot(L[0] - L0[0], L[1] - L0[1], L[2] - L0[2]) > 30 ? 'raised' : 'flat'; });
+    S.roles = q.centers.map((c, i) => { if (!i) return 'flat'; const L = lab(c); return Math.hypot(L[0] - L0[0], L[1] - L0[1], L[2] - L0[2]) > 22 ? 'raised' : 'flat'; });
   }
   if (bgi < 0 && q.centers.length > 1 && !q.transparent) S.roles[0] = 'flat';
   if (S.source === 'board') { S.baseColor = q.centers[0].slice(); pickPatternColor(); return; }
@@ -1418,6 +1547,9 @@ const fmt = {
   pad: v => `${v} mm`, smooth: v => v ? `${v} mm` : 'Off', base: v => `${(+v).toFixed(1)} mm`, raise: v => `${(+v).toFixed(1)} mm`, detail: v => `${(+v).toFixed(1)} mm`
 };
 function syncControls() {
+  $('#sizeZoneNote').classList.toggle('hidden', !S.zoneMode);
+  $('#sizeRange').classList.toggle('hidden', !!S.zoneMode);
+  $('#rotate').classList.toggle('hidden', !!S.zoneMode);
   for (const k of Object.keys(fmt)) { $('#' + k).value = S.params[k]; $('#' + k + 'Out').textContent = fmt[k](S.params[k]); }
   $('#fillHoles').checked = S.params.fillHoles; $('#round').checked = S.params.round;
   $('#k').value = S.k; $('#kOut').textContent = S.k;
@@ -1537,14 +1669,15 @@ function updateStage() {
     else hint = S.board.pts.length < 4 ? ['Tap the nose', 'Tap the tail', 'Tap an edge at the waist', 'Tap the other edge'][S.board.pts.length] : 'Drag points to adjust';
   } else if (n === 1) {
     title = 'Design';
-    if (S.source === 'board') hint = S.padShape === 'art' ? 'Tap parts of the art · tap again to remove' : 'Drag the box to move the pad';
+    if (S.source === 'board') hint = (S.padShape === 'art' ? 'Tap a graphic · tap again to remove' : 'Drag the box to move the pad') + ' · scroll or pinch to zoom';
     else if (S.source === 'upload') { if (!S.design) empty = 'Upload a design to see it here'; }
     else empty = 'Choose where your design comes from';
     if (S.source === 'upload' && S.design) empty = '';
   } else {
     title = '';
-    hint = show3d ? 'Drag to rotate · scroll to zoom' : S.view === 'board' ? 'Drag the pad to place it' : '';
+    hint = show3d ? 'Drag to rotate · scroll to zoom' : S.view === 'board' ? (S.zoneMode ? 'Drag the pad to move it · drag the handles to resize' : 'Drag the pad to place it') : '';
   }
+  $('#zoomCtl').classList.toggle('hidden', !(rectInteractive() && !$('#photo').classList.contains('hidden')));
   if (n === 1 && S.source === 'upload') {
     // show the uploaded design big on the photo canvas
     $('#photo').classList.remove('hidden');
@@ -1571,6 +1704,7 @@ function updateBadge() {
   else if (S.step === 0 && effectiveWaist()) { b.textContent = `Waist ${cm(effectiveWaist())}`; b.classList.remove('hidden'); }
   else b.classList.add('hidden');
 }
+$('#goBoardView').addEventListener('click', () => { S.view = 'board'; updateStage(); });
 $('#viewSeg').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   S.view = b.dataset.view;
