@@ -224,6 +224,10 @@
   // ------------------------------------------------------ marching squares
   // Returns closed loops (arrays of [x,y] in pixel coords) where field > level is inside.
   function contours(field, w, h, level) {
+    // shapes touching the grid edge must still close: force the border to "outside"
+    field = Float32Array.from(field);
+    for (let x = 0; x < w; x++) { field[x] = Math.min(field[x], level - 1); field[(h - 1) * w + x] = Math.min(field[(h - 1) * w + x], level - 1); }
+    for (let y = 0; y < h; y++) { field[y * w] = Math.min(field[y * w], level - 1); field[y * w + w - 1] = Math.min(field[y * w + w - 1], level - 1); }
     const N = w * h * 2;
     const nb1 = new Int32Array(N).fill(-1), nb2 = new Int32Array(N).fill(-1);
     const px = new Float64Array(N), py = new Float64Array(N);
@@ -397,8 +401,13 @@
     return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
   }
   function clearOf(M, P, ring) {
+    const dx = P[0] - M[0], dy = P[1] - M[1], L2 = dx * dx + dy * dy || 1e-12;
     for (let i = 0, n = ring.length; i < n; i++) {
       const a = ring[i], b = ring[(i + 1) % n];
+      if (!same(a, M) && !same(a, P)) {   // a vertex lying on the bridge would let it slip outside
+        const t = ((a[0] - M[0]) * dx + (a[1] - M[1]) * dy) / L2;
+        if (t > 1e-9 && t < 1 - 1e-9 && Math.abs((a[0] - M[0]) * dy - (a[1] - M[1]) * dx) / Math.sqrt(L2) < 1e-7) return false;
+      }
       if (same(a, M) || same(b, M) || same(a, P) || same(b, P)) continue;
       if (segCross(M, P, a, b)) return false;
     }
@@ -414,11 +423,24 @@
       const M = hole[mi];
       const cand = pts.map((p, i) => [i, (p[0] - M[0]) ** 2 + (p[1] - M[1]) ** 2]).sort((a, b) => a[1] - b[1]);
       let pick = -1;
+      // the bridge must leave P into the polygon's interior wedge at that exact vertex (matters when
+      // P already has duplicates from earlier bridges: only one copy faces the right way)
+      const inSector = i => {
+        const n = pts.length, A = pts[(i + n - 1) % n], P = pts[i], C = pts[(i + 1) % n];
+        return orient(A, P, C) >= 0 ? orient(A, P, M) >= 0 && orient(P, C, M) >= 0
+                                     : orient(A, P, M) >= 0 || orient(P, C, M) >= 0;
+      };
       for (let c = 0; c < cand.length && c < 400; c++) {
         const P = pts[cand[c][0]];
+        if (!inSector(cand[c][0])) continue;
         if (!clearOf(M, P, pts)) continue;
         let ok = true;
         for (let j = k; j < hs.length && ok; j++) ok = clearOf(M, P, hs[j]);
+        // the bridge's midpoint must be in solid material: inside the outline, outside every hole
+        if (ok) {
+          const mid = [(M[0] + P[0]) / 2, (M[1] + P[1]) / 2];
+          ok = pointInLoop(mid, outer) && !holes.some(hh => pointInLoop(mid, hh));
+        }
         if (ok) { pick = cand[c][0]; break; }
       }
       if (pick < 0) pick = cand[0][0];
@@ -428,7 +450,8 @@
     return pts;
   }
   function inTri(p, a, b, c) {
-    return orient(a, b, p) >= 0 && orient(b, c, p) >= 0 && orient(c, a, p) >= 0;
+    const e = 1e-12;
+    return orient(a, b, p) > e && orient(b, c, p) > e && orient(c, a, p) > e;
   }
   // ear clipping; pts CCW. Returns flat [x,y, x,y, x,y, ...] triangles.
   function triangulate(outer, holes) {
@@ -476,7 +499,8 @@
     const P = [];
     const tri = (ax, ay, az, bx, by, bz, cx, cy, cz) => P.push(ax, ay, az, bx, by, bz, cx, cy, cz);
     for (const s of shapes) {
-      const t = triangulate(s.outer, s.holes);
+      const t = s.tri || triangulate(s.outer, s.holes);
+      if (s.bad) continue;
       for (let k = 0; k < t.length; k += 6) {
         tri(t[k], t[k + 1], z1, t[k + 2], t[k + 3], z1, t[k + 4], t[k + 5], z1);
         if (bottom !== false) tri(t[k], t[k + 1], z0, t[k + 4], t[k + 5], z0, t[k + 2], t[k + 3], z0);
@@ -534,6 +558,75 @@
     return buf;
   }
 
+  // ----------------------------------------------------------- 3MF (colour)
+  // One object whose triangles carry their colour (3MF materials extension colorgroup).
+  // Bambu Studio 2.5+, Orca, PrusaSlicer and Windows 3D Viewer read these colours on import.
+  const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  function zipStore(files) {   // files: [{name, data: Uint8Array}] -> stored (uncompressed) zip
+    const enc = new TextEncoder(), parts = [], central = [];
+    let off = 0;
+    for (const f of files) {
+      const nm = enc.encode(f.name), crc = crc32(f.data), sz = f.data.length;
+      const h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0, true); h.setUint16(8, 0, true);
+      h.setUint16(10, 0, true); h.setUint16(12, 0x21, true); h.setUint32(14, crc, true); h.setUint32(18, sz, true); h.setUint32(22, sz, true);
+      h.setUint16(26, nm.length, true); h.setUint16(28, 0, true);
+      parts.push(new Uint8Array(h.buffer), nm, f.data);
+      const c = new DataView(new ArrayBuffer(46));
+      c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0, true); c.setUint16(10, 0, true);
+      c.setUint16(12, 0, true); c.setUint16(14, 0x21, true); c.setUint32(16, crc, true); c.setUint32(20, sz, true); c.setUint32(24, sz, true);
+      c.setUint16(28, nm.length, true); c.setUint32(42, off, true);
+      central.push(new Uint8Array(c.buffer), nm);
+      off += 30 + nm.length + sz;
+    }
+    const cdSize = central.reduce((a, b) => a + b.length, 0);
+    const e = new DataView(new ArrayBuffer(22));
+    e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
+    e.setUint32(12, cdSize, true); e.setUint32(16, off, true);
+    return new Blob([...parts, ...central, new Uint8Array(e.buffer)], { type: 'model/3mf' });
+  }
+  // parts: [{pos: Float32Array, color: [r,g,b], name}]
+  function to3MF(parts, title) {
+    const hex = c => '#' + c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('').toUpperCase() + 'FF';
+    const vmap = new Map(), verts = [], tris = [];
+    const vid = (x, y, z) => {
+      const k = x.toFixed(4) + ',' + y.toFixed(4) + ',' + z.toFixed(4);
+      let i = vmap.get(k);
+      if (i === undefined) { i = verts.length; vmap.set(k, i); verts.push(k); }
+      return i;
+    };
+    parts.forEach((p, ci) => {
+      const P = p.pos;
+      for (let i = 0; i < P.length; i += 9) {
+        const a = vid(P[i], P[i + 1], P[i + 2]), b = vid(P[i + 3], P[i + 4], P[i + 5]), c = vid(P[i + 6], P[i + 7], P[i + 8]);
+        if (a === b || b === c || a === c) continue;
+        tris.push(`<triangle v1="${a}" v2="${b}" v3="${c}" pid="2" p1="${ci}"/>`);
+      }
+    });
+    const vx = verts.map(k => { const [x, y, z] = k.split(','); return `<vertex x="${x}" y="${y}" z="${z}"/>`; });
+    const esc = s => String(s).replace(/[<&"]/g, ch => ({ '<': '&lt;', '&': '&amp;', '"': '&quot;' }[ch]));
+    const model = `<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:m="http://schemas.microsoft.com/3dmanufacturing/material/2015/02">
+<metadata name="Title">${esc(title || 'Stomp pad')}</metadata>
+<metadata name="Application">Stomp Pad Studio</metadata>
+<resources>
+<m:colorgroup id="2">${parts.map(p => `<m:color color="${hex(p.color)}"/>`).join('')}</m:colorgroup>
+<basematerials id="3">${parts.map(p => `<base name="${esc(p.name)}" displaycolor="${hex(p.color)}"/>`).join('')}</basematerials>
+<object id="1" type="model" name="${esc(title || 'Stomp pad')}" pid="2" pindex="0">
+<mesh><vertices>${vx.join('')}</vertices><triangles>${tris.join('')}</triangles></mesh>
+</object>
+</resources>
+<build><item objectid="1"/></build>
+</model>`;
+    const enc = new TextEncoder();
+    return zipStore([
+      { name: '[Content_Types].xml', data: enc.encode('<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>') },
+      { name: '_rels/.rels', data: enc.encode('<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>') },
+      { name: '3D/3dmodel.model', data: enc.encode(model) }
+    ]);
+  }
+
   // ---------------------------------------------------------------- pad
   /* Build the pad from a label grid.
    * grid: {labels:Int16Array, w, h, mm: mm per pixel}
@@ -549,12 +642,57 @@
     let base = dilate(fg, w, h, px(p.pad));
     if (p.smooth > 0) base = close(base, w, h, px(p.smooth));
     if (p.fillHoles) base = fillHoles(base, w, h);
-    const pieces = removeSmall(base, w, h, px(4) ** 2);
+    // pockets: open the pad up so the board shows through (holes go all the way through)
+    const pk = p.pockets || {};
+    const hasWin = roles.some(r => r === 'hole');
+    if ((pk.type && pk.type !== 'none') || hasWin) {
+      const rib = pk.rib || 4, P = pk.size || 14;
+      const inner = erode(base, w, h, px(rib));
+      let holes = new Uint8Array(w * h);
+      const mod = (a, b) => ((a % b) + b) % b;
+      if (pk.type === 'frame') holes = inner.slice();
+      else if (pk.type === 'lattice') { const walls = patternMask(w, h, mm, { type: 'hex', pitch: P, line: rib / 0.55 }); for (let i = 0; i < w * h; i++) holes[i] = inner[i] && !walls[i] ? 1 : 0; }
+      else if (pk.type === 'slots') {
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x; const X = (x - w / 2) * mm, Y = (y - h / 2) * mm; holes[i] = inner[i] && mod(X + Y, P) < P - rib ? 1 : 0; }
+      } else if (pk.type === 'circles' || pk.type === 'studs') {
+        const rowH = P * Math.sqrt(3) / 2, r = (P - rib) / 2;
+        const dots = new Uint8Array(w * h);
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+          const X = (x - w / 2) * mm, Y = (y - h / 2) * mm, rr = Math.round(Y / rowH);
+          let d = Infinity;
+          for (let k = rr - 1; k <= rr + 1; k++) { const off = (k & 1) ? P / 2 : 0, c = Math.round((X - off) / P); for (let j = c - 1; j <= c + 1; j++) d = Math.min(d, Math.hypot(X - (j * P + off), Y - k * rowH)); }
+          dots[y * w + x] = d < r ? 1 : 0;
+        }
+        if (pk.type === 'circles') for (let i = 0; i < w * h; i++) holes[i] = inner[i] && dots[i] ? 1 : 0;
+        else { const keep = erode(base, w, h, 0.5); for (let i = 0; i < w * h; i++) base[i] = keep[i] && dots[i] ? 1 : 0; }
+      }
+      // colours set to 'hole' become windows showing the art underneath
+      if (hasWin) {
+        let win = new Uint8Array(w * h);
+        for (let i = 0; i < w * h; i++) { const l = labels[i]; if (l >= 0 && roles[l] === 'hole' && inner[i]) win[i] = 1; }
+        win = open(win, w, h, px(Math.max(1, rib / 3)));
+        for (let i = 0; i < w * h; i++) if (win[i]) holes[i] = 1;
+      }
+      for (let i = 0; i < w * h; i++) if (holes[i]) base[i] = 0;
+    }
+    const pieces = removeSmall(base, w, h, px(pk.type === 'studs' ? 1.5 : 4) ** 2);
 
     const toMM = loop => loop.map(q => [(q[0] - w / 2) * mm, -(q[1] - h / 2) * mm]);
     const tol = Math.max(0.35, 0.06 / mm);
-    const shapesAt = (field, level, minAreaMM2) =>
-      buildShapes(contours(field, w, h, level).map(l => toMM(simplifyClosed(l, tol))), minAreaMM2);
+    // triangulate every shape and check the triangles cover exactly its area; if not, retry with
+    // less simplification, and finally drop tiny slivers (they are noise, a fraction of a mm wide)
+    const triArea = t => { let a = 0; for (let k = 0; k < t.length; k += 6) a += ((t[k + 2] - t[k]) * (t[k + 5] - t[k + 1]) - (t[k + 3] - t[k + 1]) * (t[k + 4] - t[k])) / 2; return a; };
+    const check = sh => { let ok = true; for (const s of sh) { s.tri = triangulate(s.outer, s.holes); const A = signedArea(s.outer) + s.holes.reduce((a, hh) => a + signedArea(hh), 0); s.bad = Math.abs(A - triArea(s.tri)) > 1e-3 * Math.abs(A) + 1e-3; s.area = A; if (s.bad) ok = false; } return ok; };
+    const shapesAt = (field, level, minAreaMM2) => {
+      const raw = contours(field, w, h, level);
+      let sh = buildShapes(raw.map(l => toMM(simplifyClosed(l, tol))), minAreaMM2);
+      if (!check(sh)) {
+        const sh2 = buildShapes(raw.map(l => toMM(simplifyClosed(l, 0.12))), minAreaMM2);
+        if (check(sh2) || sh2.filter(s => s.bad).length < sh.filter(s => s.bad).length) sh = sh2;
+      }
+      for (const s of sh) if (s.bad && Math.abs(s.area) > 25) s.bad = false;   // keep big shapes even if imperfect
+      return sh.filter(s => !s.bad);
+    };
 
     const blur = p.edgeBlur == null ? 2 : p.edgeBlur;
     const baseField = sdf(base, w, h, blur);
@@ -886,7 +1024,7 @@
   }
 
   const api = {
-    patternMask,
+    patternMask, to3MF, crc32,
     quantize, assignLabels, edt, dilate, erode, open, close, fillHoles, removeSmall, sdf,
     contours, simplifyClosed, detectBoard, median3, toLab, signedArea, buildShapes, triangulate, extrude, normals, volume,
     concat, toSTL, buildPad
