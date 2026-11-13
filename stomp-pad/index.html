@@ -178,13 +178,17 @@ footer a{color:inherit}
           <div class="num"><input id="boardLen" type="number" min="80" max="200" step="1" value="156"><span>cm</span></div>
         </div>
 
+        <div class="result hidden" id="detectBox" style="display:block">
+          <div id="detectMsg" style="font-size:14px"></div>
+          <div class="note" id="detectSub"></div>
+        </div>
         <ul class="checks hidden" id="measureSteps">
           <li data-i="0"><i>1</i>Tap the tip of the nose</li>
           <li data-i="1"><i>2</i>Tap the tip of the tail</li>
           <li data-i="2"><i>3</i>Tap one edge at the narrowest point</li>
           <li data-i="3"><i>4</i>Tap the opposite edge</li>
         </ul>
-        <p class="note hidden" id="dragNote">Drag any point to fine-tune it. <button class="link" id="resetPts">Start over</button></p>
+        <p class="note hidden" id="dragNote">Drag any point to fine-tune it. <button class="link" id="resetPts">Mark it by hand instead</button> <button class="link hidden" id="autoAgain">Find it automatically</button></p>
 
         <div class="result hidden" id="waistResult">
           <div class="k">Waist width</div>
@@ -346,8 +350,9 @@ footer a{color:inherit}
       <div class="stagebar">
         <span class="title" id="stageTitle">Your board</span>
         <div class="seg hidden" id="viewSeg">
-          <button class="on" data-view="3d">3D pad</button>
-          <button data-view="board">On your board</button>
+          <button class="on" data-view="top">Top view</button>
+          <button data-view="3d">3D</button>
+          <button data-view="board" id="viewBoardBtn">On your board</button>
         </div>
         <span class="hint" id="stageHint"></span>
       </div>
@@ -378,7 +383,7 @@ const $$ = s => [...document.querySelectorAll(s)];
 // ------------------------------------------------------------ state
 const S = {
   step: 0,
-  board: { img: null, pts: [], lengthCm: 156, waist: null, manual: null },
+  board: { img: null, pts: [], lengthCm: 156, waist: null, manual: null, outline: null, mode: 'auto', detecting: false, found: null },
   source: null,                 // 'board' | 'upload'
   crop: null,                   // {x0,y0,x1,y1} in board image px
   upload: null,                 // HTMLImageElement / canvas
@@ -388,7 +393,7 @@ const S = {
   baseColor: null, boardPalette: [],
   params: { size: 140, pad: 4, smooth: 4, fillHoles: true, base: 2.6, raise: 1.6, detail: 1.2, round: true },
   sizeTouched: false,
-  result: null, preview: null, place: null, view: '3d'
+  result: null, preview: null, place: null, view: 'top'
 };
 
 // ----------------------------------------------------------- filaments
@@ -472,16 +477,43 @@ let view = { s: 1, ox: 0, oy: 0 };   // image -> canvas css px
 wireDrop($('#boardDrop'), $('#boardFile'), async f => {
   try {
     S.board.img = await readImage(f);
-    S.board.pts = []; S.crop = null; S.place = null;
+    S.board.pts = []; S.board.outline = null; S.crop = null; S.place = null; S.board.mode = 'auto';
     S.boardPalette = boardPaletteFrom(null);
     $('#boardDropLabel').textContent = 'Change photo';
-    $('#measureSteps').classList.remove('hidden');
     measureChanged();
+    runDetect(null);
   } catch (e) { alert(e.message); }
 });
 $('#boardLen').addEventListener('input', () => { S.board.lengthCm = +$('#boardLen').value || 0; measureChanged(); });
 $('#waistManual').addEventListener('input', () => { const v = +$('#waistManual').value * 10; S.board.manual = v >= 150 && v <= 350 ? v : null; measureChanged(); });
-$('#resetPts').addEventListener('click', () => { S.board.pts = []; measureChanged(); });
+$('#resetPts').addEventListener('click', () => { S.board.mode = 'manual'; S.board.pts = []; S.board.outline = null; measureChanged(); });
+$('#autoAgain').addEventListener('click', () => { S.board.mode = 'auto'; runDetect(null); });
+
+// Find the board in the photo (core.detectBoard) and place the four points + outline.
+function runDetect(seedImg) {
+  const img = S.board.img; if (!img) return;
+  S.board.detecting = true; S.board.mode = 'auto'; measureChanged();
+  setTimeout(() => {
+    const sc = Math.min(1, 400 / Math.max(img.width, img.height));
+    const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+    const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, c.width, c.height);
+    const d = x.getImageData(0, 0, c.width, c.height);
+    let r = null;
+    try { r = PadCore.detectBoard(d.data, c.width, c.height, seedImg ? [seedImg[0] * sc, seedImg[1] * sc] : null); } catch (e) { console.error(e); }
+    S.board.detecting = false;
+    if (r) {
+      const up = q => [q[0] / sc, q[1] / sc];
+      S.board.pts = [up(r.nose), up(r.tail), up(r.edgeA), up(r.edgeB)];
+      S.board.outline = r.outline.map(up);
+      S.board.found = true;
+    } else {
+      S.board.found = false;
+      if (!seedImg) { S.board.pts = []; S.board.outline = null; }
+    }
+    S.crop = null; S.place = null;
+    measureChanged();
+  }, 30);
+}
 $('#next0').addEventListener('click', () => go(1));
 
 function axis() {
@@ -509,7 +541,18 @@ function measureChanged() {
     li.classList.toggle('cur', i === P.length);
     li.querySelector('i').textContent = i < P.length ? '✓' : i + 1;
   });
-  $('#dragNote').classList.toggle('hidden', !P.length);
+  const auto = S.board.mode === 'auto' && S.board.img;
+  $('#measureSteps').classList.toggle('hidden', !(S.board.img && (S.board.mode === 'manual' || (S.board.found === false && !P.length))));
+  $('#detectBox').classList.toggle('hidden', !auto);
+  if (auto) {
+    const msg = $('#detectMsg'), sub = $('#detectSub');
+    if (S.board.detecting) { msg.innerHTML = '<b>Finding your board…</b>'; sub.textContent = ''; }
+    else if (S.board.found && P.length === 4) { msg.innerHTML = '<b style="color:var(--ok)">✓ Found your board</b>'; sub.textContent = 'Not quite right? Tap on your board to search again from that spot, or drag the points.'; }
+    else { msg.innerHTML = '<b style="color:var(--warn)">Couldn\'t find the board automatically</b>'; sub.textContent = 'Tap on your board to help, or mark it by hand below.'; }
+  }
+  $('#dragNote').classList.toggle('hidden', !S.board.img || S.board.detecting);
+  $('#resetPts').classList.toggle('hidden', S.board.mode === 'manual');
+  $('#autoAgain').classList.toggle('hidden', S.board.mode !== 'manual');
   const w = effectiveWaist();
   $('#waistResult').classList.toggle('hidden', !w);
   $('#waistVal').textContent = w ? cm(w) : '–';
@@ -562,6 +605,7 @@ const toCanvas = p => [view.ox + p[0] * view.s, view.oy + p[1] * view.s];
 const toImage = (x, y) => [(x - view.ox) / view.s, (y - view.oy) / view.s];
 
 function drawPhoto() {
+  if (S.step >= 2 && S.view === 'top') return drawTopView();
   fitPhoto();
   const dpr = devicePixelRatio || 1, img = S.board.img;
   pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -572,6 +616,16 @@ function drawPhoto() {
   const acc = getComputedStyle(document.documentElement).getPropertyValue('--acc').trim() || '#2557d6';
   const P = S.board.pts.map(toCanvas);
 
+  if (S.step === 0 && S.board.outline) {
+    const O = S.board.outline.map(toCanvas);
+    pctx.fillStyle = 'rgba(10,14,22,.45)';
+    pctx.beginPath(); pctx.rect(view.ox, view.oy, img.width * view.s, img.height * view.s);
+    O.forEach((q, i) => i ? pctx.lineTo(q[0], q[1]) : pctx.moveTo(q[0], q[1])); pctx.closePath();
+    pctx.fill('evenodd');
+    pctx.strokeStyle = acc; pctx.lineWidth = 2.5;
+    pctx.beginPath(); O.forEach((q, i) => i ? pctx.lineTo(q[0], q[1]) : pctx.moveTo(q[0], q[1])); pctx.closePath(); pctx.stroke();
+  }
+  if (S.step === 0 && S.board.detecting) label('Finding your board…', [view.ox + img.width * view.s / 2, view.oy + 24], 'rgba(20,22,26,.85)');
   if (S.step === 0) {
     pctx.lineWidth = 2;
     if (P.length >= 2) {
@@ -592,6 +646,11 @@ function drawPhoto() {
   }
 
   if (S.step === 1 && S.source === 'board') {
+    if (S.board.outline && !S.crop) {
+      const O = boardPoly().map(toCanvas);
+      pctx.strokeStyle = 'rgba(255,255,255,.8)'; pctx.setLineDash([5, 5]); pctx.lineWidth = 1.5;
+      pctx.beginPath(); O.forEach((q, i) => i ? pctx.lineTo(q[0], q[1]) : pctx.moveTo(q[0], q[1])); pctx.closePath(); pctx.stroke(); pctx.setLineDash([]);
+    }
     if (S.crop) {
       const a = toCanvas([S.crop.x0, S.crop.y0]), b = toCanvas([S.crop.x1, S.crop.y1]);
       pctx.fillStyle = 'rgba(10,14,22,.55)';
@@ -628,6 +687,7 @@ photo.addEventListener('pointerdown', e => {
   if (S.step === 0) {
     const hit = S.board.pts.findIndex(p => { const c = toCanvas(p); return Math.hypot(c[0] - x, c[1] - y) < 16; });
     if (hit >= 0) drag = { kind: 'pt', i: hit };
+    else if (S.board.mode === 'auto') { if (!S.board.detecting) runDetect(clampImg(toImage(x, y))); }
     else if (S.board.pts.length < 4) { S.board.pts.push(clampImg(toImage(x, y))); drag = { kind: 'pt', i: S.board.pts.length - 1 }; measureChanged(); }
   } else if (S.step === 1 && S.source === 'board') {
     const p = clampImg(toImage(x, y));
@@ -663,7 +723,7 @@ function clampImg(p) { const img = S.board.img; return [Math.max(0, Math.min(img
 $('#optBoard').addEventListener('click', () => { S.source = 'board'; if (S.crop) setDesignFromCrop(); else { S.design = null; } refreshSourceUI(); });
 $('#optUpload').addEventListener('click', () => { S.source = 'upload'; if (S.upload) setDesign(S.upload); else S.design = null; refreshSourceUI(); });
 wireDrop($('#designDrop'), $('#designFile'), async f => {
-  try { S.upload = await readImage(f); $('#designDropLabel').textContent = f.name; S.rot = 0; setDesign(S.upload); refreshSourceUI(); }
+  try { S.upload = await readImage(f); $('#designDropLabel').textContent = f.name; S.rot = 0; Object.assign(S.params, { detail: 1.2, smooth: 4, pad: 4 }); S.designMmPerPx = null; S.place = null; setDesign(S.upload); refreshSourceUI(); }
   catch (e) { alert(e.message); }
 });
 $('#next1').addEventListener('click', () => go(2));
@@ -687,13 +747,54 @@ function setDesignFromCrop() {
   const c = S.crop, img = S.board.img;
   const w = Math.round(c.x1 - c.x0), h = Math.round(c.y1 - c.y0);
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
-  cv.getContext('2d').drawImage(img, c.x0, c.y0, w, h, 0, 0, w, h);
+  const cx = cv.getContext('2d');
+  // keep only pixels on the board
+  const poly = boardPoly();
+  if (poly) {
+    cx.beginPath(); poly.forEach((q, i) => i ? cx.lineTo(q[0] - c.x0, q[1] - c.y0) : cx.moveTo(q[0] - c.x0, q[1] - c.y0)); cx.closePath(); cx.clip();
+  }
+  cx.drawImage(img, c.x0, c.y0, w, h, 0, 0, w, h);
+  const ds = denoise(cv);
+  // true scale: board photo px -> mm, so the pad matches the graphic on the board
+  const { L } = axis();
+  S.designMmPerPx = (S.board.lengthCm * 10 / L) / ds;
+  S.placeFromCrop = [(c.x0 + c.x1) / 2, (c.y0 + c.y1) / 2];
   // turn the crop so "across the board" runs left-right
-  const { p } = axis();
-  const turns = ((Math.round(-Math.atan2(p[1], p[0]) / (Math.PI / 2)) % 4) + 4) % 4;
+  // turn the crop only if the board lies sideways in the photo (never flip it upside down)
+  const turns = overlayFrame().turns;
   S.rot = 0;
+  Object.assign(S.params, { detail: 2, smooth: 5, pad: 0 });
   setDesign(rotateCanvas(cv, turns));
+  S.place = S.placeFromCrop;
   refreshSourceUI();
+}
+// Board outline in image px: the detected outline, or a board-shaped polygon built from the 4 points.
+function boardPoly() {
+  if (S.board.outline && S.board.outline.length > 2) return S.board.outline;
+  if (S.board.pts.length < 4) return null;
+  const { u, p, L } = axis(), [n] = S.board.pts;
+  const waistPx = Math.abs((S.board.pts[3][0] - S.board.pts[2][0]) * p[0] + (S.board.pts[3][1] - S.board.pts[2][1]) * p[1]);
+  const half = waistPx / 2 * 1.06, out = [];
+  for (let i = 0; i <= 40; i++) { const t = i / 40, a = L * t, tip = Math.min(1, Math.min(t, 1 - t) / 0.07); const b = half * Math.sqrt(Math.max(0, 1 - (1 - tip) ** 2)); out.push([n[0] + u[0] * a + p[0] * b, n[1] + u[1] * a + p[1] * b]); }
+  for (let i = 40; i >= 0; i--) { const t = i / 40, a = L * t, tip = Math.min(1, Math.min(t, 1 - t) / 0.07); const b = half * Math.sqrt(Math.max(0, 1 - (1 - tip) ** 2)); out.push([n[0] + u[0] * a - p[0] * b, n[1] + u[1] * a - p[1] * b]); }
+  return out;
+}
+// Photos are noisy: median-filter the crop so colors cluster cleanly.
+function denoise(cv) {
+  const s = Math.min(1, 700 / Math.max(cv.width, cv.height));
+  const w = Math.max(1, Math.round(cv.width * s)), h = Math.max(1, Math.round(cv.height * s));
+  const t = document.createElement('canvas'); t.width = w; t.height = h;
+  const x = t.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(cv, 0, 0, w, h);
+  const d = x.getImageData(0, 0, w, h);
+  for (let ch = 0; ch < 3; ch++) {
+    let f = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) f[i] = d.data[i * 4 + ch];
+    f = PadCore.median3(PadCore.median3(PadCore.median3(f, w, h), w, h), w, h);
+    for (let i = 0; i < w * h; i++) d.data[i * 4 + ch] = f[i];
+  }
+  x.putImageData(d, 0, 0);
+  cv.width = w; cv.height = h; cv.getContext('2d').drawImage(t, 0, 0);
+  return s;
 }
 function rotateCanvas(cv, turns) {
   turns = ((turns % 4) + 4) % 4;
@@ -731,7 +832,7 @@ function quantizeDesign(auto) {
   let q;
   if (auto) {
     // pick the most colors where every color is still a real part of the design
-    for (let k = 2; k <= 6; k++) {
+    for (let k = 2; k <= (S.source === 'board' ? 4 : 6); k++) {
       const t = PadCore.quantize(d.data, d.width, d.height, k);
       const tot = t.counts.reduce((a, b) => a + b, 0) || 1;
       if (k === 2 || (t.centers.length === k && Math.min(...t.counts) / tot >= 0.02)) { q = t; S.k = t.centers.length; }
@@ -747,8 +848,15 @@ function quantizeDesign(auto) {
     const totalBorder = q.border.reduce((a, b) => a + b, 0);
     if (best < totalBorder * 0.45) bgi = -1;   // no clear background: keep everything
   }
+  if (S.source === 'board') bgi = -1;  // the topsheet behind the graphic becomes the pad itself
   S.roles = q.centers.map((_, i) => i === bgi ? 'cut' : 'raised');
+  if (S.source === 'board') {
+    // the topsheet is the pad; only colors that clearly stand out from it become grip
+    const L0 = lab(q.centers[0]);
+    S.roles = q.centers.map((c, i) => { if (!i) return 'flat'; const L = lab(c); return Math.hypot(L[0] - L0[0], L[1] - L0[1], L[2] - L0[2]) > 30 ? 'raised' : 'flat'; });
+  }
   if (bgi < 0 && q.centers.length > 1 && !q.transparent) S.roles[0] = 'flat';
+  if (S.source === 'board') { S.baseColor = q.centers[0].slice(); return; }
   // pad color: the design's background if it had one, else the board's main color, else dark grey
   S.baseColor = bgi >= 0 ? q.centers[bgi].slice() : (S.boardPalette[0] ? S.boardPalette[0].slice() : [40, 42, 46]);
 }
@@ -771,7 +879,9 @@ function build() {
     // keep the default pad on a normal print bed: long side at most 200 mm
     const asp = bh / bw, cap = 200;
     let size = defaultSize();
-    if ((size - 2 * P.pad) * asp + 2 * P.pad > cap) size = Math.round((cap - 2 * P.pad) / asp + 2 * P.pad);
+    const trueSize = S.source === 'board' && S.designMmPerPx;
+    if (trueSize) size = Math.round(bw * S.designMmPerPx + 2 * P.pad);
+    else if ((size - 2 * P.pad) * asp + 2 * P.pad > cap) size = Math.round((cap - 2 * P.pad) / asp + 2 * P.pad);
     P.size = Math.max(50, size);
     $('#size').value = P.size; $('#sizeOut').textContent = fmt.size(P.size);
   }
@@ -831,18 +941,71 @@ function makePreview() {
   for (const rm of r.raisedMasks) { const col = S.colors[rm.c]; for (let i = 0; i < W * H; i++) if (rm.m[i]) put(i, col, 255); }
   x.putImageData(im, 0, 0);
   S.preview = c;
+  // separate layers for the top-view render
+  const layer = fill => { const cc = document.createElement('canvas'); cc.width = W; cc.height = H; const cx = cc.getContext('2d'), d = cx.createImageData(W, H); fill(d.data); cx.putImageData(d, 0, 0); return cc; };
+  const shade = (col, f) => col.map(v => v * f);
+  const bevel = S.params.round ? PadCore.erode(r.base, W, H, Math.min(1.2, S.params.base * 0.45) / r.grid.mm) : null;
+  S.prevBase = layer(d => { for (let i = 0; i < W * H; i++) if (r.base[i]) { const col = bevel && !bevel[i] ? shade(S.baseColor, 0.8) : S.baseColor; d[i * 4] = col[0]; d[i * 4 + 1] = col[1]; d[i * 4 + 2] = col[2]; d[i * 4 + 3] = 255; } });
+  S.prevRaised = layer(d => { for (const rm of r.raisedMasks) { const col = S.colors[rm.c]; for (let i = 0; i < W * H; i++) if (rm.m[i]) { d[i * 4] = col[0]; d[i * 4 + 1] = col[1]; d[i * 4 + 2] = col[2]; d[i * 4 + 3] = 255; } } });
+  S.prevTint = layer(d => { for (let i = 0; i < W * H; i++) if (r.base[i]) { d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = 255; d[i * 4 + 3] = 255; } });
+}
+// A clean, to-scale picture of the pad itself, looking straight down.
+function drawTopView() {
+  fitPhoto();
+  const r = photo.getBoundingClientRect(), dpr = devicePixelRatio || 1;
+  pctx.setTransform(dpr, 0, 0, dpr, 0, 0); pctx.clearRect(0, 0, r.width, r.height);
+  if (!S.result || !S.prevBase) return;
+  const { W, H, mm } = S.result.grid, st = S.result.stats;
+  const k = Math.min((r.width - 150) / W, (r.height - 150) / H);
+  const ox = (r.width - W * k) / 2, oy = (r.height - H * k) / 2 - 10;
+  pctx.imageSmoothingQuality = 'high';
+  pctx.save();
+  pctx.shadowColor = 'rgba(0,0,0,.3)'; pctx.shadowBlur = 26; pctx.shadowOffsetY = 12;
+  pctx.drawImage(S.prevBase, ox, oy, W * k, H * k);
+  pctx.shadowColor = 'rgba(0,0,0,.45)'; pctx.shadowBlur = 5; pctx.shadowOffsetY = 2.5;
+  pctx.drawImage(S.prevRaised, ox, oy, W * k, H * k);
+  pctx.restore();
+  // dimension lines around the pad's real extent
+  const pxPerMm = k / mm;
+  const cx = r.width / 2, cy = oy + H * k / 2;
+  const x0 = cx - st.width / 2 * pxPerMm, x1 = cx + st.width / 2 * pxPerMm, y0 = cy - st.length / 2 * pxPerMm, y1 = cy + st.length / 2 * pxPerMm;
+  const mut = getComputedStyle(document.documentElement).getPropertyValue('--mut').trim() || '#888';
+  pctx.strokeStyle = mut; pctx.fillStyle = mut; pctx.lineWidth = 1;
+  const dim = (a, b, txt, vertical) => {
+    pctx.beginPath(); pctx.moveTo(a[0], a[1]); pctx.lineTo(b[0], b[1]); pctx.stroke();
+    const t = vertical ? [[-5, 0], [5, 0]] : [[0, -5], [0, 5]];
+    for (const q of [a, b]) { pctx.beginPath(); pctx.moveTo(q[0] + t[0][0], q[1] + t[0][1]); pctx.lineTo(q[0] + t[1][0], q[1] + t[1][1]); pctx.stroke(); }
+    label(txt, [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], 'rgba(20,22,26,.8)');
+  };
+  dim([x0, y1 + 28], [x1, y1 + 28], cm(st.width), false);
+  dim([x1 + 34, y0], [x1 + 34, y1], cm(st.length), true);
+  pctx.font = '12px ui-sans-serif,system-ui,sans-serif'; pctx.textAlign = 'center'; pctx.fillStyle = mut;
+  pctx.fillText('Top view, to scale · ' + (S.result.layers.length > 1 ? 'raised parts are the grip' : 'flat pad'), cx, r.height - 18);
+}
+// How the design sits on the photo: design x-axis = across the board, kept reading upright on screen.
+function overlayFrame() {
+  const { u, p } = axis();
+  const vertical = Math.abs(p[0]) >= Math.abs(p[1]);   // board runs up-down in the photo
+  const sg = vertical ? Math.sign(p[0]) || 1 : Math.sign(-p[1]) || 1;
+  return { turns: vertical ? 0 : 1, p: [p[0] * sg, p[1] * sg], u: [u[0] * sg, u[1] * sg] };
 }
 function drawPadOnBoard() {
-  const { u, p, L } = axis();
+  const { L } = axis(), { u, p } = overlayFrame();
   const pxPerMm = L / (S.board.lengthCm * 10);
   if (!S.place) { const [n, t] = S.board.pts; S.place = [(n[0] + t[0]) / 2, (n[1] + t[1]) / 2]; }
   const k = S.result.grid.mm * pxPerMm * view.s;   // grid px -> canvas px
   const c = toCanvas(S.place), pv = S.preview, dpr = devicePixelRatio || 1;
+  // dim the board photo so the pad stands out
+  pctx.fillStyle = 'rgba(0,0,0,.35)'; pctx.fillRect(0, 0, photo.width, photo.height);
   pctx.save();
   pctx.setTransform(dpr * p[0] * k, dpr * p[1] * k, dpr * u[0] * k, dpr * u[1] * k, dpr * c[0], dpr * c[1]);
-  pctx.shadowColor = 'rgba(0,0,0,.45)'; pctx.shadowBlur = 8 / k; pctx.shadowOffsetY = 2 / k;
+  const o = 2.2 / k;   // outline thickness in grid px (2.2 screen px)
+  for (let a = 0; a < 8; a++) pctx.drawImage(S.prevTint, -pv.width / 2 + Math.cos(a * Math.PI / 4) * o, -pv.height / 2 + Math.sin(a * Math.PI / 4) * o);
+  pctx.shadowColor = 'rgba(0,0,0,.5)'; pctx.shadowBlur = 8; pctx.shadowOffsetY = 2;
   pctx.drawImage(pv, -pv.width / 2, -pv.height / 2);
   pctx.restore();
+  const ext = Math.max(pv.width, pv.height) / 2 * k;
+  label('Your pad · drag to move', [c[0], c[1] - ext - 16], 'rgba(20,22,26,.85)');
 }
 
 // ============================================================ STEP 3 UI
@@ -975,14 +1138,19 @@ $('#startOver').addEventListener('click', () => location.reload());
 // ============================================================== STAGE
 function updateStage() {
   const n = S.step, hasImg = !!S.board.img;
-  const show3d = n >= 2 && (S.view === '3d' || !hasImg || S.board.pts.length < 2);
+  const canBoard = hasImg && S.board.pts.length >= 2;
+  if (S.view === 'board' && !canBoard) S.view = 'top';
+  $$('#viewSeg button').forEach(x => x.classList.toggle('on', x.dataset.view === S.view));
+  $('#viewBoardBtn').classList.toggle('hidden', !canBoard);
+  const show3d = n >= 2 && S.view === '3d';
   $('#gl').classList.toggle('hidden', !show3d);
   $('#photo').classList.toggle('hidden', show3d);
-  $('#viewSeg').classList.toggle('hidden', !(n >= 2 && hasImg && S.board.pts.length >= 2));
+  $('#viewSeg').classList.toggle('hidden', n < 2);
   let empty = '', title = '', hint = '';
   if (n === 0) {
     title = 'Your board';
     if (!hasImg) empty = 'Upload a photo of your board to start';
+    else if (S.board.mode === 'auto') hint = S.board.detecting ? 'Measuring…' : 'Drag points to adjust · tap the board to search again';
     else hint = S.board.pts.length < 4 ? ['Tap the nose', 'Tap the tail', 'Tap an edge at the waist', 'Tap the other edge'][S.board.pts.length] : 'Drag points to adjust';
   } else if (n === 1) {
     title = 'Design';
@@ -992,7 +1160,7 @@ function updateStage() {
     if (S.source === 'upload' && S.design) empty = '';
   } else {
     title = '';
-    hint = show3d ? 'Drag to rotate · scroll to zoom' : 'Drag the pad to place it';
+    hint = show3d ? 'Drag to rotate · scroll to zoom' : S.view === 'board' ? 'Drag the pad to place it' : '';
   }
   if (n === 1 && S.source === 'upload') {
     // show the uploaded design big on the photo canvas
