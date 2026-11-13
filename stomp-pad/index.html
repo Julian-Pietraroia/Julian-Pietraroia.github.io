@@ -288,7 +288,7 @@ footer a{color:inherit}
           <p class="note" id="surfNote"></p>
           <div id="patUI">
             <div class="seg" id="patSeg" style="display:inline-flex;margin-top:10px">
-              <button data-p="ridges">Ridges</button><button data-p="diamonds">Diamonds</button><button data-p="hex">Hex</button><button data-p="dots">Dots</button><button data-p="chevrons">Chevrons</button>
+              <button data-p="ridges">Ridges</button><button data-p="diamonds">Diamonds</button><button data-p="hex">Hex</button><button data-p="dots">Dots</button><button data-p="chevrons">Chevrons</button><button data-p="spikes">Spikes</button>
             </div>
             <div class="range">
               <div class="top"><span>Pattern spacing</span><output id="pitchOut"></output></div>
@@ -761,7 +761,7 @@ photo.addEventListener('pointermove', e => {
 });
 const endDrag = () => {
   if (drag && drag.kind === 'zone') { drag = null; zoneDesign(); return; }
-  if (drag && drag.kind === 'place' && S.zoneMode && S.rect) { drag = null; S.zoneC = S.rect.fromPhoto(S.place); zoneDesign(); rebuild(true); return; }
+  if (drag && drag.kind === 'place' && S.zoneMode && S.rect) { drag = null; S.zoneC = S.rect.fromPhoto(S.place); zoneDesign(true); rebuild(true); return; }
   if (drag && drag.kind === 'crop') {
     const c = S.crop;
     if (c && c.x1 - c.x0 > 8 && c.y1 - c.y0 > 8) setDesignFromCrop(); else { S.crop = null; drawPhoto(); }
@@ -848,8 +848,10 @@ function findBindings() {
   const sl = at(Lp, t1) + at(Lp, t2) - 2 * med(Lp), sr = at(Rp, t1) + at(Rp, t2) - 2 * med(Rp);
   return { t1, t2, heel: sr >= sl ? 1 : -1, ok, sure: Math.abs(sr - sl) > 0.15 };
 }
-function zoneDesign() {
+// keep = true: only re-crop the art (size/position change); keep the user's colors, roles and surface
+function zoneDesign(keep) {
   const R = S.rect; if (!R) return;
+  keep = keep && S.quant && S.design;
   if (!R.bind) R.bind = findBindings();
   const bd = R.bind, mm = R.mmPerPx;
   // regular rides left foot forward. With the heel edge on +X, the rider's left is +Y.
@@ -868,8 +870,17 @@ function zoneDesign() {
   if (S.padShape === 'oval') x.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
   else { const r = Math.min(w, h) * 0.22; x.moveTo(r, 0); x.arcTo(w, 0, w, h, r); x.arcTo(w, h, 0, h, r); x.arcTo(0, h, 0, 0, r); x.arcTo(0, 0, w, 0, r); }
   x.closePath(); x.clip();
+  // anything past the board's edge is filled with the topsheet color so the shape stays whole
+  if (!R.top) {
+    const d = R.data.data, sm = [[], [], []];
+    for (let i = 0; i < R.W * R.H; i += 5) if (d[i * 4 + 3] > 128) for (let k = 0; k < 3; k++) sm[k].push(d[i * 4 + k]);
+    R.top = sm.map(v => v.sort((a, b) => a - b)[v.length >> 1]);
+  }
+  x.fillStyle = rgb2hex(R.top); x.fillRect(0, 0, w, h);
   x.drawImage(R.cv, S.zoneC[0] - w / 2, S.zoneC[1] - h / 2, w, h, 0, 0, w, h);
   S.designMmPerPx = mm; S.rot = 0; S.zoneMode = true;
+  S.place = R.toPhoto(S.zoneC[0], S.zoneC[1]);
+  if (keep) { S.designSrc = cv; S.design = cv; S.result = null; return; }
   Object.assign(S.params, { detail: 2, smooth: 2, pad: 0, fillHoles: true });
   setDesign(cv);
   // keep the pad itself whole: only 'Cut' would remove parts of the shape
@@ -1223,7 +1234,8 @@ function build() {
     const asp = bh / bw, cap = 200;
     let size = defaultSize();
     const trueSize = S.source === 'board' && S.designMmPerPx;
-    if (trueSize) size = Math.round(bw * S.designMmPerPx + 2 * P.pad);
+    if (S.zoneMode && S.zoneW) size = S.zoneW;
+    else if (trueSize) size = Math.round(bw * S.designMmPerPx + 2 * P.pad);
     else if ((size - 2 * P.pad) * asp + 2 * P.pad > cap) size = Math.round((cap - 2 * P.pad) / asp + 2 * P.pad);
     P.size = Math.max(50, size);
     $('#size').value = P.size; $('#sizeOut').textContent = fmt.size(P.size);
@@ -1416,7 +1428,7 @@ for (const k of Object.keys(fmt)) {
   $('#' + k).addEventListener('input', e => {
     S.params[k] = +e.target.value; $('#' + k + 'Out').textContent = fmt[k](S.params[k]);
     if (k === 'size') {
-      if (S.zoneMode) { clearTimeout(S.zt); S.zt = setTimeout(() => { S.zoneL = Math.round(S.params.size * S.zoneL / S.zoneW); S.zoneW = S.params.size; zoneDesign(); rebuild(true); }, 150); return; }
+      if (S.zoneMode) { clearTimeout(S.zt); S.zt = setTimeout(() => { S.zoneL = Math.round(S.params.size * S.zoneL / S.zoneW); S.zoneW = S.params.size; zoneDesign(true); rebuild(true); }, 150); return; }
       S.sizeTouched = true;
     }
     rebuild();

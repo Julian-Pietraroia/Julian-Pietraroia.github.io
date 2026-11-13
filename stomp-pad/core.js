@@ -593,7 +593,35 @@
     });
 
     // optional grip pattern across the top (kept off a flat rim)
-    if (p.pattern && p.pattern.type) {
+    if (p.pattern && p.pattern.type === 'spikes') {
+      // pointed studs on a hex grid, each a closed frustum so it slices cleanly
+      const P = p.pattern.pitch || 7, rb = P * 0.33, rt = Math.min(0.4, rb * 0.15), seg = 12;
+      const rim = erode(top, w, h, px((p.pattern.rim == null ? 1.5 : p.pattern.rim) + rb));
+      const pos = [], m = new Uint8Array(w * h), rowH = P * Math.sqrt(3) / 2;
+      const z0 = T - 0.05, z1 = T + R;
+      const W2 = w * mm / 2, H2 = h * mm / 2;
+      for (let rr = Math.floor(-H2 / rowH); rr <= H2 / rowH; rr++) {
+        const off = (rr & 1) ? P / 2 : 0;
+        for (let cc = Math.floor((-W2 - off) / P); cc <= (W2 - off) / P; cc++) {
+          const X = cc * P + off, Y = rr * rowH;              // grid mm, y down
+          const gx = Math.round(X / mm + w / 2), gy = Math.round(Y / mm + h / 2);
+          if (gx < 0 || gy < 0 || gx >= w || gy >= h || !rim[gy * w + gx]) continue;
+          const cx = X, cy = -Y;                              // model coords (y up)
+          for (let k = 0; k < seg; k++) {
+            const a0 = k / seg * Math.PI * 2, a1 = (k + 1) / seg * Math.PI * 2;
+            const b0 = [cx + rb * Math.cos(a0), cy + rb * Math.sin(a0)], b1 = [cx + rb * Math.cos(a1), cy + rb * Math.sin(a1)];
+            const t0 = [cx + rt * Math.cos(a0), cy + rt * Math.sin(a0)], t1 = [cx + rt * Math.cos(a1), cy + rt * Math.sin(a1)];
+            pos.push(b0[0], b0[1], z0, b1[0], b1[1], z0, t1[0], t1[1], z1, b0[0], b0[1], z0, t1[0], t1[1], z1, t0[0], t0[1], z1); // side
+            pos.push(cx, cy, z1, t0[0], t0[1], z1, t1[0], t1[1], z1);   // top cap
+            pos.push(cx, cy, z0, b1[0], b1[1], z0, b0[0], b0[1], z0);   // base
+          }
+          const r2 = (rb / mm) ** 2;
+          for (let dy = -Math.ceil(rb / mm); dy <= rb / mm; dy++) for (let dx = -Math.ceil(rb / mm); dx <= rb / mm; dx++)
+            if (dx * dx + dy * dy <= r2 && gx + dx >= 0 && gx + dx < w && gy + dy >= 0 && gy + dy < h) m[(gy + dy) * w + gx + dx] = 1;
+        }
+      }
+      if (pos.length) { raisedMasks.push({ c: -2, m }); layers.push({ kind: 'raised', color: -2, pos: new Float32Array(pos) }); }
+    } else if (p.pattern && p.pattern.type) {
       const pat = patternMask(w, h, mm, p.pattern);
       const rim = erode(top, w, h, px(p.pattern.rim == null ? 1.5 : p.pattern.rim));
       let m = new Uint8Array(w * h);
