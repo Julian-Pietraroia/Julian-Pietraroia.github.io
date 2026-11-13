@@ -7,14 +7,14 @@
 <meta name="description" content="Turn your snowboard's graphic, or any design, into a 3D-printable stomp pad sized to your board.">
 <style>
 :root{
-  --bg:#f5f6f8;--card:#fff;--ink:#14161a;--mut:#6a707c;--line:#e3e6eb;--soft:#eef1f5;
-  --acc:#2557d6;--acc-ink:#fff;--acc-soft:#e7eefc;--ok:#1a8a5a;--warn:#b26a00;
-  --r:14px;--sh:0 1px 2px rgba(16,24,40,.05),0 4px 16px rgba(16,24,40,.06);
+  /* Alpine: cool off-white, deep navy, one ice-blue highlight for things drawn on the board */
+  --bg:#f7f9fb;--card:transparent;--surface:#fff;--ink:#0e1a2b;--mut:#7a8699;--line:#e3e8ef;--soft:#eef2f7;
+  --acc:#0e1a2b;--acc-ink:#fff;--acc-soft:#e6edf6;--hi:#3d8bff;--ok:#0e1a2b;--warn:#a8650b;
+  --r:12px;--sh:none;
 }
 @media (prefers-color-scheme:dark){:root{
-  --bg:#111317;--card:#1a1d22;--ink:#eceef2;--mut:#99a0ad;--line:#2b3038;--soft:#22262d;
-  --acc:#6b93ff;--acc-ink:#0b1020;--acc-soft:#1f2a44;--ok:#4cc58f;--warn:#e9a94a;
-  --sh:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);
+  --bg:#0c121b;--surface:#121a26;--ink:#e8eef6;--mut:#8592a5;--line:#223042;--soft:#18222f;
+  --acc:#e8eef6;--acc-ink:#0c121b;--acc-soft:#1b2736;--hi:#5aa2ff;--ok:#e8eef6;--warn:#e3a54c;
 }}
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -141,6 +141,51 @@ details summary{cursor:pointer;color:var(--mut);font-size:13px;margin-top:6px}
 .filrow .dot{width:16px;height:16px;border-radius:5px;border:1px solid rgba(0,0,0,.15)}
 .filrow span{color:var(--mut)}
 footer{color:var(--mut);font-size:13px;text-align:center;margin-top:24px}
+
+/* ---------- Alpine layout ---------- */
+.wrap{max-width:1320px;padding:40px 48px 48px}
+@media (max-width:900px){.wrap{padding:24px 18px}}
+.mark{background:none;border:1.5px solid var(--ink)}
+.mark svg{stroke:var(--ink)}
+header{margin-bottom:10px}
+header h1{font-size:22px;font-weight:600;letter-spacing:-.02em}
+.steps{gap:28px;margin:6px 0 32px}
+.step{border:0;background:none;padding:0;box-shadow:none!important;font-size:14px;gap:6px}
+.step .n{background:none!important;color:var(--mut)!important;width:auto;height:auto;font-weight:500;font-size:13px}
+.step.on{color:var(--ink);font-weight:600}
+.step.on .n{color:var(--ink)!important}
+.step.done{color:var(--ink)}
+.card{border:0;box-shadow:none;background:transparent}
+.panel{padding:0}
+.grid{gap:56px;grid-template-columns:340px 1fr}
+@media (max-width:900px){.grid{gap:24px;grid-template-columns:1fr}}
+.stage{background:var(--surface);border-radius:18px}
+.stagebar{border:0}
+.view{background:var(--surface)}
+.sec{border-top:1px solid var(--line);padding-top:18px;margin-top:20px}
+.sec h3{text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink);font-weight:600}
+.btn{border-radius:999px;background:var(--surface)}
+.btn.pri{background:var(--ink);border-color:var(--ink);color:var(--acc-ink);padding:11px 22px}
+.seg{background:var(--soft);border-radius:999px}
+.seg button{border-radius:999px}
+.seg button.on{background:var(--surface);box-shadow:0 1px 3px rgba(14,26,43,.14)}
+.chip{border:0;padding:6px 0}
+.stat,.result{background:var(--surface);border-radius:12px}
+.opt,.drop{background:var(--surface);border-color:var(--line)}
+.opt.on{box-shadow:none;border-color:var(--ink)}
+.opt .ic{background:var(--soft);color:var(--ink)}
+.drop svg{color:var(--ink)}
+.drop:hover,.drop.over{background:var(--soft);border-color:var(--ink)}
+.num{background:var(--surface)}
+.num:focus-within{border-color:var(--ink);box-shadow:none}
+.checks li.cur{background:var(--soft)}
+.checks li.cur i{border-color:var(--ink);color:var(--ink)}
+.checks li.ok i{background:var(--ink);border-color:var(--ink);color:var(--acc-ink)}
+input[type=range]{accent-color:var(--ink)}
+.toggle input:checked{background:var(--ink)}
+.badge,.busy,.zoomctl{box-shadow:none;background:var(--surface)}
+.link{color:var(--ink)}
+.swatches button.on{outline-color:var(--ink)}
 footer a{color:inherit}
 </style>
 </head>
@@ -665,7 +710,7 @@ function drawPhoto() {
   if (!img) return;
   pctx.imageSmoothingQuality = 'high';
   pctx.drawImage(img, view.ox, view.oy, img.width * view.s, img.height * view.s);
-  const acc = getComputedStyle(document.documentElement).getPropertyValue('--acc').trim() || '#2557d6';
+  const acc = getComputedStyle(document.documentElement).getPropertyValue('--hi').trim() || '#3d8bff';
   const P = S.board.pts.map(toCanvas);
 
   if (S.step === 0 && S.board.outline) {
@@ -1144,7 +1189,7 @@ function drawRectView() {
     pctx.globalAlpha = 0.6; pctx.fillStyle = '#0b0d12';
     pctx.beginPath(); pctx.rect(0, 0, R.W, R.H); pctx.fill();
     pctx.restore();
-    const acc = getComputedStyle(document.documentElement).getPropertyValue('--acc').trim() || '#2557d6';
+    const acc = getComputedStyle(document.documentElement).getPropertyValue('--hi').trim() || '#3d8bff';
     const tint = document.createElement('canvas'); tint.width = R.W; tint.height = R.H;
     const tx = tint.getContext('2d'); tx.drawImage(S.selTint, 0, 0); tx.globalCompositeOperation = 'source-in'; tx.fillStyle = acc; tx.fillRect(0, 0, R.W, R.H);
     const o = 2 / k;
@@ -1159,7 +1204,7 @@ function drawRectView() {
     if (S.padShape === 'oval') pctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2, true);
     else pctx.rect(cx - w / 2, cy - h / 2, w, h);
     pctx.fill('evenodd');
-    const acc = getComputedStyle(document.documentElement).getPropertyValue('--acc').trim() || '#2557d6';
+    const acc = getComputedStyle(document.documentElement).getPropertyValue('--hi').trim() || '#3d8bff';
     pctx.strokeStyle = acc; pctx.lineWidth = 2.5 / k; pctx.setLineDash([6 / k, 4 / k]);
     pctx.beginPath();
     if (S.padShape === 'oval') pctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2);
@@ -1184,11 +1229,11 @@ function drawRectView() {
     if (S.step < 2) label('Your pad', [q[0], q[1]], 'rgba(20,22,26,.85)');
     const e = rectToScreen(S.zoneC[0], S.zoneC[1] + S.zoneL / R.mmPerPx / 2), e2 = rectToScreen(S.zoneC[0] + S.zoneW / R.mmPerPx / 2, S.zoneC[1]);
     const below = rview.flat ? [q[0], Math.max(e[1], e2[1]) + 22] : [q[0], Math.max(e[1], e2[1]) + 22];
-    label(`${cm(S.zoneW)} × ${cm(S.zoneL)}`, below, 'rgba(37,87,214,.9)');
+    label(`${cm(S.zoneW)} × ${cm(S.zoneL)}`, below, 'rgba(14,26,43,.9)');
     if (R.bind && R.rearT != null) {
       const b = rectToScreen(R.W / 2, R.rearT * R.H), f = rectToScreen(R.W / 2, R.frontT * R.H);
       const off = rview.flat ? [0, -(R.W * rview.s) / 2 - 16] : [-(R.W * rview.s) / 2 - 50, 0];
-      label('Back binding', [b[0] + off[0], b[1] + off[1]], 'rgba(37,87,214,.9)');
+      label('Back binding', [b[0] + off[0], b[1] + off[1]], 'rgba(61,139,255,.95)');
       label('Front binding', [f[0] + off[0], f[1] + off[1]], 'rgba(20,22,26,.75)');
     }
   }
