@@ -988,13 +988,17 @@
       tt.forEach((t, j) => { const f = coef[0] + coef[1] * t + coef[2] * t * t; res += ((ww[j] - f) / waist) ** 2; cen2 += ((cc[j] - off) / waist) ** 2; });
       res = Math.sqrt(res / tt.length); cen2 = Math.sqrt(cen2 / tt.length);
       const regular = Math.exp(-((res / 0.35) ** 2)) * Math.exp(-((cen2 / 0.1) ** 2));
+      // board-ness: a snowboard has a sidecut (wider towards nose and tail than at the waist).
+      // A towel, bag or plank keeps the same width all the way along.
+      const ends = 1, side = coef[2] / waist;
+      const boardy = 0.15 + 0.85 * Math.min(1, Math.max(0, side) / 0.4);
       // boards are usually framed near the middle of the photo
       const cx = mu[0] + u[0] * (a0 + a1) / 2 + p[0] * off, cy = mu[1] + u[1] * (a0 + a1) / 2 + p[1] * off;
       const cen = Math.exp(-((Math.hypot(cx - w / 2, cy - h / 2) / (0.3 * Math.hypot(w, h))) ** 2));
       if (typeof process !== 'undefined' && process.env && process.env.DBG) console.log(JSON.stringify({ sx, sy, thr, ratio: +ratio.toFixed(2), fill: +fill.toFixed(2), area: +(area / N).toFixed(3), cen: +cen.toFixed(2), score: +score.toFixed(3) }));
-      if (typeof globalThis.__DET !== "undefined") globalThis.__DET.push({ sx, sy, thr, Lw, ratio: +ratio.toFixed(2), res: +res.toFixed(3), cen2: +cen2.toFixed(3), fill: +fill.toFixed(2), area: +(area / N).toFixed(3), score: +(score * cen * regular).toFixed(3), raw: +(score * cen).toFixed(3) });
-      if (typeof process !== 'undefined' && process.env && process.env.DBG2) console.log(JSON.stringify({ sx, sy, thr, Lw, ratio: +ratio.toFixed(2), res: +res.toFixed(3), cen2: +cen2.toFixed(3), score: +(score * cen * regular).toFixed(3), raw: +(score * cen).toFixed(3) }));
-      return { score: score * cen * regular, U, mu, u, p, a0, a1, waist, off, coef, lo, hi, cnt, S };
+      if (typeof globalThis.__DET !== "undefined") globalThis.__DET.push({ sx, sy, thr, Lw, ends: +ends.toFixed(2), side: +side.toFixed(3), boardy: +boardy.toFixed(2), ratio: +ratio.toFixed(2), res: +res.toFixed(3), cen2: +cen2.toFixed(3), fill: +fill.toFixed(2), area: +(area / N).toFixed(3), score: +(score * cen * regular * boardy).toFixed(3), raw: +(score * cen).toFixed(3) });
+      if (typeof process !== 'undefined' && process.env && process.env.DBG2) console.log(JSON.stringify({ sx, sy, thr, Lw, ratio: +ratio.toFixed(2), res: +res.toFixed(3), cen2: +cen2.toFixed(3), score: +(score * cen * regular * boardy).toFixed(3), raw: +(score * cen).toFixed(3) }));
+      return { score: score * cen * regular * boardy, U, mu, u, p, a0, a1, waist, off, coef, lo, hi, cnt, S };
       };
       let bestR = null;
       for (const dir of [0, 1]) { const r = finish(corridor(m0, dir)); if (r && (!bestR || r.score > bestR.score)) bestR = r; }
