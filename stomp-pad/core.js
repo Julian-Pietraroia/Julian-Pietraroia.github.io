@@ -884,7 +884,7 @@
     let [L, A, B] = toLab(data, N);
     L = median3(median3(L, w, h), w, h); A = median3(median3(A, w, h), w, h); B = median3(median3(B, w, h), w, h);
     const wc = 3;
-    function analyze(sx, sy, thr) {
+    function analyze(sx, sy, thr, Lw) {
       const vals = [[], [], []];
       for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
         const x = Math.min(w - 1, Math.max(0, sx + dx)), y = Math.min(h - 1, Math.max(0, sy + dy)), i = y * w + x;
@@ -895,7 +895,7 @@
       const t2 = thr * thr;
       for (let i = 0; i < N; i++) {
         const dl = L[i] - c[0], da = A[i] - c[1], db = B[i] - c[2];
-        m[i] = dl * dl + wc * (da * da + db * db) < t2 ? 1 : 0;
+        m[i] = Lw * dl * dl + wc * (da * da + db * db) < t2 ? 1 : 0;
       }
       m = open(m, w, h, 1);
       const { lab, sizes, n } = labelComponents(m, w, h);
@@ -903,22 +903,32 @@
       if (!sl || sizes[sl] < 0.01 * N) return null;
       const m0 = new Uint8Array(N);
       for (let i = 0; i < N; i++) m0[i] = lab[i] === sl ? 1 : 0;
-      let ax = pca(m0, w, h);
-      // half-width of the seed piece, then gather pieces lying in that corridor
-      const bs = [];
-      for (let i = 0; i < N; i++) if (m0[i]) bs.push(Math.abs((i % w - ax.mu[0]) * ax.p[0] + (((i / w) | 0) - ax.mu[1]) * ax.p[1]));
-      bs.sort((a, b) => a - b);
-      const half = bs[Math.floor(bs.length * 0.95)] * 1.15;
-      const inC = new Float64Array(n + 1), tot = new Float64Array(n + 1);
-      for (let i = 0; i < N; i++) {
-        const k = lab[i]; if (!k) continue;
-        tot[k]++;
-        const b = Math.abs((i % w - ax.mu[0]) * ax.p[0] + (((i / w) | 0) - ax.mu[1]) * ax.p[1]);
-        if (b < half) inC[k]++;
-      }
-      const U = new Uint8Array(N);
-      for (let i = 0; i < N; i++) { const k = lab[i]; if (k && (k === sl || (sizes[k] >= 0.002 * N && inC[k] / tot[k] > 0.9))) U[i] = 1; }
-      ax = pca(U, w, h);
+      // Gather the other pieces of the board (bindings and stickers split it up) that lie in a
+      // corridor along its axis. The seed piece may be short, so try its own axis and the
+      // perpendicular one, and grow the corridor a few rounds; the scorer picks the best.
+      const corridor = (seedMask, dir) => {
+        let U = seedMask;
+        for (let round = 0; round < 3; round++) {
+          let ax = pca(U, w, h);
+          if (round === 0 && dir) ax = { mu: ax.mu, u: ax.p, p: ax.u };
+          const bs = [];
+          for (let i = 0; i < N; i++) if (U[i]) bs.push(Math.abs((i % w - ax.mu[0]) * ax.p[0] + (((i / w) | 0) - ax.mu[1]) * ax.p[1]));
+          bs.sort((a, b) => a - b);
+          const half = bs[Math.floor(bs.length * 0.95)] * 1.15;
+          const inC = new Float64Array(n + 1), tot = new Float64Array(n + 1);
+          for (let i = 0; i < N; i++) {
+            const k = lab[i]; if (!k) continue;
+            tot[k]++;
+            if (Math.abs((i % w - ax.mu[0]) * ax.p[0] + (((i / w) | 0) - ax.mu[1]) * ax.p[1]) < half) inC[k]++;
+          }
+          const V = new Uint8Array(N);
+          for (let i = 0; i < N; i++) { const k = lab[i]; if (k && (k === sl || (sizes[k] >= 0.002 * N && inC[k] / tot[k] > 0.85))) V[i] = 1; }
+          U = V;
+        }
+        return U;
+      };
+      const finish = U => {
+      const ax = pca(U, w, h);
       const { mu, u, p } = ax;
       const as = [], bsA = [], idx = [];
       for (let i = 0; i < N; i++) if (U[i]) {
@@ -966,26 +976,40 @@
       for (let y = 0; y < h; y++) border += U[y * w] + U[y * w + w - 1];
       const medW = all.slice().sort((a, b) => a - b)[all.length >> 1];
       const fill = area / (Lp * medW);
-      const score = Math.pow(area / N, 0.5) * fill * Math.exp(-(((ratio - 6.3) / 1.1) ** 2)) * (1 - Math.min(1, border / (2 * (w + h)) * 8));
+      const score = Math.pow(area / N, 0.5) * fill * Math.exp(-(((ratio - 6.3) / 1.4) ** 2)) * (1 - Math.min(1, border / (2 * (w + h)) * 8));
       const cs = cc.slice().sort((a, b) => a - b), off = cs[cs.length >> 1];
+      // a real board is regular: smooth sidecut and a straight centreline; blobs that merged with
+      // the floor or a bag are not
+      let res = 0, cen2 = 0;
+      tt.forEach((t, j) => { const f = coef[0] + coef[1] * t + coef[2] * t * t; res += ((ww[j] - f) / waist) ** 2; cen2 += ((cc[j] - off) / waist) ** 2; });
+      res = Math.sqrt(res / tt.length); cen2 = Math.sqrt(cen2 / tt.length);
+      const regular = Math.exp(-((res / 0.35) ** 2)) * Math.exp(-((cen2 / 0.1) ** 2));
       // boards are usually framed near the middle of the photo
       const cx = mu[0] + u[0] * (a0 + a1) / 2 + p[0] * off, cy = mu[1] + u[1] * (a0 + a1) / 2 + p[1] * off;
       const cen = Math.exp(-((Math.hypot(cx - w / 2, cy - h / 2) / (0.3 * Math.hypot(w, h))) ** 2));
       if (typeof process !== 'undefined' && process.env && process.env.DBG) console.log(JSON.stringify({ sx, sy, thr, ratio: +ratio.toFixed(2), fill: +fill.toFixed(2), area: +(area / N).toFixed(3), cen: +cen.toFixed(2), score: +score.toFixed(3) }));
-      return { score: score * cen, U, mu, u, p, a0, a1, waist, off, coef, lo, hi, cnt, S };
+      if (typeof globalThis.__DET !== "undefined") globalThis.__DET.push({ sx, sy, thr, Lw, ratio: +ratio.toFixed(2), res: +res.toFixed(3), cen2: +cen2.toFixed(3), fill: +fill.toFixed(2), area: +(area / N).toFixed(3), score: +(score * cen * regular).toFixed(3), raw: +(score * cen).toFixed(3) });
+      if (typeof process !== 'undefined' && process.env && process.env.DBG2) console.log(JSON.stringify({ sx, sy, thr, Lw, ratio: +ratio.toFixed(2), res: +res.toFixed(3), cen2: +cen2.toFixed(3), score: +(score * cen * regular).toFixed(3), raw: +(score * cen).toFixed(3) }));
+      return { score: score * cen * regular, U, mu, u, p, a0, a1, waist, off, coef, lo, hi, cnt, S };
+      };
+      let bestR = null;
+      for (const dir of [0, 1]) { const r = finish(corridor(m0, dir)); if (r && (!bestR || r.score > bestR.score)) bestR = r; }
+      return bestR;
     }
     let best = null;
-    const tryOne = (x, y, thr) => { const r = analyze(x, y, thr); if (r && r.score > 0 && (!best || r.score > best.score)) best = r; };
+    const tryOne = (x, y, thr, Lw = 1) => { const r = analyze(x, y, thr, Lw); if (r && r.score > 0 && (!best || r.score > best.score)) best = r; };
     if (seed) {
       const sx = Math.round(seed[0]), sy = Math.round(seed[1]);
       for (const thr of [8, 12, 18, 24]) tryOne(sx, sy, thr);
+      for (const thr of [10, 16, 24]) tryOne(sx, sy, thr, 0.2);   // lighting changes: mostly ignore brightness
     } else {
       const tried = [];
-      for (let gy = 0; gy < 7; gy++) for (let gx = 0; gx < 7; gx++) {
-        const x = Math.round((0.2 + 0.1 * gx) * (w - 1)), y = Math.round((0.2 + 0.1 * gy) * (h - 1)), i = y * w + x;
+      for (let gy = 0; gy < 5; gy++) for (let gx = 0; gx < 5; gx++) {
+        const x = Math.round((0.2 + 0.15 * gx) * (w - 1)), y = Math.round((0.2 + 0.15 * gy) * (h - 1)), i = y * w + x;
         if (tried.some(t => Math.hypot(t[0] - L[i], t[1] - A[i], t[2] - B[i]) < 2.5)) continue;
         tried.push([L[i], A[i], B[i]]);
-        for (const thr of [8, 12, 18]) tryOne(x, y, thr);
+        for (const thr of [8, 12, 18, 24]) tryOne(x, y, thr);
+        for (const thr of [12, 22]) tryOne(x, y, thr, 0.2);
       }
     }
     if (!best) return null;
