@@ -1039,7 +1039,7 @@ function zoneDesign(keep) {
   x.drawImage(R.cv, S.zoneC[0] - w / 2, S.zoneC[1] - h / 2, w, h, 0, 0, w, h);
   S.designMmPerPx = mm; S.rot = 0; S.zoneMode = true;
   S.place = R.toPhoto(S.zoneC[0], S.zoneC[1]);
-  if (keep) { S.designSrc = cv; S.design = cv; S.result = null; return; }
+  if (keep) { S.designSrc = cv; S.design = cv; S.result = null; recolorFromArt(); return; }
   Object.assign(S.params, { detail: 2, smooth: 2, pad: 0, fillHoles: true });
   setDesign(cv);
   // keep the pad itself whole: only 'Cut' would remove parts of the shape
@@ -1590,6 +1590,22 @@ function pickPatternColor() {
   let best = cands[0], bd = -1;
   for (const c of cands) { const L = lab(c); const d = Math.hypot(L[0] - L0[0], L[1] - L0[1], L[2] - L0[2]); if (d > bd) { bd = d; best = c; } }
   S.patternColor = best.slice();
+}
+// The art under the pad changed (moved/resized): re-read its colours, but keep the user's choices.
+// Each new colour inherits the role of the closest old colour; edited swatches and pad colour stay.
+function recolorFromArt() {
+  const old = { centers: S.quant.centers, roles: S.roles.slice(), colors: S.colors.map(c => c.slice()) };
+  const baseWasAuto = rgb2hex(S.baseColor) === rgb2hex(old.centers[0] || [0, 0, 0]);
+  const oldBase = S.baseColor.slice(), oldPat = S.patternColor.slice();
+  quantizeDesign(false);
+  S.baseColor = oldBase; S.patternColor = oldPat;
+  const near = c => { const L = lab(c); let bi = 0, bd = Infinity; old.centers.forEach((o, i) => { const M = lab(o), d = Math.hypot(L[0] - M[0], L[1] - M[1], L[2] - M[2]); if (d < bd) { bd = d; bi = i; } }); return [bi, bd]; };
+  S.roles = S.quant.centers.map((c, i) => { const [bi, bd] = near(c); return bd < 25 ? old.roles[bi] : S.roles[i]; });
+  S.colors = S.quant.centers.map((c, i) => { const [bi, bd] = near(c); const edited = rgb2hex(old.colors[bi]) !== rgb2hex(old.centers[bi]); return edited && bd < 25 ? old.colors[bi].slice() : c.slice(); });
+  if (baseWasAuto && S.quant.centers[0]) S.baseColor = S.quant.centers[0].slice();
+  S.heights = {};
+  S.chipsFor = null;
+  if (S.step >= 2) { renderChips(); renderBaseSwatches(); renderSurface(); S.chipsFor = S.design; }
 }
 function quantizeDesign(auto) {
   const { d } = smallData(S.design, 360);
