@@ -361,9 +361,16 @@ footer a{color:inherit}
         <div class="sec">
           <h3>Surface</h3>
           <div class="seg" id="surfSeg" style="display:inline-flex">
-            <button data-s="pattern">Grip pattern</button><button data-s="art">Art in relief</button><button data-s="plain">Plain</button>
+            <button data-s="pattern">Grip pattern</button><button data-s="art">Art in relief</button><button data-s="flush">Art, flush</button><button data-s="plain">Plain</button>
           </div>
           <p class="note" id="surfNote"></p>
+          <div id="flushUI" class="hidden">
+            <div class="range">
+              <div class="top"><span>Colour depth</span><output id="flushOut"></output></div>
+              <input type="range" id="flushDepth" min="0.4" max="2" step="0.2" value="0.8">
+            </div>
+            <label class="toggle">Add a grip pattern on top<input type="checkbox" id="flushGrip"></label>
+          </div>
           <div id="patUI">
             <div class="seg" id="patSeg" style="display:inline-flex;margin-top:10px">
               <button data-p="ridges">Ridges</button><button data-p="diamonds">Diamonds</button><button data-p="hex">Hex</button><button data-p="dots">Dots</button><button data-p="chevrons">Chevrons</button><button data-p="spikes">Spikes</button>
@@ -534,7 +541,7 @@ const S = {
   quant: null, roles: [], colors: [], k: 3,
   baseColor: null, boardPalette: [],
   params: { size: 140, pad: 4, smooth: 4, fillHoles: true, base: 2.6, raise: 1.6, detail: 1.2, round: true },
-  sizeTouched: false, tiered: false, heights: {}, pockets: { type: 'none', size: 14, rib: 4 }, stance: 'regular', padShape: 'rounded', zoneC: null, zoneW: null, zoneL: null, surface: 'art', patType: 'ridges', pitch: 7, patternColor: [240, 240, 240],
+  sizeTouched: false, flushDepth: 0.8, flushGrip: false, tiered: false, heights: {}, pockets: { type: 'none', size: 14, rib: 4 }, stance: 'regular', padShape: 'rounded', zoneC: null, zoneW: null, zoneL: null, surface: 'art', patType: 'ridges', pitch: 7, patternColor: [240, 240, 240],
   result: null, preview: null, place: null, view: 'top'
 };
 
@@ -1032,7 +1039,7 @@ function zoneDesign(keep) {
   x.drawImage(R.cv, S.zoneC[0] - w / 2, S.zoneC[1] - h / 2, w, h, 0, 0, w, h);
   S.designMmPerPx = mm; S.rot = 0; S.zoneMode = true;
   S.place = R.toPhoto(S.zoneC[0], S.zoneC[1]);
-  if (keep) { S.designSrc = cv; S.design = cv; S.result = null; return; }
+  if (keep) { S.designSrc = cv; S.design = cv; S.result = null; recolorFromArt(); return; }
   Object.assign(S.params, { detail: 2, smooth: 2, pad: 0, fillHoles: true });
   setDesign(cv);
   // keep the pad itself whole: only 'Cut' would remove parts of the shape
@@ -1584,6 +1591,22 @@ function pickPatternColor() {
   for (const c of cands) { const L = lab(c); const d = Math.hypot(L[0] - L0[0], L[1] - L0[1], L[2] - L0[2]); if (d > bd) { bd = d; best = c; } }
   S.patternColor = best.slice();
 }
+// The art under the pad changed (moved/resized): re-read its colours, but keep the user's choices.
+// Each new colour inherits the role of the closest old colour; edited swatches and pad colour stay.
+function recolorFromArt() {
+  const old = { centers: S.quant.centers, roles: S.roles.slice(), colors: S.colors.map(c => c.slice()) };
+  const baseWasAuto = rgb2hex(S.baseColor) === rgb2hex(old.centers[0] || [0, 0, 0]);
+  const oldBase = S.baseColor.slice(), oldPat = S.patternColor.slice();
+  quantizeDesign(false);
+  S.baseColor = oldBase; S.patternColor = oldPat;
+  const near = c => { const L = lab(c); let bi = 0, bd = Infinity; old.centers.forEach((o, i) => { const M = lab(o), d = Math.hypot(L[0] - M[0], L[1] - M[1], L[2] - M[2]); if (d < bd) { bd = d; bi = i; } }); return [bi, bd]; };
+  S.roles = S.quant.centers.map((c, i) => { const [bi, bd] = near(c); return bd < 25 ? old.roles[bi] : S.roles[i]; });
+  S.colors = S.quant.centers.map((c, i) => { const [bi, bd] = near(c); const edited = rgb2hex(old.colors[bi]) !== rgb2hex(old.centers[bi]); return edited && bd < 25 ? old.colors[bi].slice() : c.slice(); });
+  if (baseWasAuto && S.quant.centers[0]) S.baseColor = S.quant.centers[0].slice();
+  S.heights = {};
+  S.chipsFor = null;
+  if (S.step >= 2) { renderChips(); renderBaseSwatches(); renderSurface(); S.chipsFor = S.design; }
+}
 function quantizeDesign(auto) {
   const { d } = smallData(S.design, 360);
   let q;
@@ -1656,12 +1679,13 @@ function build() {
   const id = x.getImageData(0, 0, W, H);
   const labels = PadCore.assignLabels(id.data, W, H, S.quant.centers);
   // cut colors outside the bbox must not sneak in through resampling
-  const roles = S.surface === 'art' || (S.autoMode && S.surface === 'pattern') ? S.roles : S.roles.map(r => r === 'raised' ? 'flat' : r);
+  const roles = S.surface === 'art' || S.surface === 'flush' || (S.autoMode && S.surface === 'pattern') ? S.roles : S.roles.map(r => r === 'raised' ? 'flat' : r);
   const res = PadCore.buildPad({ labels, w: W, h: H, mm }, roles, {
     pad: P.pad, smooth: P.smooth, fillHoles: P.fillHoles, base: P.base, raise: P.raise, round: P.round, detail: P.detail,
-    heights: S.tiered ? tierHeights() : null,
+    heights: S.tiered && S.surface !== 'flush' ? tierHeights() : null,
+    flush: S.surface === 'flush' ? S.flushDepth : 0,
     pockets: S.pockets,
-    pattern: S.surface === 'pattern' ? { type: S.patType, pitch: S.pitch, line: S.pitch * 0.4, angle: S.patAngle || 0 } : null
+    pattern: S.surface === 'pattern' || (S.surface === 'flush' && S.flushGrip) ? { type: S.patType, pitch: S.pitch, line: S.pitch * 0.4, angle: S.patAngle || 0 } : null
   });
   res.grid = { W, H, mm };
   return res;
@@ -1727,7 +1751,8 @@ function drawTopView() {
   if (S.pockets.type !== 'none' || S.roles.includes('hole')) pctx.shadowColor = 'rgba(0,0,0,.18)'; else pctx.shadowColor = 'rgba(0,0,0,.3)';
   pctx.shadowBlur = 26; pctx.shadowOffsetY = 12;
   pctx.drawImage(S.prevBase, ox, oy, W * k, H * k);
-  pctx.shadowColor = 'rgba(0,0,0,.45)'; pctx.shadowBlur = 5; pctx.shadowOffsetY = 2.5;
+  if (S.surface === 'flush') { pctx.shadowColor = 'transparent'; pctx.shadowBlur = 0; pctx.shadowOffsetY = 0; }
+  else { pctx.shadowColor = 'rgba(0,0,0,.45)'; pctx.shadowBlur = 5; pctx.shadowOffsetY = 2.5; }
   pctx.drawImage(S.prevRaised, ox, oy, W * k, H * k);
   pctx.restore();
   // dimension lines around the pad's real extent
@@ -1745,7 +1770,7 @@ function drawTopView() {
   dim([x0, y1 + 28], [x1, y1 + 28], cm(st.width), false);
   dim([x1 + 34, y0], [x1 + 34, y1], cm(st.length), true);
   pctx.font = '12px ui-sans-serif,system-ui,sans-serif'; pctx.textAlign = 'center'; pctx.fillStyle = mut;
-  pctx.fillText('Top view, to scale · ' + (S.result.layers.length > 1 ? 'raised parts are the grip' : 'flat pad'), cx, r.height - 18);
+  pctx.fillText('Top view, to scale · ' + (S.surface === 'flush' ? 'art printed flush with the surface' : S.result.layers.length > 1 ? 'raised parts are the grip' : 'flat pad'), cx, r.height - 18);
 }
 // How the design sits on the photo: design x-axis = across the board, kept reading upright on screen.
 function overlayFrame() {
@@ -1881,9 +1906,12 @@ $('#pkRib').addEventListener('input', e => { S.pockets.rib = +e.target.value; re
 function renderSurface() {
   $$('#surfSeg button').forEach(b => b.classList.toggle('on', b.dataset.s === S.surface));
   $$('#patSeg button').forEach(b => b.classList.toggle('on', b.dataset.p === S.patType));
-  $('#patUI').classList.toggle('hidden', S.surface !== 'pattern');
+  $('#patUI').classList.toggle('hidden', !(S.surface === 'pattern' || (S.surface === 'flush' && S.flushGrip)));
+  $('#flushUI').classList.toggle('hidden', S.surface !== 'flush');
+  $('#flushDepth').value = S.flushDepth; $('#flushOut').textContent = S.flushDepth.toFixed(1) + ' mm (' + Math.round(S.flushDepth / 0.2) + ' layers)';
+  $('#flushGrip').checked = !!S.flushGrip;
   $('#pitch').value = S.pitch; $('#pitchOut').textContent = (S.pitch / 10).toFixed(2).replace(/0$/, '') + ' cm';
-  $('#surfNote').textContent = { pattern: 'The pad takes the shape of your design, with a raised traction pattern on top.', art: 'Colors set to Raised below are printed as raised grip.', plain: 'A flat pad in the shape of your design.' }[S.surface];
+  $('#surfNote').textContent = { pattern: 'The pad takes the shape of your design, with a raised traction pattern on top.', art: 'Colors set to Raised below are printed as raised grip.', flush: 'The art is printed in colour, level with the pad\'s surface. Colours set to Raised below are inlaid; nothing sticks up.', plain: 'A flat pad in the shape of your design.' }[S.surface];
   const box = $('#patSwatches'); box.innerHTML = '';
   const seen = new Set(), list = [];
   const add = c => { const h = rgb2hex(c); if (!seen.has(h)) { seen.add(h); list.push(h); } };
@@ -1896,6 +1924,8 @@ function renderSurface() {
     box.appendChild(b);
   });
 }
+$('#flushDepth').addEventListener('input', e => { S.flushDepth = +e.target.value; renderSurface(); rebuild(); });
+$('#flushGrip').addEventListener('change', e => { S.flushGrip = e.target.checked; renderSurface(); rebuild(true); });
 $('#surfSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.surface = b.dataset.s; renderSurface(); rebuild(true); });
 $('#patSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.patType = b.dataset.p; renderSurface(); rebuild(true); });
 $('#pitch').addEventListener('input', e => { S.pitch = +e.target.value; renderSurface(); rebuild(); });
