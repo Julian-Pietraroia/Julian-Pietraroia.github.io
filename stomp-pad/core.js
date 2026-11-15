@@ -700,15 +700,10 @@
     const T = p.base, R = p.raise;
     const ch = p.round ? Math.min(1.2, T * 0.45) : 0;
     const steps = p.round ? 4 : 0;
-    const baseParts = [];
     const baseShapes = shapesAt(baseField, 0, 1);
-    baseParts.push(extrude(baseShapes, 0, T - ch));
-    for (let s = 1; s <= steps; s++) {
-      const inset = ch * s / steps;
-      const sh = shapesAt(baseField, px(inset), 1);
-      baseParts.push(extrude(sh, T - ch + ch * (s - 1) / steps - 0.01, T - ch + inset));
-    }
-    layers.push({ kind: 'base', color: -1, pos: concat(baseParts) });
+    // flush art: the colours are inlaid into the top `d` mm of the pad, level with its surface
+    const flush = p.flush > 0, d = flush ? Math.min(p.flush, T - 0.4) : 0, zc = T - d;
+    const raisedOrder = [];
 
     // raised pieces must sit fully on the flat top
     const top = ch > 0 ? erode(base, w, h, px(ch + 0.2)) : base;
@@ -728,8 +723,32 @@
       const sh = shapesAt(sdf(m, w, h, Math.min(blur, 1)), 0, 0.3);
       if (!sh.length) return;
       const hc = p.heights && p.heights[c] != null ? p.heights[c] : R;   // per-colour height when stacked
-      layers.push({ kind: 'raised', color: c, h: hc, pos: extrude(sh, T - 0.05, T + hc) });
+      raisedOrder.push(flush ? { kind: 'raised', color: c, h: 0, flush: true, pos: extrude(sh, zc, T) }
+                             : { kind: 'raised', color: c, h: hc, pos: extrude(sh, T - 0.05, T + hc) });
     });
+
+    // the pad body: a full-outline slab, then the rounded-edge steps
+    const slabs = [{ inset: 0, z0: 0, z1: T - ch }];
+    for (let s = 1; s <= steps; s++) slabs.push({ inset: ch * s / steps, z0: T - ch + ch * (s - 1) / steps - 0.01, z1: T - ch + ch * s / steps });
+    const baseParts = [];
+    let cutField = null;
+    if (flush && raisedMasks.length) {
+      const art = new Uint8Array(w * h);
+      for (const rm of raisedMasks) for (let i = 0; i < w * h; i++) if (rm.m[i]) art[i] = 1;
+      cutField = sdf(art, w, h, Math.min(blur, 1));
+    }
+    for (const sl of slabs) {
+      const lvl = px(sl.inset);
+      const lo = sl.inset ? shapesAt(baseField, lvl, 1) : baseShapes;
+      if (!cutField || sl.z1 <= zc) { baseParts.push(extrude(lo, sl.z0, sl.z1)); continue; }
+      if (sl.z0 < zc) baseParts.push(extrude(lo, sl.z0, zc));
+      // above the inlay line: the pad minus the art pockets
+      const f = new Float32Array(w * h);
+      for (let i = 0; i < w * h; i++) f[i] = Math.min(baseField[i] - lvl, -cutField[i]);
+      baseParts.push(extrude(shapesAt(f, 0, 0.3), Math.max(sl.z0, zc), sl.z1));
+    }
+    layers.push({ kind: 'base', color: -1, pos: concat(baseParts) });
+    for (const L of raisedOrder) layers.push(L);
 
     // optional grip pattern across the top (kept off a flat rim)
     if (p.pattern && p.pattern.type === 'spikes') {
@@ -781,7 +800,7 @@
     }
     return {
       layers, base, raisedMasks, pieces: baseShapes.length || pieces,
-      stats: { width: x1 - x0, length: y1 - y0, height: T + (layers.length > 1 ? Math.max(...layers.slice(1).map(L => L.h != null ? L.h : R)) : 0), tris, volume: vol }
+      stats: { width: x1 - x0, length: y1 - y0, height: T + Math.max(0, ...layers.slice(1).map(L => L.flush ? 0 : (L.h != null ? L.h : R))), tris, volume: vol }
     };
   }
 
