@@ -264,6 +264,11 @@ footer a{color:inherit}
           </div>
         </details>
 
+        <label class="toggle hidden" id="shareBox" style="align-items:flex-start;gap:12px">
+          <span style="font-size:13px;color:var(--mut)"><b style="color:var(--ink);font-weight:600">Help improve board detection</b><br>Share this photo and the board's outline. They're used only to train the board detector for a UBC student project. <span id="shareState"></span></span>
+          <input type="checkbox" id="shareOk">
+        </label>
+
         <div class="nav">
           <span></span>
           <button class="btn pri" id="next0" disabled>Continue</button>
@@ -635,7 +640,7 @@ wireDrop($('#boardDrop'), $('#boardFile'), async f => {
 });
 $('#boardLen').addEventListener('input', () => { S.board.lengthCm = +$('#boardLen').value || 0; measureChanged(); });
 $('#waistManual').addEventListener('input', () => { const v = +$('#waistManual').value * 10; S.board.manual = v >= 150 && v <= 350 ? v : null; measureChanged(); });
-$('#resetPts').addEventListener('click', () => { S.board.mode = 'manual'; S.board.pts = []; S.board.outline = null; measureChanged(); });
+$('#resetPts').addEventListener('click', () => { S.board.mode = 'manual'; S.board.pts = []; S.board.outline = null; S.board.edited = true; measureChanged(); });
 $('#autoAgain').addEventListener('click', () => { S.board.mode = 'auto'; runDetect(null); });
 
 // Find the board in the photo (core.detectBoard) and place the four points + outline.
@@ -648,22 +653,62 @@ function runDetect(seedImg) {
     const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, c.width, c.height);
     const d = x.getImageData(0, 0, c.width, c.height);
     let r = null;
-    try { r = PadCore.detectBoard(d.data, c.width, c.height, seedImg ? [seedImg[0] * sc, seedImg[1] * sc] : null); } catch (e) { console.error(e); }
+    try {
+      let mask = null;
+      if (S.model && !seedImg) { try { mask = PadCore.boardMaskFromModel(S.model, d.data, c.width, c.height); } catch (e) { console.error(e); } }
+      r = PadCore.detectBoard(d.data, c.width, c.height, seedImg ? [seedImg[0] * sc, seedImg[1] * sc] : null, { mask });
+    } catch (e) { console.error(e); }
     S.board.detecting = false;
     if (r) {
       const up = q => [q[0] / sc, q[1] / sc];
       S.board.pts = [up(r.nose), up(r.tail), up(r.edgeA), up(r.edgeB)];
       S.board.outline = r.outline.map(up);
-      S.board.found = true;
+      S.board.found = true; S.board.edited = false;
+      S.board.auto = { pts: S.board.pts.map(q => q.slice()), outline: S.board.outline.map(q => q.slice()), method: r.method, waistMm: null };
     } else {
       S.board.found = false;
       if (!seedImg) { S.board.pts = []; S.board.outline = null; }
     }
     S.crop = null; S.place = null;
     measureChanged();
+    if (r && S.board.auto) S.board.auto.waistMm = S.board.waist;
   }, 30);
 }
-$('#next0').addEventListener('click', () => go(1));
+$('#next0').addEventListener('click', () => { maybeShare(); go(1); });
+
+// ---------- dataset collection (opt-in) and trained board model
+// Paste the Google Apps Script web-app URL here (see data/README.md). Empty = sharing is off.
+const DATA_ENDPOINT = '';
+const DETECTOR_VERSION = 'colour-v3';
+$('#shareBox').classList.toggle('hidden', !DATA_ENDPOINT);
+try { $('#shareOk').checked = localStorage.getItem('stompShare') === '1'; } catch (e) {}
+$('#shareOk').addEventListener('change', e => { try { localStorage.setItem('stompShare', e.target.checked ? '1' : '0'); } catch (er) {} });
+// outline built from the four points (used once the user has corrected them)
+function polyFromPts() { const o = S.board.outline; S.board.outline = null; const r = boardPoly(); S.board.outline = o; return r; }
+function maybeShare() {
+  if (!DATA_ENDPOINT || !$('#shareOk').checked || !S.board.img || S.board.pts.length < 4 || S.board.shared === S.board.img) return;
+  S.board.shared = S.board.img;
+  const img = S.board.img, sc = Math.min(1, 1024 / Math.max(img.width, img.height));
+  const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  const nrm = q => [+(q[0] / img.width).toFixed(5), +(q[1] / img.height).toFixed(5)];
+  const finalOutline = S.board.edited || !S.board.outline ? polyFromPts() : S.board.outline;
+  const A = S.board.auto;
+  const body = {
+    v: 1, detector: DETECTOR_VERSION, method: A ? A.method : 'none',
+    image: c.toDataURL('image/jpeg', 0.85).split(',')[1], imgW: c.width, imgH: c.height,
+    lengthCm: S.board.lengthCm, waistMm: Math.round(effectiveWaist() || 0), manualWaist: !!S.board.manual,
+    corrected: !!S.board.edited,
+    final: { nose: nrm(S.board.pts[0]), tail: nrm(S.board.pts[1]), edgeA: nrm(S.board.pts[2]), edgeB: nrm(S.board.pts[3]), outline: finalOutline.map(nrm) },
+    auto: A ? { nose: nrm(A.pts[0]), tail: nrm(A.pts[1]), edgeA: nrm(A.pts[2]), edgeB: nrm(A.pts[3]), outline: A.outline.map(nrm), waistMm: Math.round(A.waistMm) } : null
+  };
+  $('#shareState').textContent = '· Sending…';
+  fetch(DATA_ENDPOINT, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
+    .then(() => { $('#shareState').textContent = '· Thanks, shared ✓'; })
+    .catch(() => { $('#shareState').textContent = '· Couldn\'t send this time'; S.board.shared = null; });
+}
+// a trained board model, if one has been published to model/board-model.json
+fetch('model/board-model.json').then(r => r.ok ? r.json() : null).then(j => { if (j) { S.model = PadCore.loadBoardModel(j); console.log('Board model loaded', S.model.version); } }).catch(() => {});
 
 function axis() {
   const [n, t] = S.board.pts;
@@ -697,7 +742,7 @@ function measureChanged() {
   if (auto) {
     const msg = $('#detectMsg'), sub = $('#detectSub');
     if (S.board.detecting) { msg.innerHTML = '<b>Finding your board…</b>'; sub.textContent = ''; }
-    else if (S.board.found && P.length === 4) { msg.innerHTML = '<b style="color:var(--ok)">✓ Found your board</b>'; sub.textContent = 'Not quite right? Tap on your board to search again from that spot, or drag the points.'; }
+    else if (S.board.found && P.length === 4) { msg.innerHTML = '<b style="color:var(--ok)">✓ Found your board</b>' + (S.board.auto && S.board.auto.method === 'model' ? ' <span class="note" style="display:inline">· trained model</span>' : ''); sub.textContent = 'Not quite right? Tap on your board to search again from that spot, or drag the points.'; }
     else { msg.innerHTML = '<b style="color:var(--warn)">Couldn\'t find the board automatically</b>'; sub.textContent = 'Tap on your board to help, or mark it by hand below.'; }
   }
   $('#dragNote').classList.toggle('hidden', !S.board.img || S.board.detecting);
@@ -887,7 +932,12 @@ photo.addEventListener('pointermove', e => {
     S.zoneC = [Math.max(0, Math.min(S.rect.W, drag.orig[0] + X - drag.start[0])), Math.max(0, Math.min(S.rect.H, drag.orig[1] + Y - drag.start[1]))];
     drawPhoto(); return;
   }
-  if (drag.kind === 'pt') { S.board.pts[drag.i] = clampImg(p); measureChanged(); }
+  if (drag.kind === 'pt') {
+    S.board.pts[drag.i] = clampImg(p);
+    // a corrected point means the detected outline no longer fits: rebuild it from the points
+    S.board.edited = true; S.board.outline = null;
+    measureChanged();
+  }
   else if (drag.kind === 'crop') {
     const q = clampImg(p);
     S.crop = { x0: Math.min(drag.a[0], q[0]), y0: Math.min(drag.a[1], q[1]), x1: Math.max(drag.a[0], q[0]), y1: Math.max(drag.a[1], q[1]) };

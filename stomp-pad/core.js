@@ -879,12 +879,13 @@
   /* Find a snowboard in a photo. data: RGBA of a downscaled photo (long side ~400).
    * seed: optional [x,y] the user tapped. Returns null or
    * {nose, tail, edgeA, edgeB, waistPx, lengthPx, outline:[[x,y]...], score} in the same pixel space. */
-  function detectBoard(data, w, h, seed) {
+  function detectBoard(data, w, h, seed, opts) {
+    opts = opts || {};
     const N = w * h;
     let [L, A, B] = toLab(data, N);
     L = median3(median3(L, w, h), w, h); A = median3(median3(A, w, h), w, h); B = median3(median3(B, w, h), w, h);
     const wc = 3;
-    function analyze(sx, sy, thr, Lw) {
+    function analyze(sx, sy, thr, Lw, maskIn) {
       const vals = [[], [], []];
       for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
         const x = Math.min(w - 1, Math.max(0, sx + dx)), y = Math.min(h - 1, Math.max(0, sy + dy)), i = y * w + x;
@@ -892,10 +893,13 @@
       }
       const c = vals.map(v => v.sort((a, b) => a - b)[12]);
       let m = new Uint8Array(N);
-      const t2 = thr * thr;
-      for (let i = 0; i < N; i++) {
-        const dl = L[i] - c[0], da = A[i] - c[1], db = B[i] - c[2];
-        m[i] = Lw * dl * dl + wc * (da * da + db * db) < t2 ? 1 : 0;
+      if (maskIn) m = maskIn.slice();   // the trained model's board mask
+      else {
+        const t2 = thr * thr;
+        for (let i = 0; i < N; i++) {
+          const dl = L[i] - c[0], da = A[i] - c[1], db = B[i] - c[2];
+          m[i] = Lw * dl * dl + wc * (da * da + db * db) < t2 ? 1 : 0;
+        }
       }
       m = open(m, w, h, 1);
       const { lab, sizes, n } = labelComponents(m, w, h);
@@ -998,7 +1002,22 @@
     }
     let best = null;
     const tryOne = (x, y, thr, Lw = 1) => { const r = analyze(x, y, thr, Lw); if (r && r.score > 0 && (!best || r.score > best.score)) best = r; };
-    if (seed) {
+    let method = 'colour';
+    if (opts.mask && !seed) {
+      // seed the measurement inside the largest piece of the model's mask
+      const { lab, sizes } = labelComponents(open(opts.mask, w, h, 1), w, h);
+      let k = 0; for (let j = 1; j < sizes.length; j++) if (sizes[j] > (sizes[k] || 0)) k = j;
+      if (k && sizes[k] > 0.01 * N) {
+        let sx = 0, sy = 0, cnt = 0, pick = -1, pd = Infinity;
+        for (let i = 0; i < N; i++) if (lab[i] === k) { sx += i % w; sy += (i / w) | 0; cnt++; }
+        sx /= cnt; sy /= cnt;
+        for (let i = 0; i < N; i++) if (lab[i] === k) { const d = (i % w - sx) ** 2 + (((i / w) | 0) - sy) ** 2; if (d < pd) { pd = d; pick = i; } }
+        const r = analyze(pick % w, (pick / w) | 0, 0, 1, opts.mask);
+        if (r && r.score > 0) { best = r; method = 'model'; }
+      }
+    }
+    if (best) { /* model found it */ }
+    else if (seed) {
       const sx = Math.round(seed[0]), sy = Math.round(seed[1]);
       for (const thr of [8, 12, 18, 24]) tryOne(sx, sy, thr);
       for (const thr of [10, 16, 24]) tryOne(sx, sy, thr, 0.2);   // lighting changes: mostly ignore brightness
@@ -1030,7 +1049,7 @@
     return {
       nose: at(a0, off), tail: at(a1, off),
       edgeA: at(mid, off - waist / 2), edgeB: at(mid, off + waist / 2),
-      waistPx: waist, lengthPx: Lp, outline, score: best.score
+      waistPx: waist, lengthPx: Lp, outline, score: best.score, method
     };
   }
 
@@ -1066,7 +1085,99 @@
     return out;
   }
 
+  // ------------------------------------------------------- board model (tiny U-Net)
+  // Weights come from the training notebook (data/train_board_model.ipynb) as JSON with base64
+  // float32 arrays. BatchNorm is folded into the convs at export. The layout matches the
+  // notebook's NumPy reference exactly: CHW tensors, 3x3 convs with padding 1, ReLU, 2x2 max
+  // pool, nearest 2x upsample, skip concatenation [upsampled, skip].
+  function b64f32(s) {
+    const bin = typeof atob === 'function' ? atob(s) : Buffer.from(s, 'base64').toString('binary');
+    const u8 = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    return new Float32Array(u8.buffer);
+  }
+  function loadBoardModel(json) {
+    const L = {};
+    for (const [k, v] of Object.entries(json.layers)) L[k] = { w: b64f32(v.w), b: b64f32(v.b), shape: v.shape };
+    return { size: json.size, mean: json.mean, std: json.std, ch: json.ch, layers: L, version: json.version || '' };
+  }
+  function conv(x, C, H, W, layer, relu) {
+    const [O, I, K] = layer.shape, w = layer.w, b = layer.b, out = new Float32Array(O * H * W), r = K >> 1, HW = H * W;
+    for (let o = 0; o < O; o++) {
+      const ob = o * HW;
+      out.fill(b[o], ob, ob + HW);
+      for (let i = 0; i < I; i++) {
+        const ib = i * HW, wb = (o * I + i) * K * K;
+        for (let ky = 0; ky < K; ky++) for (let kx = 0; kx < K; kx++) {
+          const wv = w[wb + ky * K + kx]; if (wv === 0) continue;
+          const dy = ky - r, dx = kx - r;
+          const y0 = Math.max(0, -dy), y1 = Math.min(H, H - dy), x0 = Math.max(0, -dx), x1 = Math.min(W, W - dx);
+          for (let y = y0; y < y1; y++) {
+            const orow = ob + y * W, irow = ib + (y + dy) * W + dx;
+            for (let xx = x0; xx < x1; xx++) out[orow + xx] += wv * x[irow + xx];
+          }
+        }
+      }
+    }
+    if (relu) for (let i = 0; i < out.length; i++) if (out[i] < 0) out[i] = 0;
+    return out;
+  }
+  function pool2(x, C, H, W) {
+    const h = H >> 1, w = W >> 1, o = new Float32Array(C * h * w);
+    for (let c = 0; c < C; c++) for (let y = 0; y < h; y++) for (let xx = 0; xx < w; xx++) {
+      const i = c * H * W + 2 * y * W + 2 * xx;
+      o[c * h * w + y * w + xx] = Math.max(x[i], x[i + 1], x[i + W], x[i + W + 1]);
+    }
+    return o;
+  }
+  function upcat(x, C, h, w, skip, Cs) {   // nearest 2x upsample of x, then concat skip -> (C+Cs, 2h, 2w)
+    const H = h * 2, W = w * 2, o = new Float32Array((C + Cs) * H * W);
+    for (let c = 0; c < C; c++) for (let y = 0; y < H; y++) for (let xx = 0; xx < W; xx++) o[c * H * W + y * W + xx] = x[c * h * w + (y >> 1) * w + (xx >> 1)];
+    o.set(skip, C * H * W);
+    return o;
+  }
+  // input: Float32Array 3*S*S (already normalised). Returns probabilities S*S.
+  function boardModelForward(M, x) {
+    const S = M.size, [c1, c2, c3, c4] = M.ch, L = M.layers;
+    let e1 = conv(conv(x, 3, S, S, L.enc1a, true), c1, S, S, L.enc1b, true);
+    let p = pool2(e1, c1, S, S);
+    let e2 = conv(conv(p, c1, S / 2, S / 2, L.enc2a, true), c2, S / 2, S / 2, L.enc2b, true);
+    p = pool2(e2, c2, S / 2, S / 2);
+    let e3 = conv(conv(p, c2, S / 4, S / 4, L.enc3a, true), c3, S / 4, S / 4, L.enc3b, true);
+    p = pool2(e3, c3, S / 4, S / 4);
+    let bt = conv(conv(p, c3, S / 8, S / 8, L.botta, true), c4, S / 8, S / 8, L.bottb, true);
+    let d = upcat(bt, c4, S / 8, S / 8, e3, c3);
+    d = conv(conv(d, c4 + c3, S / 4, S / 4, L.dec3a, true), c3, S / 4, S / 4, L.dec3b, true);
+    d = upcat(d, c3, S / 4, S / 4, e2, c2);
+    d = conv(conv(d, c3 + c2, S / 2, S / 2, L.dec2a, true), c2, S / 2, S / 2, L.dec2b, true);
+    d = upcat(d, c2, S / 2, S / 2, e1, c1);
+    d = conv(conv(d, c2 + c1, S, S, L.dec1a, true), c1, S, S, L.dec1b, true);
+    const lo = conv(d, c1, S, S, L.out, false), pr = new Float32Array(S * S);
+    for (let i = 0; i < S * S; i++) pr[i] = 1 / (1 + Math.exp(-lo[i]));
+    return pr;
+  }
+  // RGBA image (any size) -> board mask at the same size, via a letterboxed SxS pass.
+  function boardMaskFromModel(M, data, w, h) {
+    const S = M.size, k = S / Math.max(w, h), iw = Math.max(1, Math.round(w * k)), ih = Math.max(1, Math.round(h * k));
+    const x = new Float32Array(3 * S * S);   // padding = mean colour -> 0 after normalisation
+    for (let y = 0; y < ih; y++) for (let xx = 0; xx < iw; xx++) {
+      // box-average the source pixels that fall in this cell
+      const sx0 = Math.floor(xx / k), sx1 = Math.max(sx0 + 1, Math.floor((xx + 1) / k)), sy0 = Math.floor(y / k), sy1 = Math.max(sy0 + 1, Math.floor((y + 1) / k));
+      let r = 0, g = 0, b = 0, n = 0;
+      for (let sy = sy0; sy < Math.min(h, sy1); sy++) for (let sx = sx0; sx < Math.min(w, sx1); sx++) { const i = (sy * w + sx) * 4; r += data[i]; g += data[i + 1]; b += data[i + 2]; n++; }
+      const v = [r / n / 255, g / n / 255, b / n / 255];
+      for (let c = 0; c < 3; c++) x[c * S * S + y * S + xx] = (v[c] - M.mean[c]) / M.std[c];
+    }
+    const pr = boardModelForward(M, x), mask = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) for (let xx = 0; xx < w; xx++) {
+      const sx = Math.min(S - 1, Math.floor(xx * k)), sy = Math.min(S - 1, Math.floor(y * k));
+      mask[y * w + xx] = pr[sy * S + sx] > 0.5 ? 1 : 0;
+    }
+    return mask;
+  }
+
   const api = {
+    loadBoardModel, boardModelForward, boardMaskFromModel,
     patternMask, to3MF, crc32,
     quantize, assignLabels, edt, dilate, erode, open, close, fillHoles, removeSmall, sdf,
     contours, simplifyClosed, detectBoard, median3, toLab, signedArea, buildShapes, triangulate, extrude, normals, volume,
