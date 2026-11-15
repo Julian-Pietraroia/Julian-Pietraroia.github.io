@@ -1176,7 +1176,51 @@
     return mask;
   }
 
+  // ------------------------------------------------------------- YOLO-seg (ONNX)
+  // Letterbox an RGBA image into a 1x3xSxS float tensor the way Ultralytics expects (RGB, 0..1,
+  // grey 114 padding). The image sits at the top-left; k maps image px -> model px.
+  function yoloInput(data, w, h, S) {
+    const k = S / Math.max(w, h), iw = Math.round(w * k), ih = Math.round(h * k), t = new Float32Array(3 * S * S).fill(114 / 255);
+    for (let y = 0; y < ih; y++) for (let x = 0; x < iw; x++) {
+      const sx = Math.min(w - 1, Math.floor(x / k)), sy = Math.min(h - 1, Math.floor(y / k)), i = (sy * w + sx) * 4;
+      for (let c = 0; c < 3; c++) t[c * S * S + y * S + x] = data[i + c] / 255;
+    }
+    return { tensor: t, k };
+  }
+  /* Turn raw YOLO-seg outputs into a board mask at the image size.
+   * out0: [1, 4+nc+32, N] (cx, cy, w, h in model px, class scores, mask coefficients)
+   * protos: [1, 32, S/4, S/4]. Picks the best detection among boardClasses. */
+  function yoloBoardMask(out0, d0, protos, dp, cfg, w, h, k) {
+    const C = d0[1], N = d0[2], nm = dp[1], nc = C - 4 - nm, ph = dp[2], pw = dp[3], S = cfg.imgsz, ps = pw / S;
+    let best = -1, bs = cfg.conf == null ? 0.2 : cfg.conf, bc = -1;
+    for (let n = 0; n < N; n++) for (const c of cfg.boardClasses) {
+      if (c >= nc) continue;
+      const sc = out0[(4 + c) * N + n];
+      if (sc > bs) { bs = sc; best = n; bc = c; }
+    }
+    if (best < 0) return null;
+    const cx = out0[best], cy = out0[N + best], bw = out0[2 * N + best], bh = out0[3 * N + best];
+    const x0 = (cx - bw / 2) * ps, x1 = (cx + bw / 2) * ps, y0 = (cy - bh / 2) * ps, y1 = (cy + bh / 2) * ps;
+    const coef = new Float32Array(nm);
+    for (let j = 0; j < nm; j++) coef[j] = out0[(4 + nc + j) * N + best];
+    // mask on the prototype grid, cropped to the box
+    const pm = new Uint8Array(ph * pw), P = ph * pw;
+    for (let y = Math.max(0, Math.floor(y0)); y < Math.min(ph, Math.ceil(y1)); y++)
+      for (let x = Math.max(0, Math.floor(x0)); x < Math.min(pw, Math.ceil(x1)); x++) {
+        let v = 0; const i = y * pw + x;
+        for (let j = 0; j < nm; j++) v += coef[j] * protos[j * P + i];
+        pm[i] = v > 0 ? 1 : 0;   // sigmoid(v) > 0.5
+      }
+    const mask = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const gx = Math.min(pw - 1, Math.floor(x * k * ps)), gy = Math.min(ph - 1, Math.floor(y * k * ps));
+      mask[y * w + x] = pm[gy * pw + gx];
+    }
+    return { mask, score: bs, cls: bc };
+  }
+
   const api = {
+    yoloInput, yoloBoardMask,
     loadBoardModel, boardModelForward, boardMaskFromModel,
     patternMask, to3MF, crc32,
     quantize, assignLabels, edt, dilate, erode, open, close, fillHoles, removeSmall, sdf,
