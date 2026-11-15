@@ -38,6 +38,17 @@ To collect quickly, photograph as many different boards as you can (friends, a s
 
 ## 2. Train
 
+### Option A: YOLO (recommended)
+
+[`train_yolo_board.ipynb`](train_yolo_board.ipynb) uses Ultralytics YOLOv8-seg, which is trained on COCO and already knows the class *snowboard*.
+
+- **Part A, run today:** exports the stock model as `board-yolo.onnx` + `yolo.json`. Put both in `stomp-pad/model/` and the site uses YOLO straight away. It loads onnxruntime-web from jsdelivr only when a model is there.
+- **Part B, run once photos are collected:** fine-tunes on the shared boards, then compares the fine-tuned YOLO, the stock YOLO and the colour detector (IoU and how often the board was found). Export it the same way.
+
+YOLO is AGPL-3.0; this repo is public, which satisfies it.
+
+### Option B: tiny U-Net (no dependencies)
+
 Open [`train_board_model.ipynb`](train_board_model.ipynb) in Google Colab (*File → Upload notebook*, or open it from GitHub) and run all cells. It:
 
 - loads the Drive folder and shows the labelled outlines;
@@ -50,4 +61,7 @@ Train once you have at least ~30 boards; more than 100 is better.
 
 ## 3. Deploy the model
 
-Put the file at `stomp-pad/model/board-model.json` and push. The site picks it up automatically. It shows "trained model" when the network found the board, and falls back to the colour detector when it can't.
+- **YOLO:** `stomp-pad/model/board-yolo.onnx` + `stomp-pad/model/yolo.json`.
+- **U-Net:** `stomp-pad/model/board-model.json`.
+
+Push. The site picks it up automatically. It shows "trained model" when the network found the board, and falls back to the colour detector when it can't.

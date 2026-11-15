@@ -647,7 +647,7 @@ $('#autoAgain').addEventListener('click', () => { S.board.mode = 'auto'; runDete
 function runDetect(seedImg) {
   const img = S.board.img; if (!img) return;
   S.board.detecting = true; S.board.mode = 'auto'; measureChanged();
-  setTimeout(() => {
+  setTimeout(async () => {
     const sc = Math.min(1, 320 / Math.max(img.width, img.height));
     const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
     const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, c.width, c.height);
@@ -655,8 +655,11 @@ function runDetect(seedImg) {
     let r = null;
     try {
       let mask = null;
-      if (S.model && !seedImg) { try { mask = PadCore.boardMaskFromModel(S.model, d.data, c.width, c.height); } catch (e) { console.error(e); } }
+      let fromYolo = false;
+      if (S.yolo && !seedImg) { try { mask = await yoloMask(d.data, c.width, c.height); fromYolo = !!mask; } catch (e) { console.error(e); } }
+      if (!mask && S.model && !seedImg) { try { mask = PadCore.boardMaskFromModel(S.model, d.data, c.width, c.height); } catch (e) { console.error(e); } }
       r = PadCore.detectBoard(d.data, c.width, c.height, seedImg ? [seedImg[0] * sc, seedImg[1] * sc] : null, { mask });
+      if (r && r.method === 'model' && fromYolo) r.method = 'yolo';
     } catch (e) { console.error(e); }
     S.board.detecting = false;
     if (r) {
@@ -707,6 +710,32 @@ function maybeShare() {
     .then(() => { $('#shareState').textContent = '· Thanks, shared ✓'; })
     .catch(() => { $('#shareState').textContent = '· Couldn\'t send this time'; S.board.shared = null; });
 }
+// A YOLO segmentation model (ONNX), if one has been published: model/yolo.json says which file and
+// which classes count as a board (COCO 'snowboard' = 31 for the stock model, 0 for a fine-tuned one).
+// onnxruntime-web is only downloaded when a model is actually there.
+const ORT_URL = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
+fetch('model/yolo.json').then(r => r.ok ? r.json() : null).then(cfg => {
+  if (!cfg) return;
+  const sc = document.createElement('script'); sc.src = ORT_URL + 'ort.min.js';
+  sc.onload = async () => {
+    try {
+      ort.env.wasm.wasmPaths = ORT_URL;
+      const sess = await ort.InferenceSession.create('model/' + cfg.file, { executionProviders: ['wasm'] });
+      S.yolo = { cfg, sess };
+      console.log('YOLO board model loaded', cfg.version || cfg.file);
+      if (S.board.img && !S.board.detecting && S.board.mode === 'auto' && !S.board.edited) runDetect(null);   // photo already up: redo with the model
+    } catch (e) { console.error('YOLO model failed to load', e); }
+  };
+  document.head.appendChild(sc);
+}).catch(() => {});
+async function yoloMask(data, w, h) {
+  const { cfg, sess } = S.yolo, Sz = cfg.imgsz;
+  const { tensor, k } = PadCore.yoloInput(data, w, h, Sz);
+  const out = await sess.run({ [sess.inputNames[0]]: new ort.Tensor('float32', tensor, [1, 3, Sz, Sz]) });
+  const o0 = out[sess.outputNames[0]], o1 = out[sess.outputNames[1]];
+  const r = PadCore.yoloBoardMask(o0.data, o0.dims, o1.data, o1.dims, cfg, w, h, k);
+  return r ? r.mask : null;
+}
 // a trained board model, if one has been published to model/board-model.json
 fetch('model/board-model.json').then(r => r.ok ? r.json() : null).then(j => { if (j) { S.model = PadCore.loadBoardModel(j); console.log('Board model loaded', S.model.version); } }).catch(() => {});
 
@@ -742,7 +771,7 @@ function measureChanged() {
   if (auto) {
     const msg = $('#detectMsg'), sub = $('#detectSub');
     if (S.board.detecting) { msg.innerHTML = '<b>Finding your board…</b>'; sub.textContent = ''; }
-    else if (S.board.found && P.length === 4) { msg.innerHTML = '<b style="color:var(--ok)">✓ Found your board</b>' + (S.board.auto && S.board.auto.method === 'model' ? ' <span class="note" style="display:inline">· trained model</span>' : ''); sub.textContent = 'Not quite right? Tap on your board to search again from that spot, or drag the points.'; }
+    else if (S.board.found && P.length === 4) { msg.innerHTML = '<b style="color:var(--ok)">✓ Found your board</b>' + (S.board.auto && (S.board.auto.method === 'model' || S.board.auto.method === 'yolo') ? ` <span class="note" style="display:inline">· ${S.board.auto.method === 'yolo' ? 'YOLO' : 'trained model'}</span>` : ''); sub.textContent = 'Not quite right? Tap on your board to search again from that spot, or drag the points.'; }
     else { msg.innerHTML = '<b style="color:var(--warn)">Couldn\'t find the board automatically</b>'; sub.textContent = 'Tap on your board to help, or mark it by hand below.'; }
   }
   $('#dragNote').classList.toggle('hidden', !S.board.img || S.board.detecting);
