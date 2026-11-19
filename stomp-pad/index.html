@@ -35,13 +35,14 @@ output,details.row>summary .val,.chip .meta span{font-variant-numeric:tabular-nu
 .topbar{display:flex;align-items:stretch;gap:24px;padding:0 20px;height:56px;border-bottom:1px solid var(--line);background:var(--panel)}
 .wordmark{display:flex;align-items:center;font-weight:650;font-size:15px;letter-spacing:-.02em;white-space:nowrap}
 .wordmark i{font-style:normal;color:var(--brand)}
-.steps{display:flex;gap:2px;overflow-x:auto}
+.steps{display:flex;gap:2px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.steps::-webkit-scrollbar{display:none}
 .step{position:relative;border:0;background:none;padding:0 12px;font-size:13.5px;color:var(--mut);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:7px}
 .step .n{font-family:var(--mono);font-size:11px;color:var(--faint)}
 .step:hover:not(:disabled){color:var(--ink)}
 .step.on{color:var(--ink);font-weight:600}
 .step.on .n{color:var(--brand)}
-.step.on::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;background:var(--brand)}
+.step.on::after{content:"";position:absolute;left:12px;right:12px;bottom:0;height:2px;background:var(--brand)}
 .step.done{color:var(--ink)}
 .step:disabled{opacity:.4;cursor:not-allowed}
 .by{margin-left:auto;display:flex;align-items:center;font-size:13px;color:var(--mut);text-decoration:none;white-space:nowrap}
