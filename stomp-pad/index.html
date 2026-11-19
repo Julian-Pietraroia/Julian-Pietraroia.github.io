@@ -983,8 +983,9 @@ function applyBoardTheme() {
   };
   const t = Math.min(1, C / 60);                      // how strongly the greys lean toward the board's hue
   const bl = brand('light'), bd = brand('dark');
-  el.textContent = `:root{--brand:${bl.c};--brand-ink:${bl.ink};--hi:${bl.c};--bg:${hx(97, 1.6 * t)};--stage:${hx(93, 3 * t)};--line:${hx(90.5, 3.5 * t)};--soft:${hx(95.5, 2.4 * t)};--mut:${hx(47, 5 * t)};--faint:${hx(68, 4 * t)};--ink:${hx(11, 3 * t)}}
-@media (prefers-color-scheme:dark){:root{--brand:${bd.c};--brand-ink:${bd.ink};--hi:${bd.c};--bg:${hx(5, 2.5 * t)};--panel:${hx(7.5, 3 * t)};--stage:${hx(3.5, 2.5 * t)};--line:${hx(16.5, 4 * t)};--soft:${hx(11.5, 4 * t)};--mut:${hx(61, 5 * t)};--faint:${hx(38, 4 * t)};--ink:${hx(93, 1.5 * t)}}}`;
+  const hi = rgb2hex(lch2rgb(Math.max(68, Math.min(88, a.L)), C, h));   // drawn over the photo: light enough for dark boards
+  el.textContent = `:root{--brand:${bl.c};--brand-ink:${bl.ink};--hi:${hi};--bg:${hx(97, 1.6 * t)};--stage:${hx(93, 3 * t)};--line:${hx(90.5, 3.5 * t)};--soft:${hx(95.5, 2.4 * t)};--mut:${hx(47, 5 * t)};--faint:${hx(68, 4 * t)};--ink:${hx(11, 3 * t)}}
+@media (prefers-color-scheme:dark){:root{--brand:${bd.c};--brand-ink:${bd.ink};--hi:${hi};--bg:${hx(5, 2.5 * t)};--panel:${hx(7.5, 3 * t)};--stage:${hx(3.5, 2.5 * t)};--line:${hx(16.5, 4 * t)};--soft:${hx(11.5, 4 * t)};--mut:${hx(61, 5 * t)};--faint:${hx(38, 4 * t)};--ink:${hx(93, 1.5 * t)}}}`;
   updateThemeChip();
 }
 function updateThemeChip() {
@@ -1028,8 +1029,8 @@ function drawPhoto() {
     pctx.beginPath(); pctx.rect(view.ox, view.oy, img.width * view.s, img.height * view.s);
     O.forEach((q, i) => i ? pctx.lineTo(q[0], q[1]) : pctx.moveTo(q[0], q[1])); pctx.closePath();
     pctx.fill('evenodd');
-    pctx.strokeStyle = acc; pctx.lineWidth = 2.5;
-    pctx.beginPath(); O.forEach((q, i) => i ? pctx.lineTo(q[0], q[1]) : pctx.moveTo(q[0], q[1])); pctx.closePath(); pctx.stroke();
+    pctx.strokeStyle = acc; pctx.lineWidth = 2.5; pctx.lineJoin = 'round';
+    pctx.beginPath(); O.forEach((q, i) => i ? pctx.lineTo(q[0], q[1]) : pctx.moveTo(q[0], q[1])); pctx.closePath(); haloStroke();
   }
   if (S.step === 0 && S.board.detecting) label('Finding your board…', [view.ox + img.width * view.s / 2, view.oy + 24], 'rgba(20,22,26,.85)');
   if (S.step === 0) {
@@ -1070,9 +1071,18 @@ function drawPhoto() {
 
   if (S.step >= 2 && S.view === 'board' && S.preview && S.board.pts.length >= 2) drawPadOnBoard();
 }
-function line(a, b) { pctx.beginPath(); pctx.moveTo(a[0], a[1]); pctx.lineTo(b[0], b[1]); pctx.stroke(); }
+function line(a, b) { pctx.beginPath(); pctx.moveTo(a[0], a[1]); pctx.lineTo(b[0], b[1]); haloStroke(); }
+// Stroke the current path twice: a dark band a little wider, then the colour on top.
+// Bright boards see the dark band, dark boards see the (always light enough) colour.
+const HALO = 'rgba(8,8,10,.72)';
+function haloStroke(extra = 3) {
+  const col = pctx.strokeStyle, w = pctx.lineWidth;
+  pctx.save(); pctx.strokeStyle = HALO; pctx.lineWidth = w + extra; pctx.lineJoin = 'round'; pctx.stroke(); pctx.restore();
+  pctx.strokeStyle = col; pctx.lineWidth = w; pctx.stroke();
+}
 function handle(q, col, name) {
   pctx.fillStyle = 'rgba(0,0,0,.35)'; pctx.beginPath(); pctx.arc(q[0], q[1] + 1, 10, 0, 7); pctx.fill();
+  pctx.fillStyle = HALO; pctx.beginPath(); pctx.arc(q[0], q[1], 12, 0, 7); pctx.fill();
   pctx.fillStyle = col; pctx.beginPath(); pctx.arc(q[0], q[1], 9, 0, 7); pctx.fill();
   pctx.strokeStyle = '#fff'; pctx.lineWidth = 2.5; pctx.stroke();
   pctx.fillStyle = col === '#fff' ? '#14161a' : '#fff'; pctx.beginPath(); pctx.arc(q[0], q[1], 2.5, 0, 7); pctx.fill();
@@ -1081,8 +1091,9 @@ function handle(q, col, name) {
 function label(t, q, bg) {
   pctx.font = '500 11.5px "Geist Mono",ui-monospace,Menlo,monospace';
   const w = pctx.measureText(t).width + 14;
+  pctx.fillStyle = HALO; roundRect(q[0] - w / 2 - 1.5, q[1] - 12.5, w + 3, 25, 5); pctx.fill();
   pctx.fillStyle = bg; roundRect(q[0] - w / 2, q[1] - 11, w, 22, 4); pctx.fill();
-  pctx.fillStyle = '#fff'; pctx.textAlign = 'center'; pctx.textBaseline = 'middle'; pctx.fillText(t, q[0], q[1] + 0.5);
+  pctx.fillStyle = /^#[0-9a-f]{6}$/i.test(bg) && relLum(hex2rgb(bg)) > 0.36 ? '#141416' : '#fff'; pctx.textAlign = 'center'; pctx.textBaseline = 'middle'; pctx.fillText(t, q[0], q[1] + 0.5);
 }
 function roundRect(x, y, w, h, r) { pctx.beginPath(); pctx.moveTo(x + r, y); pctx.arcTo(x + w, y, x + w, y + h, r); pctx.arcTo(x + w, y + h, x, y + h, r); pctx.arcTo(x, y + h, x, y, r); pctx.arcTo(x, y, x + w, y, r); pctx.closePath(); }
 
@@ -1699,7 +1710,7 @@ function drawRectView() {
     pctx.beginPath();
     if (S.padShape === 'oval') pctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2);
     else { const r = Math.min(w, h) * 0.22; pctx.moveTo(cx - w / 2 + r, cy - h / 2); pctx.arcTo(cx + w / 2, cy - h / 2, cx + w / 2, cy + h / 2, r); pctx.arcTo(cx + w / 2, cy + h / 2, cx - w / 2, cy + h / 2, r); pctx.arcTo(cx - w / 2, cy + h / 2, cx - w / 2, cy - h / 2, r); pctx.arcTo(cx - w / 2, cy - h / 2, cx + w / 2, cy - h / 2, r); }
-    pctx.stroke(); pctx.restore();
+    haloStroke(3 / k); pctx.restore();
     // in Customize, show the actual pad inside the box
     if (S.step >= 2 && S.preview && S.result) {
       const sc = S.result.grid.mm / R.mmPerPx, pv = S.preview;
@@ -1710,7 +1721,7 @@ function drawRectView() {
     // resize handles: corners and edge midpoints
     const hs = 9 / k;
     pctx.fillStyle = '#fff'; pctx.strokeStyle = acc; pctx.lineWidth = 2 / k;
-    for (const [hx, hy] of zoneHandles()) { pctx.beginPath(); pctx.rect(hx - hs / 2, hy - hs / 2, hs, hs); pctx.fill(); pctx.stroke(); }
+    for (const [hx, hy] of zoneHandles()) { pctx.fillStyle = HALO; pctx.fillRect(hx - hs / 2 - 1.5 / k, hy - hs / 2 - 1.5 / k, hs + 3 / k, hs + 3 / k); pctx.fillStyle = '#fff'; pctx.beginPath(); pctx.rect(hx - hs / 2, hy - hs / 2, hs, hs); pctx.fill(); pctx.stroke(); }
 
   }
   pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
