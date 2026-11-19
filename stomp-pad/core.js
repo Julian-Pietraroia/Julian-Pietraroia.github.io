@@ -627,6 +627,118 @@
     ]);
   }
 
+  // ------------------------------------------------------ reflective tape
+  /* Lay out a recess for reflective tape inside `allowed` (grid mask).
+   * t: {shape: strip|two|chevron|dot, width mm, len 0.3..1 (share of the room available), angle deg, pos -1..1 along the pad}
+   * Returns {mask, pieces:[{n, w, l, note}]} or null when it doesn't fit. */
+  function layoutTape(allowed, w, h, mm, t) {
+    const px = v => v / mm, clr = 0.5;                  // 0.5 mm clearance on every side of the tape
+    const at = (x, y) => { const xi = Math.round(x), yi = Math.round(y); return xi >= 0 && yi >= 0 && xi < w && yi < h && allowed[yi * w + xi] === 1; };
+    let n = 0, sx = 0, sy = 0, y0 = h, y1 = -1;
+    for (let i = 0; i < w * h; i++) if (allowed[i]) { const y = (i / w) | 0; n++; sx += i % w; sy += y; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    if (!n) return null;
+    // centre: the requested spot along the pad, in the middle of the solid run across it
+    const cy = Math.round(sy / n + (t.pos || 0) * (y1 - y0) / 2 * 0.8), mx = sx / n;
+    let best = null;
+    for (let x = 0; x < w; x++) {
+      if (!at(x, cy)) continue;
+      let e = x; while (e + 1 < w && at(e + 1, cy)) e++;
+      const mid = (x + e) / 2, sc = (e - x) - Math.abs(mid - mx) * 0.5;
+      if (!best || sc > best.sc) best = { sc, x: mid };
+      x = e;
+    }
+    if (!best) return null;
+    const c = [best.x, cy];
+    const a = (t.angle || 0) * Math.PI / 180, rot = (v, q) => [v[0] * Math.cos(q) - v[1] * Math.sin(q), v[0] * Math.sin(q) + v[1] * Math.cos(q)];
+    const d = [Math.cos(a), Math.sin(a)];
+    const hw = px(t.width / 2 + clr), stp = 0.5;
+    // how far a band of half-width hw fits from point c in direction d (starting at tStart)
+    const fit = (c0, dd, tStart = 0, cap = 1e9) => {
+      const nn = [-dd[1], dd[0]];
+      let T = tStart;
+      for (; T < cap; T += stp) {
+        let ok = true;
+        for (let s = -hw; s <= hw + 1e-6; s += Math.min(1, hw)) if (!at(c0[0] + dd[0] * T + nn[0] * s, c0[1] + dd[1] * T + nn[1] * s)) { ok = false; break; }
+        if (!ok) break;
+      }
+      return T - stp;
+    };
+    const mask = new Uint8Array(w * h), rects = [];
+    const paint = () => {
+      for (const r of rects) {
+        const nn = [-r.d[1], r.d[0]], R = Math.max(Math.abs(r.t0), Math.abs(r.t1)) + r.hw + 2;
+        for (let y = Math.max(0, Math.floor(r.c[1] - R)); y <= Math.min(h - 1, r.c[1] + R); y++)
+          for (let x = Math.max(0, Math.floor(r.c[0] - R)); x <= Math.min(w - 1, r.c[0] + R); x++) {
+            const dx = x - r.c[0], dy = y - r.c[1];
+            if (r.disc) { if (dx * dx + dy * dy <= r.hw * r.hw) mask[y * w + x] = 1; continue; }
+            const tt = dx * r.d[0] + dy * r.d[1], ss = dx * nn[0] + dy * nn[1];
+            if (r.side && (dx * r.side.n[0] + dy * r.side.n[1]) * r.side.sg < 0) continue;
+            if (tt >= r.t0 && tt <= r.t1 && Math.abs(ss) <= r.hw) mask[y * w + x] = 1;
+          }
+      }
+      for (let i = 0; i < w * h; i++) if (!allowed[i]) mask[i] = 0;
+    };
+    const share = Math.min(1, Math.max(0.2, t.len || 1));
+    const strip = c0 => {     // longest strip through c0, then trimmed to the requested share
+      const tp = fit(c0, d), tn = fit(c0, [-d[0], -d[1]]);
+      if (tp < 0 || tn < 0) return null;
+      const mid = (tp - tn) / 2, half = (tp + tn) / 2 * share;
+      const L = 2 * half * mm - 2 * clr;
+      if (L < t.width) return null;
+      return { c: c0, d, t0: mid - half, t1: mid + half, hw, L };
+    };
+    const pieces = [];
+    if (t.shape === 'dot') {
+      const r = hw;
+      for (let k = 0; k < 64; k++) { const q = k / 64 * Math.PI * 2; if (!at(c[0] + r * Math.cos(q), c[1] + r * Math.sin(q))) return null; }
+      if (!at(c[0], c[1])) return null;
+      rects.push({ c, d, hw: r, t0: 0, t1: 0, disc: true });
+      pieces.push({ n: 1, w: t.width, l: t.width, note: 'dot' });
+    } else if (t.shape === 'two') {
+      const nn = [-d[1], d[0]], off = hw + px(Math.max(4, t.width * 0.4) / 2);
+      for (const sg of [-1, 1]) { const r = strip([c[0] + nn[0] * off * sg, c[1] + nn[1] * off * sg]); if (!r) return null; rects.push(r); }
+      const L = Math.min(rects[0].L, rects[1].L);
+      for (const r of rects) { const m = (r.t0 + r.t1) / 2, hh = (L + 2 * clr) / mm / 2; r.t0 = m - hh; r.t1 = m + hh; }
+      pieces.push({ n: 2, w: t.width, l: L });
+    } else if (t.shape === 'chevron') {
+      // a 90° chevron pointing along d: two arms mitred where they meet, like two cut pieces of tape
+      const th = Math.PI / 4, back = [-d[0], -d[1]], nd = [-d[1], d[0]];
+      const arms = [rot(back, th), rot(back, -th)];
+      const tip = hw / Math.sin(th);
+      const make = (apex, L) => arms.map(ad => ({ c: apex, d: ad, t0: -3 * hw, t1: L, hw, side: { n: nd, sg: Math.sign(ad[0] * nd[0] + ad[1] * nd[1]) } }));
+      const spill = rs => { for (const r of rs) for (const tt of [-tip, 0, r.t1]) for (const ss of [-r.hw, 0, r.hw]) {
+        const q = [r.c[0] + r.d[0] * tt - r.d[1] * ss, r.c[1] + r.d[1] * tt + r.d[0] * ss];
+        const sd = (q[0] - r.c[0]) * r.side.n[0] + (q[1] - r.c[1]) * r.side.n[1];
+        if (sd * r.side.sg < -1e-6) continue;
+        if ((q[0] - r.c[0]) * d[0] + (q[1] - r.c[1]) * d[1] > tip + 1e-6) continue;
+        if (!at(q[0], q[1])) return true; } return false; };
+      let got = null;
+      // start with the V centred on c, then slide it back until the point fits too
+      for (let k = 0; k < 40 && !got; k++) {
+        let apex = c, L = 0;
+        for (let it = 0; it < 2; it++) {
+          L = Math.min(fit(apex, arms[0]), fit(apex, arms[1]));
+          if (L <= 0) break;
+          apex = [c[0] + d[0] * (L * Math.cos(th) / 2 - tip / 2 - px(k * 1.5)), c[1] + d[1] * (L * Math.cos(th) / 2 - tip / 2 - px(k * 1.5))];
+        }
+        L = Math.min(fit(apex, arms[0]), fit(apex, arms[1])) * share;
+        if (L * mm < t.width) continue;
+        const rs = make(apex, L);
+        if (!spill(rs)) got = { rs, L };
+      }
+      if (!got) return null;
+      rects.push(...got.rs);
+      // each piece: a rectangle as long as the arm's outer edge, with one end cut at 45°
+      pieces.push({ n: 2, w: t.width, l: got.L * mm - clr + t.width, note: 'mitre' });
+    } else {
+      const r = strip(c); if (!r) return null; rects.push(r);
+      pieces.push({ n: 1, w: t.width, l: r.L });
+    }
+    paint();
+    for (const pc of pieces) if (pc.note !== 'dot') pc.l = Math.floor(pc.l);
+    return { mask, pieces };
+  }
+
   // ---------------------------------------------------------------- pad
   /* Build the pad from a label grid.
    * grid: {labels:Int16Array, w, h, mm: mm per pixel}
@@ -642,6 +754,19 @@
     let base = dilate(fg, w, h, px(p.pad));
     if (p.smooth > 0) base = close(base, w, h, px(p.smooth));
     if (p.fillHoles) base = fillHoles(base, w, h);
+    // reflective tape: a shallow recess, laid out on the solid pad before pockets are cut
+    const T = p.base, R = p.raise;
+    const ch = p.round ? Math.min(1.2, T * 0.45) : 0;
+    let tape = null, tapeKeep = null, tapeKeepOut = null;
+    if (p.tape && p.tape.shape && p.tape.shape !== 'none') {
+      const wall = p.tape.wall == null ? 2.5 : p.tape.wall;
+      const allowed = erode(base, w, h, px(ch + 0.2 + wall));
+      tape = layoutTape(allowed, w, h, mm, p.tape);
+      if (tape) {
+        tapeKeep = dilate(tape.mask, w, h, px(wall));           // solid ring that holds the tape
+        tapeKeepOut = dilate(tape.mask, w, h, px(1.2));         // no grip right next to the tape
+      }
+    }
     // pockets: open the pad up so the board shows through (holes go all the way through)
     const pk = p.pockets || {};
     const hasWin = roles.some(r => r === 'hole');
@@ -673,7 +798,9 @@
         win = open(win, w, h, px(Math.max(1, rib / 3)));
         for (let i = 0; i < w * h; i++) if (win[i]) holes[i] = 1;
       }
+      if (tapeKeep) for (let i = 0; i < w * h; i++) if (tapeKeep[i]) holes[i] = 0;
       for (let i = 0; i < w * h; i++) if (holes[i]) base[i] = 0;
+      if (tapeKeep && pk.type === 'studs') for (let i = 0; i < w * h; i++) if (tapeKeep[i]) base[i] = 1;
     }
     const pieces = removeSmall(base, w, h, px(pk.type === 'studs' ? 1.5 : 4) ** 2);
 
@@ -697,8 +824,6 @@
     const blur = p.edgeBlur == null ? 2 : p.edgeBlur;
     const baseField = sdf(base, w, h, blur);
     const layers = [];
-    const T = p.base, R = p.raise;
-    const ch = p.round ? Math.min(1.2, T * 0.45) : 0;
     const steps = p.round ? 4 : 0;
     const baseShapes = shapesAt(baseField, 0, 1);
     // flush art: the colours are inlaid into the top `d` mm of the pad, level with its surface
@@ -706,7 +831,8 @@
     const raisedOrder = [];
 
     // raised pieces must sit fully on the flat top
-    const top = ch > 0 ? erode(base, w, h, px(ch + 0.2)) : base;
+    let top = ch > 0 ? erode(base, w, h, px(ch + 0.2)) : base;
+    if (tapeKeepOut) { top = top.slice(); for (let i = 0; i < w * h; i++) if (tapeKeepOut[i]) top[i] = 0; }
     const raisedMasks = [];
     roles.forEach((role, c) => {
       if (role !== 'raised') return;
@@ -737,15 +863,26 @@
       for (const rm of raisedMasks) for (let i = 0; i < w * h; i++) if (rm.m[i]) art[i] = 1;
       cutField = sdf(art, w, h, Math.min(blur, 1));
     }
+    // cuts into the top of the pad: the flush-art inlay and the tape recess, each from its own depth up
+    const cuts = [];
+    if (cutField) cuts.push({ z: zc, f: cutField });
+    let zt = T;
+    if (tape) {
+      const dt = Math.max(0.2, Math.min(p.tape.depth || 0.4, T - 0.6));
+      zt = T - dt;
+      cuts.push({ z: zt, f: sdf(tape.mask, w, h, 0.5) });
+    }
     for (const sl of slabs) {
       const lvl = px(sl.inset);
       const lo = sl.inset ? shapesAt(baseField, lvl, 1) : baseShapes;
-      if (!cutField || sl.z1 <= zc) { baseParts.push(extrude(lo, sl.z0, sl.z1)); continue; }
-      if (sl.z0 < zc) baseParts.push(extrude(lo, sl.z0, zc));
-      // above the inlay line: the pad minus the art pockets
-      const f = new Float32Array(w * h);
-      for (let i = 0; i < w * h; i++) f[i] = Math.min(baseField[i] - lvl, -cutField[i]);
-      baseParts.push(extrude(shapesAt(f, 0, 0.3), Math.max(sl.z0, zc), sl.z1));
+      const zs = [sl.z0, ...cuts.map(c => c.z).filter(z => z > sl.z0 + 1e-6 && z < sl.z1 - 1e-6).sort((a, b) => a - b), sl.z1];
+      for (let k = 0; k + 1 < zs.length; k++) {
+        const a = zs[k], b = zs[k + 1], act = cuts.filter(c => c.z <= a + 1e-6);
+        if (!act.length) { baseParts.push(extrude(lo, a, b)); continue; }
+        const f = new Float32Array(w * h);
+        for (let i = 0; i < w * h; i++) { let v = baseField[i] - lvl; for (const c of act) v = Math.min(v, -c.f[i]); f[i] = v; }
+        baseParts.push(extrude(shapesAt(f, 0, 0.3), a, b));
+      }
     }
     layers.push({ kind: 'base', color: -1, pos: concat(baseParts) });
     for (const L of raisedOrder) layers.push(L);
@@ -789,8 +926,14 @@
       if (sh.length) { raisedMasks.push({ c: -2, m }); layers.push({ kind: 'raised', color: -2, pos: extrude(sh, T - 0.05, T + R) }); }
     }
 
+    // the tape itself, for the preview only (never exported)
+    if (tape) {
+      const shrink = erode(tape.mask, w, h, px(0.5));
+      const sh = shapesAt(sdf(shrink, w, h, 0.5), 0, 1);
+      if (sh.length) layers.push({ kind: 'tape', color: -3, flush: true, pos: extrude(sh, zt, Math.min(T, zt + 0.2)) });
+    }
     let tris = 0, vol = 0;
-    for (const L of layers) { tris += L.pos.length / 9; vol += volume(L.pos); }
+    for (const L of layers) { if (L.kind === 'tape') continue; tris += L.pos.length / 9; vol += volume(L.pos); }
     // overlap correction for the raised parts sitting 0.05mm into the base
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     const bp = layers[0].pos;
@@ -800,6 +943,7 @@
     }
     return {
       layers, base, raisedMasks, pieces: baseShapes.length || pieces,
+      tape: tape ? { mask: tape.mask, pieces: tape.pieces, depth: T - zt } : null, tapeFailed: !!(p.tape && p.tape.shape && p.tape.shape !== 'none' && !tape),
       stats: { width: x1 - x0, length: y1 - y0, height: T + Math.max(0, ...layers.slice(1).map(L => L.flush ? 0 : (L.h != null ? L.h : R))), tris, volume: vol }
     };
   }

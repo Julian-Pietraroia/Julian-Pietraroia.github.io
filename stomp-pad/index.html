@@ -433,6 +433,37 @@ footer a{color:inherit}
         </div>
 
         <div class="sec">
+          <h3>Reflective tape</h3>
+          <p class="note" style="margin-top:0">Adds a shallow recess for a piece of reflective tape, so you're easier to see on night runs. The tape sits just below the surface, which stops its edges from catching and peeling.</p>
+          <div class="seg" id="tapeSeg" style="display:inline-flex;flex-wrap:wrap">
+            <button data-v="none">None</button><button data-v="strip">Strip</button><button data-v="two">Two strips</button><button data-v="chevron">Chevron</button><button data-v="dot">Dot</button>
+          </div>
+          <div id="tapeUI" class="hidden">
+            <div style="font-size:14px;margin:14px 0 6px">Tape width</div>
+            <div class="seg" id="tapeWSeg" style="display:inline-flex;flex-wrap:wrap">
+              <button data-v="12.7">½ in · 13 mm</button><button data-v="19">¾ in · 19 mm</button><button data-v="25.4">1 in · 25 mm</button><button data-v="50.8">2 in · 51 mm</button>
+            </div>
+            <div class="range" id="tapeLenRange">
+              <div class="top"><span>Length</span><output id="tapeLenOut"></output></div>
+              <input type="range" id="tapeLen" min="0.3" max="1" step="0.05" value="1">
+            </div>
+            <div class="range" id="tapeAngRange">
+              <div class="top"><span>Angle</span><output id="tapeAngOut"></output></div>
+              <input type="range" id="tapeAng" min="0" max="175" step="5" value="0">
+            </div>
+            <div class="range">
+              <div class="top"><span>Position along the pad</span><output id="tapePosOut"></output></div>
+              <input type="range" id="tapePos" min="-1" max="1" step="0.05" value="0">
+            </div>
+            <div class="range">
+              <div class="top"><span>Recess depth</span><output id="tapeDepOut"></output></div>
+              <input type="range" id="tapeDep" min="0.2" max="1" step="0.2" value="0.4">
+            </div>
+            <p class="note" id="tapeNote"></p>
+          </div>
+        </div>
+
+        <div class="sec">
           <h3>Thickness &amp; grip</h3>
           <div class="range">
             <div class="top"><span>Pad thickness</span><output id="baseOut"></output></div>
@@ -485,6 +516,7 @@ footer a{color:inherit}
             <li><b>Material:</b> TPU 95A grips and flexes with the board. PETG works but is stiffer.</li>
             <li><b>Settings:</b> 0.2 mm layers, 3 walls, 25–40% infill, print slowly (about 25 mm/s for TPU).</li>
             <li><b>Colours:</b> open the 3MF in Bambu Studio and accept the colour dialog. Each colour maps to an AMS slot. With no AMS, print in one colour, or pause at the top of the pad layer to swap filament for the raised grip.</li>
+            <li><b>Reflective tape:</b> use a retroreflective vinyl tape (e.g. 3M Scotchlite or Oralite). Cut it to the size shown above, round the corners slightly, clean the recess with isopropyl alcohol and press it in firmly.</li>
             <li><b>Mounting:</b> back the pad with outdoor-rated double-sided tape (e.g. 3M VHB). Clean the topsheet with isopropyl alcohol, press hard, and let it cure for 24 hours before riding.</li>
           </ul>
         </div>
@@ -546,7 +578,7 @@ const S = {
   quant: null, roles: [], colors: [], k: 3,
   baseColor: null, boardPalette: [],
   params: { size: 140, pad: 4, smooth: 4, fillHoles: true, base: 2.6, raise: 1.6, detail: 1.2, round: true },
-  sizeTouched: false, flushDepth: 0.8, flushGrip: false, tiered: false, heights: {}, pockets: { type: 'none', size: 14, rib: 4 }, stance: 'regular', padShape: 'rounded', zoneC: null, zoneW: null, zoneL: null, surface: 'art', patType: 'ridges', pitch: 7, patternColor: [240, 240, 240],
+  sizeTouched: false, flushDepth: 0.8, flushGrip: false, tiered: false, heights: {}, pockets: { type: 'none', size: 14, rib: 4 }, tape: { shape: 'none', width: 25.4, len: 1, angle: 0, pos: 0, depth: 0.4 }, stance: 'regular', padShape: 'rounded', zoneC: null, zoneW: null, zoneL: null, surface: 'art', patType: 'ridges', pitch: 7, patternColor: [240, 240, 240],
   result: null, preview: null, place: null, view: 'top'
 };
 
@@ -1764,6 +1796,7 @@ function build() {
     heights: S.tiered && S.surface !== 'flush' ? tierHeights() : null,
     flush: S.surface === 'flush' ? S.flushDepth : 0,
     pockets: S.pockets,
+    tape: S.tape.shape !== 'none' ? S.tape : null,
     pattern: S.surface === 'pattern' || (S.surface === 'flush' && S.flushGrip) ? { type: S.patType, pitch: S.pitch, line: S.pitch * 0.4, angle: S.patAngle || 0 } : null
   });
   res.grid = { W, H, mm };
@@ -1788,7 +1821,7 @@ function rebuild(now) {
       makePreview();
       viewer.setMeshes(r.layers.map(L => ({ pos: L.pos, color: layerColor(L) })), !S.framed);
       S.framed = true;
-      renderStats();
+      renderStats(); renderTape();
       if (S.step === 3) renderDownload();
       drawPhoto();
     });
@@ -1796,8 +1829,10 @@ function rebuild(now) {
 }
 function showBuildError(msg) { const w = $('#buildWarn'); w.textContent = msg; w.classList.remove('hidden'); renderStats(); }
 
-const colorOf = c => c === -1 ? S.baseColor : c === -2 ? S.patternColor : S.colors[c];
+const TAPE_COLOR = [205, 210, 218];
+const colorOf = c => c === -1 ? S.baseColor : c === -2 ? S.patternColor : c === -3 ? TAPE_COLOR : S.colors[c];
 const layerColor = L => L.kind === 'base' ? S.baseColor : colorOf(L.color);
+const printLayers = () => S.result.layers.filter(l => l.kind !== 'tape');   // the tape is a preview, not a print
 // 2D color image of the pad for the board overlay
 function makePreview() {
   const r = S.result, { W, H } = r.grid;
@@ -1806,6 +1841,10 @@ function makePreview() {
   const put = (i, col, a) => { im.data[i * 4] = col[0]; im.data[i * 4 + 1] = col[1]; im.data[i * 4 + 2] = col[2]; im.data[i * 4 + 3] = a; };
   for (let i = 0; i < W * H; i++) if (r.base[i]) put(i, S.baseColor, 255);
   for (const rm of r.raisedMasks) { const col = colorOf(rm.c); for (let i = 0; i < W * H; i++) if (rm.m[i]) put(i, col, 255); }
+  // reflective tape: the recess edge in shadow, the tape itself with a diagonal sheen
+  const tapeIn = r.tape ? PadCore.erode(r.tape.mask, W, H, 0.5 / r.grid.mm) : null;
+  const tapeAt = i => { const xx = i % W, yy = (i / W) | 0, v = Math.sin((xx + yy) * r.grid.mm * 0.09); return TAPE_COLOR.map(c => Math.min(255, c + 34 * v * v - 12)); };
+  if (r.tape) for (let i = 0; i < W * H; i++) if (r.tape.mask[i]) put(i, tapeIn[i] ? tapeAt(i) : S.baseColor.map(v => v * 0.62), 255);
   x.putImageData(im, 0, 0);
   S.preview = c;
   // separate layers for the top-view render
@@ -1813,6 +1852,7 @@ function makePreview() {
   const shade = (col, f) => col.map(v => v * f);
   const bevel = S.params.round ? PadCore.erode(r.base, W, H, Math.min(1.2, S.params.base * 0.45) / r.grid.mm) : null;
   S.prevBase = layer(d => { for (let i = 0; i < W * H; i++) if (r.base[i]) { const col = bevel && !bevel[i] ? shade(S.baseColor, 0.8) : S.baseColor; d[i * 4] = col[0]; d[i * 4 + 1] = col[1]; d[i * 4 + 2] = col[2]; d[i * 4 + 3] = 255; } });
+  S.prevTape = r.tape ? layer(d => { for (let i = 0; i < W * H; i++) if (r.tape.mask[i]) { const col = tapeIn[i] ? tapeAt(i) : S.baseColor.map(v => v * 0.62); d[i * 4] = col[0]; d[i * 4 + 1] = col[1]; d[i * 4 + 2] = col[2]; d[i * 4 + 3] = 255; } }) : null;
   S.prevRaised = layer(d => { for (const rm of r.raisedMasks) { const col = colorOf(rm.c); for (let i = 0; i < W * H; i++) if (rm.m[i]) { d[i * 4] = col[0]; d[i * 4 + 1] = col[1]; d[i * 4 + 2] = col[2]; d[i * 4 + 3] = 255; } } });
   S.prevTint = layer(d => { for (let i = 0; i < W * H; i++) if (r.base[i]) { d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = 255; d[i * 4 + 3] = 255; } });
 }
@@ -1830,6 +1870,7 @@ function drawTopView() {
   if (S.pockets.type !== 'none' || S.roles.includes('hole')) pctx.shadowColor = 'rgba(0,0,0,.18)'; else pctx.shadowColor = 'rgba(0,0,0,.3)';
   pctx.shadowBlur = 26; pctx.shadowOffsetY = 12;
   pctx.drawImage(S.prevBase, ox, oy, W * k, H * k);
+  if (S.prevTape) { pctx.save(); pctx.shadowColor = 'transparent'; pctx.drawImage(S.prevTape, ox, oy, W * k, H * k); pctx.restore(); }
   if (S.surface === 'flush') { pctx.shadowColor = 'transparent'; pctx.shadowBlur = 0; pctx.shadowOffsetY = 0; }
   else { pctx.shadowColor = 'rgba(0,0,0,.45)'; pctx.shadowBlur = 5; pctx.shadowOffsetY = 2.5; }
   pctx.drawImage(S.prevRaised, ox, oy, W * k, H * k);
@@ -1849,7 +1890,7 @@ function drawTopView() {
   dim([x0, y1 + 28], [x1, y1 + 28], cm(st.width), false);
   dim([x1 + 34, y0], [x1 + 34, y1], cm(st.length), true);
   pctx.font = '12px ui-sans-serif,system-ui,sans-serif'; pctx.textAlign = 'center'; pctx.fillStyle = mut;
-  pctx.fillText('Top view, to scale · ' + (S.surface === 'flush' ? 'art printed flush with the surface' : S.result.layers.length > 1 ? 'raised parts are the grip' : 'flat pad'), cx, r.height - 18);
+  pctx.fillText('Top view, to scale · ' + (S.surface === 'flush' ? 'art printed flush with the surface' : printLayers().length > 1 ? 'raised parts are the grip' : 'flat pad'), cx, r.height - 18);
 }
 // How the design sits on the photo: design x-axis = across the board, kept reading upright on screen.
 function overlayFrame() {
@@ -1944,7 +1985,7 @@ function syncControls() {
   $('#rotate').classList.toggle('hidden', !!S.zoneMode);
   for (const k of Object.keys(fmt)) { $('#' + k).value = S.params[k]; $('#' + k + 'Out').textContent = fmt[k](S.params[k]); }
   $('#fillHoles').checked = S.params.fillHoles; $('#round').checked = S.params.round;
-  renderPockets();
+  renderPockets(); renderTape();
   $('#tiered').checked = S.tiered; $('#tierNote').classList.toggle('hidden', !S.tiered);
   $('#k').value = S.k; $('#kOut').textContent = S.k;
   const w = effectiveWaist();
@@ -1982,6 +2023,29 @@ function renderPockets() {
 $('#pocketSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.pockets.type = b.dataset.v; if (b.dataset.v === 'studs') S.pockets.size = Math.max(S.pockets.size, 14); renderPockets(); rebuild(true); });
 $('#pkSize').addEventListener('input', e => { S.pockets.size = +e.target.value; renderPockets(); rebuild(); });
 $('#pkRib').addEventListener('input', e => { S.pockets.rib = +e.target.value; renderPockets(); rebuild(); });
+function tapeCutText(t) {
+  const p = t.pieces[0], w = Math.round(p.w), pcs = p.n === 1 ? '1 piece' : p.n + ' pieces';
+  if (p.note === 'dot') return `cut 1 circle ${w} mm across`;
+  return `cut ${pcs} ${w} × ${p.l} mm` + (p.note === 'mitre' ? ', with one end of each cut at 45° so they meet in a point' : '');
+}
+function renderTape() {
+  const T = S.tape, on = T.shape !== 'none';
+  $$('#tapeSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === T.shape));
+  $$('#tapeWSeg button').forEach(b => b.classList.toggle('on', +b.dataset.v === T.width));
+  $('#tapeUI').classList.toggle('hidden', !on);
+  $('#tapeLenRange').classList.toggle('hidden', T.shape === 'dot');
+  $('#tapeAngRange').classList.toggle('hidden', T.shape === 'dot');
+  $('#tapeLen').value = T.len; $('#tapeLenOut').textContent = T.len >= 1 ? 'As long as fits' : Math.round(T.len * 100) + '% of the room';
+  $('#tapeAng').value = T.angle; $('#tapeAngOut').textContent = T.angle === 0 ? 'Across the board' : T.angle === 90 ? 'Along the board' : T.angle + '°';
+  $('#tapePos').value = T.pos; $('#tapePosOut').textContent = Math.abs(T.pos) < 0.01 ? 'Centred' : Math.round(Math.abs(T.pos) * 100) + '% ' + (T.pos < 0 ? 'up' : 'down');
+  $('#tapeDep').value = T.depth; $('#tapeDepOut').textContent = T.depth.toFixed(1) + ' mm (' + Math.round(T.depth / 0.2) + (T.depth > 0.2 ? ' layers)' : ' layer)');
+  const r = S.result;
+  $('#tapeNote').innerHTML = !on || !r ? '' : r.tape ? `<b>Tape to cut:</b> ${tapeCutText(r.tape)}. Grip and pockets stay clear of it.` : `<span style="color:var(--warn)">Doesn't fit on this pad. Try a narrower tape or a single Strip.</span>`;
+}
+$('#tapeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.tape.shape = b.dataset.v; renderTape(); rebuild(true); });
+$('#tapeWSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.tape.width = +b.dataset.v; renderTape(); rebuild(true); });
+for (const [id, key] of [['tapeLen', 'len'], ['tapeAng', 'angle'], ['tapePos', 'pos'], ['tapeDep', 'depth']])
+  $('#' + id).addEventListener('input', e => { S.tape[key] = +e.target.value; renderTape(); rebuild(); });
 function renderSurface() {
   $$('#surfSeg button').forEach(b => b.classList.toggle('on', b.dataset.s === S.surface));
   $$('#patSeg button').forEach(b => b.classList.toggle('on', b.dataset.p === S.patType));
@@ -2020,6 +2084,7 @@ function statsHTML() {
     ['Pieces', r.pieces === 1 ? '1 pad' : `${r.pieces} pads`]
   ].map(([k, v]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('') +
     (big > 250 ? `<div class="stat" style="grid-column:1/-1"><div class="k" style="color:var(--warn)">Larger than most print beds (250 mm). Try a smaller size.</div></div>` : '') +
+    (r.tapeFailed ? `<div class="stat" style="grid-column:1/-1"><div class="k" style="color:var(--warn)">The reflective tape doesn't fit on this pad. Try a narrower tape, a single Strip, or a bigger pad.</div></div>` : '') +
     (r.pieces > 1 && S.pockets.type === 'studs' ? `<div class="stat" style="grid-column:1/-1"><div class="k">Studs print as separate pieces. Stick each one down, or lay them on one sheet of double-sided tape and transfer them all at once.</div></div>` : '') +
     (r.pieces > 1 && S.pockets.type !== 'studs' ? `<div class="stat" style="grid-column:1/-1"><div class="k">These print as separate pads, which is fine. To merge them into one pad, raise <b>Border around design</b>.</div></div>` : '');
 }
@@ -2036,8 +2101,9 @@ function renderDownload() {
     const f = nearestFil(col);
     box.insertAdjacentHTML('beforeend', `<div class="filrow"><div class="dot" style="background:${rgb2hex(col)}"></div><div><b>${f[0]}</b> <span>· ${what}</span></div></div>`);
   });
-  $('#dlMulti').disabled = S.result.layers.length < 2;
-  $('#dl3mf').querySelector('svg').nextSibling.textContent = S.result.layers.length > 1 ? 'Download 3MF with colours' : 'Download 3MF';
+  if (S.result.tape) box.insertAdjacentHTML('beforeend', `<div class="filrow"><div class="dot" style="background:linear-gradient(135deg,#e9edf2,#b9c0ca 60%,#eef1f5)"></div><div><b>Reflective tape</b> <span>· ${tapeCutText(S.result.tape)}</span></div></div>`);
+  $('#dlMulti').disabled = printLayers().length < 2;
+  $('#dl3mf').querySelector('svg').nextSibling.textContent = printLayers().length > 1 ? 'Download 3MF with colours' : 'Download 3MF';
 }
 function download(buf, name) {
   const url = URL.createObjectURL(new Blob([buf], { type: 'model/stl' }));
@@ -2046,12 +2112,12 @@ function download(buf, name) {
 }
 $('#dlOne').addEventListener('click', () => {
   if (!S.result) return;
-  download(PadCore.toSTL(PadCore.concat(S.result.layers.map(l => l.pos)), 'stomp pad'), 'stomp-pad.stl');
+  download(PadCore.toSTL(PadCore.concat(printLayers().map(l => l.pos)), 'stomp pad'), 'stomp-pad.stl');
 });
 $('#dl3mf').addEventListener('click', () => {
   if (!S.result) return;
   const used = {};
-  const parts = S.result.layers.map(l => {
+  const parts = printLayers().map(l => {
     const col = layerColor(l);
     let nm = (l.kind === 'base' ? 'Pad ' : 'Grip ') + nearestFil(col)[0];
     used[nm] = (used[nm] || 0) + 1; if (used[nm] > 1) nm += ' ' + used[nm];
@@ -2068,7 +2134,7 @@ $('#dl3mf').addEventListener('click', () => {
 $('#dlMulti').addEventListener('click', async () => {
   if (!S.result) return;
   const used = {};
-  for (const l of S.result.layers) {
+  for (const l of printLayers()) {
     const col = layerColor(l);
     let nm = (l.kind === 'base' ? 'pad-' : 'grip-') + nearestFil(col)[0].toLowerCase().replace(/\s+/g, '-');
     used[nm] = (used[nm] || 0) + 1; if (used[nm] > 1) nm += '-' + used[nm];
