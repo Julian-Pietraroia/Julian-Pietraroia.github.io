@@ -45,6 +45,11 @@ output,details.row>summary .val,.chip .meta span{font-variant-numeric:tabular-nu
 .step.on::after{content:"";position:absolute;left:12px;right:12px;bottom:0;height:2px;background:var(--brand)}
 .step.done{color:var(--ink)}
 .step:disabled{opacity:.4;cursor:not-allowed}
+.themechip{margin:auto 0 auto auto;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);border-radius:var(--r);padding:5px 10px 5px 7px;font-size:12.5px;color:var(--mut);cursor:pointer;white-space:nowrap}
+.themechip:hover{color:var(--ink);border-color:var(--faint)}
+.themechip i{width:14px;height:14px;border-radius:3px;flex:none}
+.themechip.off i{opacity:.35}
+.themechip:not(.hidden)+.by{margin-left:4px}
 .by{margin-left:auto;display:flex;align-items:center;font-size:13px;color:var(--mut);text-decoration:none;white-space:nowrap}
 .by:hover{color:var(--ink)}
 .grid{display:grid;grid-template-columns:380px 1fr;min-height:0}
@@ -63,7 +68,7 @@ output,details.row>summary .val,.chip .meta span{font-variant-numeric:tabular-nu
 .view.over{outline:2px dashed var(--brand);outline-offset:-12px}
 @media (max-width:900px){
   .wrap{height:auto;display:block}
-  .topbar{gap:12px;padding:0 14px}.by{display:none}
+  .topbar{gap:12px;padding:0 14px}.by{display:none}.themechip span{display:none}
   .grid{grid-template-columns:1fr}
   .stage{order:-1;height:56vh}
   .panel{overflow:visible;border-right:0;padding:0 18px}
@@ -239,6 +244,7 @@ details.row .body{padding:0 0 18px}
 .zoomctl button:hover{background:var(--soft)}
 #zFit{font-size:12px;padding:0 10px;font-family:var(--mono)}
 #viewSeg{background:var(--panel)}
+@media (prefers-reduced-motion:no-preference){body,.topbar,.panel,.stage,.nav,.btn,.step,.opt,.seg,.result,details.row,.badge,.stagehint{transition:background-color .45s ease,border-color .45s ease,color .45s ease}}
 @media (prefers-color-scheme:dark){.sw,.sumdot,.swatches button,.filrow .dot{border-color:rgba(255,255,255,.16)}}
 </style>
 </head>
@@ -252,6 +258,7 @@ details.row .body{padding:0 0 18px}
       <button class="step" data-step="2" disabled><span class="n">03</span>Customize</button>
       <button class="step" data-step="3" disabled><span class="n">04</span>Download</button>
     </nav>
+    <button class="themechip hidden" id="themeChip" type="button"><i></i><span>Colours from your board</span></button>
     <a class="by" href="../">Julian Pietraroia</a>
   </header>
 
@@ -719,7 +726,7 @@ wireDrop($('#boardDrop'), $('#boardFile'), async f => {
   try {
     S.board.img = await readImage(f);
     S.board.pts = []; S.board.outline = null; S.crop = null; S.place = null; S.board.mode = 'auto';
-    S.boardPalette = boardPaletteFrom(null);
+    S.boardPalette = boardPaletteFrom(null); S.boardAccent = null; applyBoardTheme();
     $('#boardDropLabel').textContent = 'Change photo';
     measureChanged();
     runDetect(null);
@@ -734,6 +741,7 @@ wireDrop($('#boardDrop'), $('#boardFile'), async f => {
     const dt = new DataTransfer(); dt.items.add(f); $('#boardFile').files = dt.files; $('#boardFile').dispatchEvent(new Event('change'));
   });
 }
+$('#themeChip').addEventListener('click', () => { S.themeFromBoard = S.themeFromBoard === false; applyBoardTheme(); drawPhoto(); });
 $('#boardLen').addEventListener('input', () => { S.board.lengthCm = +$('#boardLen').value || 0; measureChanged(); });
 $('#waistManual').addEventListener('input', () => { const v = +$('#waistManual').value * 10; S.board.manual = v >= 150 && v <= 350 ? v : null; measureChanged(); });
 $('#resetPts').addEventListener('click', () => { S.board.mode = 'manual'; S.board.pts = []; S.board.outline = null; S.board.edited = true; measureChanged(); });
@@ -883,7 +891,7 @@ function measureChanged() {
   } else warn.classList.add('hidden');
   $('#next0').disabled = !w;
   if (w && !S.sizeTouched) S.params.size = defaultSize();
-  if (S.board.img && P.length === 4) S.boardPalette = boardPaletteFrom(axis());
+  if (S.board.img && P.length === 4) { S.boardPalette = boardPaletteFrom(axis()); applyBoardTheme(); }
   go2(S.step);
 }
 function go2(n) { // refresh nav state without moving
@@ -908,8 +916,84 @@ function boardPaletteFrom(ax) {
       if (along < ax.L * sc * 0.08 || along > ax.L * sc * 0.92 || Math.abs(acr) > half) d.data[(yy * c.width + xx) * 4 + 3] = 0;
     }
   }
+  if (ax) S.boardAccent = accentFrom(d.data);
   const q = PadCore.quantize(d.data, c.width, c.height, 5);
   return q.centers.filter((_, i) => q.counts[i] > 30);
+}
+// The board's most prominent saturated colour, or null for a black/white/grey board.
+// Pixels are binned by hue and weighted by how colourful they are, so a small bright logo
+// beats a large dull area, but a few stray pixels don't count.
+function accentFrom(px) {
+  const BINS = 24, w = new Float32Array(BINS), cnt = new Float32Array(BINS), sum = [...Array(BINS)].map(() => [0, 0, 0]);
+  let n = 0;
+  for (let i = 0; i < px.length; i += 4) {
+    if (!px[i + 3]) continue;
+    n++;
+    const L = lab([px[i], px[i + 1], px[i + 2]]), C = Math.hypot(L[1], L[2]);
+    if (C < 26 || L[0] < 22 || L[0] > 92) continue;
+    const h = (Math.atan2(L[2], L[1]) / (2 * Math.PI) + 1) % 1, b = Math.floor(h * BINS) % BINS;
+    const k = C * C;                                   // vivid pixels set the colour; dull ones barely move it
+    w[b] += C; cnt[b]++; sum[b][0] += L[0] * k; sum[b][1] += L[1] * k; sum[b][2] += L[2] * k; sum[b].k = (sum[b].k || 0) + k;
+  }
+  if (!n) return null;
+  let best = -1, bs = 0;
+  for (let b = 0; b < BINS; b++) { const sc = w[b] + 0.5 * (w[(b + 1) % BINS] + w[(b + BINS - 1) % BINS]); if (sc > bs) { bs = sc; best = b; } }
+  if (best < 0) return null;
+  const near = [best, (best + 1) % BINS, (best + BINS - 1) % BINS];
+  const count = near.reduce((a, b) => a + cnt[b], 0), wt = near.reduce((a, b) => a + w[b], 0);
+  if (count < n * 0.005) return null;                 // under half a percent of the board: noise, not part of its look
+  const wk = near.reduce((a, b) => a + (sum[b].k || 0), 0);
+  const m = [0, 1, 2].map(k => near.reduce((a, b) => a + sum[b][k], 0) / wk);
+  return { L: m[0], C: Math.hypot(m[1], m[2]), h: Math.atan2(m[2], m[1]) };
+}
+// Lab/LCh -> sRGB, pulling chroma in until the colour fits the screen's gamut
+function lch2rgb(L, C, h) {
+  for (let c = C; c >= 0; c -= 1) {
+    const a = c * Math.cos(h), b = c * Math.sin(h);
+    const fy = (L + 16) / 116, fx = fy + a / 500, fz = fy - b / 200;
+    const inv = t => t ** 3 > 0.008856 ? t ** 3 : (t - 16 / 116) / 7.787;
+    const X = inv(fx) * 0.95047, Y = inv(fy), Z = inv(fz) * 1.08883;
+    const lin = [3.2406 * X - 1.5372 * Y - 0.4986 * Z, -0.9689 * X + 1.8758 * Y + 0.0415 * Z, 0.0557 * X - 0.2040 * Y + 1.0570 * Z];
+    if (lin.every(v => v >= -0.001 && v <= 1.001)) return lin.map(v => 255 * (v <= 0.0031308 ? 12.92 * Math.max(0, v) : 1.055 * Math.min(1, v) ** (1 / 2.4) - 0.055));
+  }
+  return [L * 2.55, L * 2.55, L * 2.55];
+}
+const relLum = c => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; const [r, g, b] = c.map(f); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const contrast = (a, b) => { const x = relLum(a), y = relLum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+// Re-colour the interface from the board: its accent drives buttons, the active step and the
+// outline, and the greys pick up a faint tint of the same hue.
+function applyBoardTheme() {
+  let el = document.getElementById('boardTheme');
+  const a = S.themeFromBoard !== false && S.boardAccent;
+  $('#themeChip').classList.toggle('hidden', !S.boardAccent);
+  if (!a) { if (el) el.textContent = ''; updateThemeChip(); return; }
+  if (!el) { el = document.createElement('style'); el.id = 'boardTheme'; document.head.appendChild(el); }
+  const h = a.h, C = Math.min(90, a.C * 1.3);           // photos wash colours out, so give some back
+  const hx = (L, c) => rgb2hex(lch2rgb(L, c, h));
+  const brand = mode => {
+    // keep the board's hue and as much of its colour as fits, at a lightness that reads on the page
+    // stay close to the board's own lightness (a yellow stays bright, a navy stays deep),
+    // then nudge it until the button label is easy to read
+    let L = mode === 'dark' ? Math.max(55, Math.min(85, a.L)) : Math.max(40, Math.min(82, a.L));
+    const W = [255, 255, 255], K = [20, 20, 22];
+    let rgb = lch2rgb(L, C, h);
+    const darkInk = contrast(rgb, K) >= contrast(rgb, W);
+    for (let i = 0; i < 40 && contrast(rgb, darkInk ? K : W) < 4.5; i++) { L += darkInk ? 1 : -1; rgb = lch2rgb(L, C, h); }
+    return { c: rgb2hex(rgb), ink: darkInk ? '#141416' : '#ffffff' };
+  };
+  const t = Math.min(1, C / 60);                      // how strongly the greys lean toward the board's hue
+  const bl = brand('light'), bd = brand('dark');
+  el.textContent = `:root{--brand:${bl.c};--brand-ink:${bl.ink};--hi:${bl.c};--bg:${hx(97, 1.6 * t)};--stage:${hx(93, 3 * t)};--line:${hx(90.5, 3.5 * t)};--soft:${hx(95.5, 2.4 * t)};--mut:${hx(47, 5 * t)};--faint:${hx(68, 4 * t)};--ink:${hx(11, 3 * t)}}
+@media (prefers-color-scheme:dark){:root{--brand:${bd.c};--brand-ink:${bd.ink};--hi:${bd.c};--bg:${hx(5, 2.5 * t)};--panel:${hx(7.5, 3 * t)};--stage:${hx(3.5, 2.5 * t)};--line:${hx(16.5, 4 * t)};--soft:${hx(11.5, 4 * t)};--mut:${hx(61, 5 * t)};--faint:${hx(38, 4 * t)};--ink:${hx(93, 1.5 * t)}}}`;
+  updateThemeChip();
+}
+function updateThemeChip() {
+  const on = S.themeFromBoard !== false && S.boardAccent, b = $('#themeChip');
+  if (!S.boardAccent) return;
+  b.querySelector('i').style.background = rgb2hex(lch2rgb(Math.max(48, Math.min(70, S.boardAccent.L)), Math.min(S.boardAccent.C, 85), S.boardAccent.h));
+  b.querySelector('span').textContent = on ? 'Colours from your board' : 'Default colours';
+  b.title = on ? 'The site is using colours from your board. Click for the default look.' : 'Click to colour the site from your board.';
+  b.classList.toggle('off', !on);
 }
 
 // ---- photo canvas drawing + interaction
