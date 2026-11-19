@@ -244,6 +244,23 @@ details.row .body{padding:0 0 18px}
 .zoomctl button:hover{background:var(--soft)}
 #zFit{font-size:12px;padding:0 10px;font-family:var(--mono)}
 #viewSeg{background:var(--panel)}
+:root{--g1:0,0,0;--g2:0,0,0;--ga:0}
+.stage{background:
+  radial-gradient(70% 85% at 0% 0%, rgba(var(--g1),var(--ga)), transparent 72%),
+  radial-gradient(65% 80% at 100% 100%, rgba(var(--g2),calc(var(--ga) * .85)), transparent 72%),
+  var(--stage)}
+.panel{background:
+  linear-gradient(180deg, rgba(var(--g1),calc(var(--ga) * .28)), transparent 38%),
+  linear-gradient(0deg, rgba(var(--g2),calc(var(--ga) * .18)), transparent 30%),
+  var(--panel);background-attachment:local,local,local}
+.nav{background:var(--panel)}
+.topbar{background:linear-gradient(90deg, rgba(var(--g1),calc(var(--ga) * .45)), transparent 45%, rgba(var(--g2),calc(var(--ga) * .35))), var(--panel)}
+/* a thin scrollbar in the theme's colours instead of the system's bright one */
+.panel{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.panel::-webkit-scrollbar{width:8px}
+.panel::-webkit-scrollbar-track{background:transparent}
+.panel::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;border:2px solid var(--panel)}
+.panel::-webkit-scrollbar-thumb:hover{background:var(--faint)}
 @media (prefers-reduced-motion:no-preference){body,.topbar,.panel,.stage,.nav,.btn,.step,.opt,.seg,.result,details.row,.badge,.stagehint{transition:background-color .45s ease,border-color .45s ease,color .45s ease}}
 @media (prefers-color-scheme:dark){.sw,.sumdot,.swatches button,.filrow .dot{border-color:rgba(255,255,255,.16)}}
 </style>
@@ -942,9 +959,17 @@ function accentFrom(px) {
   const near = [best, (best + 1) % BINS, (best + BINS - 1) % BINS];
   const count = near.reduce((a, b) => a + cnt[b], 0), wt = near.reduce((a, b) => a + w[b], 0);
   if (count < n * 0.005) return null;                 // under half a percent of the board: noise, not part of its look
-  const wk = near.reduce((a, b) => a + (sum[b].k || 0), 0);
-  const m = [0, 1, 2].map(k => near.reduce((a, b) => a + sum[b][k], 0) / wk);
-  return { L: m[0], C: Math.hypot(m[1], m[2]), h: Math.atan2(m[2], m[1]) };
+  const mean = bins => { const wk = bins.reduce((a, b) => a + (sum[b].k || 0), 0); const m = [0, 1, 2].map(k => bins.reduce((a, b) => a + sum[b][k], 0) / wk); return { L: m[0], C: Math.hypot(m[1], m[2]), h: Math.atan2(m[2], m[1]) }; };
+  const out = mean(near);
+  // a second, clearly different hue on the board (for the background gradient), if there is one
+  let b2 = -1, s2 = 0;
+  for (let b = 0; b < BINS; b++) {
+    const d = Math.min(Math.abs(b - best), BINS - Math.abs(b - best));
+    if (d < 4 || cnt[b] < n * 0.003) continue;
+    if (w[b] > s2) { s2 = w[b]; b2 = b; }
+  }
+  if (b2 >= 0) out.second = mean([b2]);
+  return out;
 }
 // Lab/LCh -> sRGB, pulling chroma in until the colour fits the screen's gamut
 function lch2rgb(L, C, h) {
@@ -986,6 +1011,23 @@ function applyBoardTheme() {
   const hi = rgb2hex(lch2rgb(Math.max(68, Math.min(88, a.L)), C, h));   // drawn over the photo: light enough for dark boards
   el.textContent = `:root{--brand:${bl.c};--brand-ink:${bl.ink};--hi:${hi};--bg:${hx(97, 1.6 * t)};--stage:${hx(93, 3 * t)};--line:${hx(90.5, 3.5 * t)};--soft:${hx(95.5, 2.4 * t)};--mut:${hx(47, 5 * t)};--faint:${hx(68, 4 * t)};--ink:${hx(11, 3 * t)}}
 @media (prefers-color-scheme:dark){:root{--brand:${bd.c};--brand-ink:${bd.ink};--hi:${hi};--bg:${hx(5, 2.5 * t)};--panel:${hx(7.5, 3 * t)};--stage:${hx(3.5, 2.5 * t)};--line:${hx(16.5, 4 * t)};--soft:${hx(11.5, 4 * t)};--mut:${hx(61, 5 * t)};--faint:${hx(38, 4 * t)};--ink:${hx(93, 1.5 * t)}}}`;
+  // background gradient: the accent, plus the board's second colour (or a neighbour of the accent's hue)
+  // second colour: another vivid hue on the board, else its most colourful main colour (a navy base, say),
+  // else a neighbour of the accent's hue
+  let sec = a.second;
+  if (!sec) {
+    let best = null;
+    for (const c of S.boardPalette || []) {
+      const L = lab(c), cc = Math.hypot(L[1], L[2]), hh = Math.atan2(L[2], L[1]);
+      const dh = Math.abs(Math.atan2(Math.sin(hh - h), Math.cos(hh - h)));
+      if (cc > 8 && dh > 0.7 && (!best || cc > best.C)) best = { L: L[0], C: cc, h: hh };
+    }
+    sec = best;
+  }
+  const h2 = sec ? sec.h : h + 0.7, C2 = sec ? Math.min(90, Math.max(30, sec.C * 1.6)) : C * 0.8;
+  const rgbs = (L, c, hh) => lch2rgb(L, c, hh).map(Math.round).join(',');
+  el.textContent += `:root{--g1:${rgbs(72, C, h)};--g2:${rgbs(74, C2, h2)};--ga:.38}
+@media (prefers-color-scheme:dark){:root{--g1:${rgbs(46, C, h)};--g2:${rgbs(44, C2, h2)};--ga:.52}}`;
   updateThemeChip();
 }
 function updateThemeChip() {
