@@ -198,6 +198,53 @@ input[type=range]{accent-color:var(--ink)}
 .link{color:var(--ink)}
 .swatches button.on{outline-color:var(--ink)}
 footer a{color:inherit}
+/* ---------- Customize: one open list of colours, everything else in quiet rows ---------- */
+.colors{margin-top:8px}
+.colhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.colhead h3{margin:0;font-size:13px;font-weight:600}
+.stepper{display:inline-flex;align-items:center;gap:2px;background:var(--soft);border-radius:999px;padding:2px}
+.stepper button{width:26px;height:26px;border:0;border-radius:50%;background:none;cursor:pointer;font-size:15px;line-height:1;color:var(--ink)}
+.stepper button:hover{background:var(--surface)}
+.stepper button:disabled{opacity:.35;cursor:default;background:none}
+.stepper output{min-width:18px;text-align:center;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.chip{gap:12px;padding:7px 0}
+.chip .sw{width:30px;height:30px;border-radius:50%}
+.chip .meta span{font-size:12px}
+select.role{appearance:none;-webkit-appearance:none;border:0;border-radius:999px;background:var(--soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%237a8699' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 11px center;padding:6px 28px 6px 12px;font-size:13px;cursor:pointer;color:var(--ink)}
+select.role:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.rows{margin-top:18px;border-top:1px solid var(--line)}
+details.row{border-bottom:1px solid var(--line)}
+details.row>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:15px 2px;margin:0;cursor:pointer;font-size:14px;color:var(--ink)}
+details.row>summary::-webkit-details-marker{display:none}
+details.row>summary .val{margin-left:auto;color:var(--mut);display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+details.row>summary::after{content:"";flex:none;width:6px;height:6px;border-right:1.5px solid var(--mut);border-bottom:1.5px solid var(--mut);transform:rotate(-45deg);transition:transform .18s;margin:0 4px 0 2px}
+details.row[open]>summary::after{transform:rotate(45deg)}
+details.row>summary:hover .val{color:var(--ink)}
+details.row .body{padding:0 2px 18px}
+details.row .body>.seg:first-child{margin-top:0}
+.sumdot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.15);flex:none}
+.hint{font-size:13px;color:var(--mut);margin:0 0 10px}
+.lbl{font-size:13px;margin:14px 0 6px}
+.seg{flex-wrap:wrap}
+/* thinner sliders */
+input[type=range]{-webkit-appearance:none;appearance:none;height:18px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ink);margin-top:-6px;border:0}
+input[type=range]::-moz-range-track{height:2px;border-radius:2px;background:var(--line)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--ink);border:0}
+input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px var(--acc-soft)}
+.range{margin:10px 0}
+.range .top{font-size:13px;margin-bottom:2px}
+.toggle{font-size:13px}
+/* stats as one quiet line */
+.stats{display:flex;flex-wrap:wrap;gap:4px 18px}
+.stat{display:flex;gap:6px;align-items:baseline;background:none!important;padding:0;border-radius:0}
+.stat .k{font-size:13px}
+.stat .v{font-size:13px;font-weight:600;color:var(--ink)}
+.stat[style*="grid-column"]{flex-basis:100%}
+.stat[style*="grid-column"] .k{line-height:1.45}
+@media (prefers-color-scheme:dark){.chip .sw,.sumdot,.swatches button,.filrow .dot{border-color:rgba(255,255,255,.18)}}
+
 </style>
 </head>
 <body>
@@ -353,20 +400,21 @@ footer a{color:inherit}
         <h2>Customize</h2>
         <p class="lead">Changes update the preview live.</p>
 
-        <div class="sec" style="border:0;margin-top:0;padding-top:0">
-          <h3>Colors in your design</h3>
-          <div class="chips" id="chips"></div>
-          <div class="range">
-            <div class="top"><span>Number of colors</span><output id="kOut">3</output></div>
-            <input type="range" id="k" min="2" max="8" step="1" value="3">
+        <div class="colors">
+          <div class="colhead">
+            <h3>Colours</h3>
+            <div class="stepper" title="Number of colours"><button type="button" id="kDown" aria-label="Fewer colours">−</button><output id="kOut">3</output><button type="button" id="kUp" aria-label="More colours">+</button></div>
+            <input type="range" id="k" min="2" max="8" step="1" value="3" class="hidden">
           </div>
-          <p class="note"><b>Raised</b> parts become grip. <b>Flat</b> parts stay part of the pad. <b>Hole</b> cuts a window so that art shows through. <b>Cut</b> removes a color and sets the pad's outline.</p>
+          <div class="chips" id="chips"></div>
         </div>
 
-        <div class="sec">
-          <h3>Surface</h3>
+        <div class="rows">
+          <details class="row" name="cz" data-row="surface">
+            <summary><span>Surface</span><span class="val" id="sum-surface"></span></summary>
+            <div class="body">
           <div class="seg" id="surfSeg" style="display:inline-flex">
-            <button data-s="pattern">Grip pattern</button><button data-s="art">Art in relief</button><button data-s="flush">Art, flush</button><button data-s="plain">Plain</button>
+            <button data-s="pattern">Pattern</button><button data-s="art">Raised art</button><button data-s="flush">Flush art</button><button data-s="plain">Plain</button>
           </div>
           <p class="note" id="surfNote"></p>
           <div id="flushUI" class="hidden">
@@ -384,28 +432,31 @@ footer a{color:inherit}
               <div class="top"><span>Pattern spacing</span><output id="pitchOut"></output></div>
               <input type="range" id="pitch" min="4" max="14" step="0.5" value="7">
             </div>
-            <div style="font-size:14px;margin:4px 0 8px">Grip color</div>
+            <div class="lbl">Grip colour</div>
             <div class="swatches" id="patSwatches"></div>
           </div>
-        </div>
-
-        <div class="sec">
-          <h3>Pad color</h3>
+            </div>
+          </details>
+          <details class="row" name="cz" data-row="padcolor">
+            <summary><span>Pad colour</span><span class="val" id="sum-padcolor"></span></summary>
+            <div class="body">
           <div class="swatches" id="baseSwatches"></div>
-        </div>
-
-        <div class="sec">
-          <h3>Size</h3>
+            </div>
+          </details>
+          <details class="row" name="cz" data-row="size">
+            <summary><span>Size</span><span class="val" id="sum-size"></span></summary>
+            <div class="body">
           <p class="note hidden" id="sizeZoneNote">Open <b>On your board</b> and drag the handles on the pad's box to resize it. <button class="link" id="goBoardView">Show me</button></p>
           <div class="range" id="sizeRange">
             <div class="top"><span>Width across board</span><output id="sizeOut"></output></div>
             <input type="range" id="size" min="50" max="260" step="1" value="140">
           </div>
           <button class="btn" id="rotate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 10-2.3 5.7"/><path d="M20 4v7h-7"/></svg>Rotate 90°</button>
-        </div>
-
-        <div class="sec">
-          <h3>Shape</h3>
+            </div>
+          </details>
+          <details class="row" name="cz" data-row="shape">
+            <summary><span>Outline</span><span class="val" id="sum-shape"></span></summary>
+            <div class="body">
           <div class="range">
             <div class="top"><span>Border around design</span><output id="padOut"></output></div>
             <input type="range" id="pad" min="0" max="15" step="0.5" value="4">
@@ -415,7 +466,12 @@ footer a{color:inherit}
             <input type="range" id="smooth" min="0" max="15" step="0.5" value="4">
           </div>
           <label class="toggle">Fill holes in the outline<input type="checkbox" id="fillHoles" checked></label>
-          <div style="font-size:14px;margin:14px 0 6px">Pockets <span class="note" style="display:inline">· open the pad so your board shows through</span></div>
+            </div>
+          </details>
+          <details class="row" name="cz" data-row="pockets">
+            <summary><span>Pockets</span><span class="val" id="sum-pockets"></span></summary>
+            <div class="body">
+          <p class="hint">Open the pad up so your board shows through.</p>
           <div class="seg" id="pocketSeg" style="display:inline-flex;flex-wrap:wrap">
             <button data-v="none">None</button><button data-v="frame">Frame</button><button data-v="lattice">Lattice</button><button data-v="circles">Circles</button><button data-v="slots">Slots</button><button data-v="studs">Studs</button>
           </div>
@@ -429,19 +485,20 @@ footer a{color:inherit}
               <input type="range" id="pkRib" min="2" max="12" step="0.5" value="4">
             </div>
           </div>
-          <p class="note">Tip: set a colour to <b>Hole</b> above to let that part of the art show through.</p>
-        </div>
-
-        <div class="sec">
-          <h3>Reflective tape</h3>
-          <p class="note" style="margin-top:0">Adds a shallow recess for a piece of reflective tape, so you're easier to see on night runs. The tape sits just below the surface, which stops its edges from catching and peeling.</p>
+          <p class="note">To show one part of the art, set that colour to <b>Window</b>.</p>
+            </div>
+          </details>
+          <details class="row" name="cz" data-row="tape">
+            <summary><span>Reflective tape</span><span class="val" id="sum-tape"></span></summary>
+            <div class="body">
+          <p class="hint">A shallow recess for reflective tape, so you're seen on night runs.</p>
           <div class="seg" id="tapeSeg" style="display:inline-flex;flex-wrap:wrap">
             <button data-v="none">None</button><button data-v="strip">Strip</button><button data-v="two">Two strips</button><button data-v="chevron">Chevron</button><button data-v="dot">Dot</button>
           </div>
           <div id="tapeUI" class="hidden">
-            <div style="font-size:14px;margin:14px 0 6px">Tape width</div>
+            <div class="lbl">Tape width</div>
             <div class="seg" id="tapeWSeg" style="display:inline-flex;flex-wrap:wrap">
-              <button data-v="12.7">½ in · 13 mm</button><button data-v="19">¾ in · 19 mm</button><button data-v="25.4">1 in · 25 mm</button><button data-v="50.8">2 in · 51 mm</button>
+              <button data-v="12.7">½ in</button><button data-v="19">¾ in</button><button data-v="25.4">1 in</button><button data-v="50.8">2 in</button>
             </div>
             <div class="range" id="tapeLenRange">
               <div class="top"><span>Length</span><output id="tapeLenOut"></output></div>
@@ -461,10 +518,11 @@ footer a{color:inherit}
             </div>
             <p class="note" id="tapeNote"></p>
           </div>
-        </div>
-
-        <div class="sec">
-          <h3>Thickness &amp; grip</h3>
+            </div>
+          </details>
+          <details class="row" name="cz" data-row="thick">
+            <summary><span>Thickness</span><span class="val" id="sum-thick"></span></summary>
+            <div class="body">
           <div class="range">
             <div class="top"><span>Pad thickness</span><output id="baseOut"></output></div>
             <input type="range" id="base" min="1.2" max="6" step="0.1" value="2.6">
@@ -479,7 +537,9 @@ footer a{color:inherit}
           </div>
           <label class="toggle">Rounded top edge<input type="checkbox" id="round" checked></label>
           <label class="toggle">Each colour at its own height<input type="checkbox" id="tiered"></label>
-          <p class="note hidden" id="tierNote">Set each raised colour's height in <b>Colors in your design</b> above.</p>
+          <p class="note hidden" id="tierNote">Set each raised colour's height under <b>Colours</b> above.</p>
+            </div>
+          </details>
         </div>
 
         <div class="sec">
@@ -1934,11 +1994,11 @@ function renderChips() {
     const f = nearestFil(col);
     const el = document.createElement('div'); el.className = 'chip';
     el.innerHTML = `<label class="sw" style="background:${rgb2hex(col)}" title="Change color"><input type="color" value="${rgb2hex(col)}"></label>
-      <div class="meta"><b>${f[0]}</b><span>${Math.max(1, Math.round(S.quant.counts[i] / total * 100))}% of image</span></div>
+      <div class="meta"><b>${f[0]}</b><span>${Math.max(1, Math.round(S.quant.counts[i] / total * 100))}% of the design</span></div>
       ${S.tiered && S.roles[i] === 'raised' ? `<div class="num tier" title="Height above the pad"><input type="number" min="0.4" max="8" step="0.2" value="${tierHeights()[i]}"><span>mm</span></div>` : ''}
-      <div class="seg">${['raised', 'flat', 'hole', 'cut'].map(r => `<button data-r="${r}" class="${S.roles[i] === r ? 'on' : ''}" title="${{ raised: 'Raised grip', flat: 'Part of the pad', hole: 'Cut a window so this art shows through', cut: 'Remove from the outline' }[r]}">${r[0].toUpperCase() + r.slice(1)}</button>`).join('')}</div>`;
+      <select class="role" aria-label="What this colour does">${[['raised', 'Raised'], ['flat', 'Flat'], ['hole', 'Window'], ['cut', 'Remove']].map(([r, t]) => `<option value="${r}"${S.roles[i] === r ? ' selected' : ''}>${t}</option>`).join('')}</select>`;
     el.querySelector('input').addEventListener('input', e => { S.colors[i] = hex2rgb(e.target.value); el.querySelector('.sw').style.background = e.target.value; el.querySelector('b').textContent = nearestFil(S.colors[i])[0]; recolor(); });
-    el.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { S.roles[i] = b.dataset.r; renderChips(); rebuild(); }));
+    el.querySelector('select.role').addEventListener('change', e => { S.roles[i] = e.target.value; renderChips(); rebuild(); });
     const ti = el.querySelector('.tier input');
     if (ti) ti.addEventListener('input', () => { const v = +ti.value; if (v >= 0.4 && v <= 8) { S.heights[i] = v; rebuild(); } });
     box.appendChild(el);
@@ -2013,6 +2073,32 @@ $('#rotate').addEventListener('click', () => {
   S.framed = false; rebuild(true);
 });
 $('#next2').addEventListener('click', () => go(3));
+// colour count stepper drives the (hidden) range input the rest of the code listens to
+for (const [id, d] of [['kDown', -1], ['kUp', 1]]) $('#' + id).addEventListener('click', () => {
+  const k = $('#k'), v = Math.min(8, Math.max(2, +k.value + d));
+  if (v === +k.value) return;
+  k.value = v; k.dispatchEvent(new Event('input'));
+  syncStepper();
+});
+function syncStepper() { const v = +$('#k').value; $('#kDown').disabled = v <= 2; $('#kUp').disabled = v >= 8; }
+// each collapsed row shows its current value
+const PAT_NAMES = { ridges: 'Ridges', diamonds: 'Diamonds', hex: 'Hex', dots: 'Dots', chevrons: 'Chevrons', spikes: 'Spikes' };
+const TAPE_NAMES = { strip: 'Strip', two: 'Two strips', chevron: 'Chevron', dot: 'Dot' };
+const inch = w => ({ 12.7: '½ in', 19: '¾ in', 25.4: '1 in', 50.8: '2 in' }[w] || Math.round(w) + ' mm');
+function updateSummaries() {
+  const set = (k, html) => { const e = document.getElementById('sum-' + k); if (e) e.innerHTML = html; };
+  const P = S.params, st = S.result && S.result.stats;
+  set('surface', { pattern: PAT_NAMES[S.patType] || 'Pattern', art: 'Raised art', flush: 'Flush art' + (S.flushGrip ? ', ' + (PAT_NAMES[S.patType] || '').toLowerCase() : ''), plain: 'Plain' }[S.surface] || '');
+  if (S.baseColor) set('padcolor', `<i class="sumdot" style="background:${rgb2hex(S.baseColor)}"></i>${nearestFil(S.baseColor)[0]}`);
+  set('size', st ? `${(st.width / 10).toFixed(1)} × ${(st.length / 10).toFixed(1)} cm` : (P.size / 10).toFixed(1) + ' cm');
+  set('shape', P.pad ? `${P.pad} mm border` : 'Tight to the art');
+  set('pockets', { none: 'None', frame: 'Frame', lattice: 'Lattice', circles: 'Circles', slots: 'Slots', studs: 'Studs' }[S.pockets.type] || 'None');
+  set('tape', S.tape.shape === 'none' ? 'None' : `${TAPE_NAMES[S.tape.shape]}, ${inch(S.tape.width)}` + (S.result && S.result.tapeFailed ? ' (doesn\'t fit)' : ''));
+  set('thick', `${(+P.base).toFixed(1)} mm` + (S.tiered ? ', stacked' : ''));
+  syncStepper();
+}
+document.querySelector('[data-panel="2"]').addEventListener('input', () => requestAnimationFrame(updateSummaries));
+document.querySelector('[data-panel="2"]').addEventListener('click', () => requestAnimationFrame(updateSummaries));
 function renderPockets() {
   $$('#pocketSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === S.pockets.type));
   $('#pocketUI').classList.toggle('hidden', S.pockets.type === 'none' || S.pockets.type === 'frame' && false);
@@ -2054,7 +2140,7 @@ function renderSurface() {
   $('#flushDepth').value = S.flushDepth; $('#flushOut').textContent = S.flushDepth.toFixed(1) + ' mm (' + Math.round(S.flushDepth / 0.2) + ' layers)';
   $('#flushGrip').checked = !!S.flushGrip;
   $('#pitch').value = S.pitch; $('#pitchOut').textContent = (S.pitch / 10).toFixed(2).replace(/0$/, '') + ' cm';
-  $('#surfNote').textContent = { pattern: 'The pad takes the shape of your design, with a raised traction pattern on top.', art: 'Colors set to Raised below are printed as raised grip.', flush: 'The art is printed in colour, level with the pad\'s surface. Colours set to Raised below are inlaid; nothing sticks up.', plain: 'A flat pad in the shape of your design.' }[S.surface];
+  $('#surfNote').textContent = { pattern: 'A raised traction pattern across the pad.', art: 'Colours set to Raised stand up as the grip.', flush: 'The art is printed in colour, level with the surface. Nothing sticks up.', plain: 'A flat pad in the shape of your design.' }[S.surface];
   const box = $('#patSwatches'); box.innerHTML = '';
   const seen = new Set(), list = [];
   const add = c => { const h = rgb2hex(c); if (!seen.has(h)) { seen.add(h); list.push(h); } };
@@ -2088,7 +2174,7 @@ function statsHTML() {
     (r.pieces > 1 && S.pockets.type === 'studs' ? `<div class="stat" style="grid-column:1/-1"><div class="k">Studs print as separate pieces. Stick each one down, or lay them on one sheet of double-sided tape and transfer them all at once.</div></div>` : '') +
     (r.pieces > 1 && S.pockets.type !== 'studs' ? `<div class="stat" style="grid-column:1/-1"><div class="k">These print as separate pads, which is fine. To merge them into one pad, raise <b>Border around design</b>.</div></div>` : '');
 }
-function renderStats() { $('#stats').innerHTML = statsHTML(); updateBadge(); }
+function renderStats() { $('#stats').innerHTML = statsHTML(); updateBadge(); updateSummaries(); }
 
 // ============================================================ STEP 4
 function renderDownload() {
