@@ -559,7 +559,7 @@ footer a{color:inherit}
   <footer>Everything runs in your browser. Your photos never leave your device. · <a href="../">Julian Pietraroia</a></footer>
 </div>
 
-<script src="core.js"></script>
+<script src="core.js?v=2026-11-19a"></script>
 <script>
 (() => {
 'use strict';
@@ -2040,7 +2040,7 @@ function renderTape() {
   $('#tapePos').value = T.pos; $('#tapePosOut').textContent = Math.abs(T.pos) < 0.01 ? 'Centred' : Math.round(Math.abs(T.pos) * 100) + '% ' + (T.pos < 0 ? 'up' : 'down');
   $('#tapeDep').value = T.depth; $('#tapeDepOut').textContent = T.depth.toFixed(1) + ' mm (' + Math.round(T.depth / 0.2) + (T.depth > 0.2 ? ' layers)' : ' layer)');
   const r = S.result;
-  $('#tapeNote').innerHTML = !on || !r ? '' : r.tape ? `<b>Tape to cut:</b> ${tapeCutText(r.tape)}. Grip and pockets stay clear of it.` : `<span style="color:var(--warn)">Doesn't fit on this pad. Try a narrower tape or a single Strip.</span>`;
+  $('#tapeNote').innerHTML = !on || !r ? '' : !('tape' in r) ? `<span style="color:var(--warn)">Your browser is using an old copy of the site. Refresh the page (Ctrl+Shift+R) to get the tape recess.</span>` : r.tape ? `<b>Tape to cut:</b> ${tapeCutText(r.tape)}. Grip and pockets stay clear of it.` : `<span style="color:var(--warn)">Doesn't fit on this pad. Try a narrower tape or a single Strip.</span>`;
 }
 $('#tapeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.tape.shape = b.dataset.v; renderTape(); rebuild(true); });
 $('#tapeWSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.tape.width = +b.dataset.v; renderTape(); rebuild(true); });
