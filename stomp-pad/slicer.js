@@ -75,11 +75,11 @@ G90
 G1 X5 Y${bedY} F6000
 M84`;
   const PRINTERS = {
-    'bambu-a1mini': { name: 'Bambu Lab A1 mini', group: 'Bambu Lab', bed: [180, 180], drive: 'direct', pause: 'M400 U1', park: [10, 170], start: BAMBU_START('Bambu Lab A1 mini'), experimental: true },
-    'bambu-a1': { name: 'Bambu Lab A1', group: 'Bambu Lab', bed: [256, 256], drive: 'direct', pause: 'M400 U1', park: [10, 240], start: BAMBU_START('Bambu Lab A1'), experimental: true },
-    'bambu-p1s': { name: 'Bambu Lab P1S / P1P', group: 'Bambu Lab', bed: [256, 256], drive: 'direct', pause: 'M400 U1', park: [10, 240], start: BAMBU_START('Bambu Lab P1S'), experimental: true },
-    'bambu-x1c': { name: 'Bambu Lab X1 Carbon', group: 'Bambu Lab', bed: [256, 256], drive: 'direct', pause: 'M400 U1', park: [10, 240], start: BAMBU_START('Bambu Lab X1 Carbon'), experimental: true },
-    'bambu-p2s': { name: 'Bambu Lab P2S', group: 'Bambu Lab', bed: [256, 256], drive: 'direct', pause: 'M400 U1', park: [10, 240], start: BAMBU_START('Bambu Lab P2S'), experimental: true },
+    'bambu-a1mini': { name: 'Bambu Lab A1 mini', group: 'Bambu Lab', bed: [180, 180], drive: 'direct', pause: 'M400 U1', park: [10, 170], start: BAMBU_START('Bambu Lab A1 mini'), experimental: true, multi: 'AMS lite' },
+    'bambu-a1': { name: 'Bambu Lab A1', group: 'Bambu Lab', bed: [256, 256], drive: 'direct', pause: 'M400 U1', park: [10, 240], start: BAMBU_START('Bambu Lab A1'), experimental: true, multi: 'AMS lite' },
+    'bambu-p1s': { name: 'Bambu Lab P1S / P1P', group: 'Bambu Lab', bed: [256, 256], drive: 'direct', pause: 'M400 U1', park: [10, 240], start: BAMBU_START('Bambu Lab P1S'), experimental: true, multi: 'AMS' },
+    'bambu-x1c': { name: 'Bambu Lab X1 Carbon', group: 'Bambu Lab', bed: [256, 256], drive: 'direct', pause: 'M400 U1', park: [10, 240], start: BAMBU_START('Bambu Lab X1 Carbon'), experimental: true, multi: 'AMS' },
+    'bambu-p2s': { name: 'Bambu Lab P2S', group: 'Bambu Lab', bed: [256, 256], drive: 'direct', pause: 'M400 U1', park: [10, 240], start: BAMBU_START('Bambu Lab P2S'), experimental: true, multi: 'AMS' },
     'prusa-mk4': { name: 'Prusa MK4 / MK4S', group: 'Prusa', bed: [250, 210], drive: 'direct', pause: 'M600', start: PRUSA_START },
     'prusa-coreone': { name: 'Prusa Core One', group: 'Prusa', bed: [250, 220], drive: 'direct', pause: 'M600', start: PRUSA_START },
     'prusa-mini': { name: 'Prusa MINI / MINI+', group: 'Prusa', bed: [180, 180], drive: 'bowden', pause: 'M600', start: PRUSA_START },
@@ -93,6 +93,7 @@ M84`;
   };
   const FILAMENTS = {
     tpu: { name: 'TPU 95A', nozzle: 228, bed: 45, speed: 25, first: 15, fan: 60, retract: { direct: 0.8, bowden: 1.5 }, rspeed: 25 },
+    tpuams: { name: 'TPU for AMS (68D)', nozzle: 230, bed: 35, speed: 40, first: 20, fan: 60, retract: { direct: 0.8, bowden: 2 }, rspeed: 30, bambuOnly: true },
     pla: { name: 'PLA', nozzle: 210, bed: 60, speed: 60, first: 25, fan: 100, retract: { direct: 0.8, bowden: 5 }, rspeed: 40 },
     petg: { name: 'PETG', nozzle: 240, bed: 75, speed: 50, first: 20, fan: 40, retract: { direct: 0.8, bowden: 4 }, rspeed: 35 },
   };

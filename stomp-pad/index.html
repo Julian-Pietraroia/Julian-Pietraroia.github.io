@@ -683,9 +683,22 @@ code{font-family:var(--mono);font-size:.92em}
 
         <div class="sec" id="sliceSec">
           <h3>Slice for your printer</h3>
-          <p class="hint">G-code ready to print, with a pause wherever you swap filament by hand.</p>
+          <p class="hint" id="slHint">G-code ready to print, with a pause wherever you swap filament by hand.</p>
           <div class="field"><label for="slPrinter">Printer</label><select id="slPrinter" class="role wide"></select></div>
           <div class="field"><label for="slFil">Filament</label><select id="slFil" class="role wide"></select></div>
+          <label class="toggle hidden" id="slAmsRow"><span id="slAmsLabel">I have an AMS</span><input type="checkbox" id="slAms"></label>
+          <div class="hidden" id="slAmsBox">
+            <div id="slSlots" class="plan"></div>
+            <p class="note warn hidden" id="slAmsWarn"></p>
+            <button class="btn pri big block" id="slAmsGo" style="margin-top:14px">Download 3MF for Bambu Studio</button>
+            <ol class="tips" style="margin-top:12px">
+              <li>Open the 3MF in Bambu Studio and accept the colour dialog.</li>
+              <li>In the filament list, set each colour's slot and material to match your AMS.</li>
+              <li>Slice the plate and print. The AMS swaps colours on its own.</li>
+            </ol>
+            <p class="note">The AMS needs Bambu Studio's own colour-change code (cut, flush, prime tower), so the site hands it the 3MF instead of writing that code itself.</p>
+          </div>
+          <div id="slManual">
           <div class="field hidden" id="slRaisedRow"><label for="slRaised">Raised colour<small>These parts share a height, so they print in one colour</small></label><select id="slRaised" class="role wide"></select></div>
           <div id="slPlan" class="plan"></div>
           <p class="note warn hidden" id="slWarn"></p>
@@ -707,6 +720,7 @@ code{font-family:var(--mono);font-size:.92em}
             <p class="note" id="slSummary"></p>
             <canvas id="slCanvas" class="slcanvas"></canvas>
             <div class="range"><div class="top"><span>Layer</span><output id="slLayerOut"></output></div><input type="range" id="slLayerPick" min="1" max="1" value="1"></div>
+          </div>
           </div>
         </div>
 
@@ -767,7 +781,7 @@ code{font-family:var(--mono);font-size:.92em}
 </div>
 
 <script src="core.js?v=2026-11-26a"></script>
-<script src="slicer.js?v=2026-11-26a"></script>
+<script src="slicer.js?v=2026-11-26b"></script>
 <script>
 (() => {
 'use strict';
@@ -2496,7 +2510,13 @@ function slInit() {
   $('#slFil').value = SLS.filament && SL.FILAMENTS[SLS.filament] ? SLS.filament : 'tpu';
   slDefaults();
 }
+function slFilOptions() {
+  const P = SL.PRINTERS[$('#slPrinter').value], cur = $('#slFil').value;
+  $('#slFil').innerHTML = Object.entries(SL.FILAMENTS).filter(([, f]) => !f.bambuOnly || P.multi).map(([id, f]) => `<option value="${id}">${f.name}</option>`).join('');
+  $('#slFil').value = [...$('#slFil').options].some(o => o.value === cur) ? cur : 'tpu';
+}
 function slDefaults() {
+  slFilOptions();
   const P = SL.PRINTERS[$('#slPrinter').value], F = SL.FILAMENTS[$('#slFil').value];
   $('#slNozzle').value = F.nozzle; $('#slBed').value = F.bed;
   // TPU through a Bowden tube needs to go slowly
@@ -2507,6 +2527,14 @@ function slDefaults() {
 }
 function slRender() {
   if (!S.result || !SL) return;
+  const P0 = SL.PRINTERS[$('#slPrinter').value];
+  $('#slAmsRow').classList.toggle('hidden', !P0.multi);
+  $('#slAmsLabel').textContent = `I have an ${P0.multi || 'AMS'}`;
+  $('#slAms').checked = !!(P0.multi && SLS.ams);
+  const ams = $('#slAms').checked;
+  $('#slAmsBox').classList.toggle('hidden', !ams); $('#slManual').classList.toggle('hidden', ams);
+  $('#slHint').textContent = ams ? `Your ${P0.multi} changes the colours, so this gives you a 3MF to slice in Bambu Studio.` : 'G-code ready to print, with a pause wherever you swap filament by hand.';
+  if (ams) { slRenderAms(P0); return; }
   const meshes = slMeshes();
   // colours that share a height print as one: let the user choose which
   const bands0 = SL.plan(meshes, null);
@@ -2529,6 +2557,19 @@ function slRender() {
   if (P.experimental) warn.push('Bambu printers print this plain G-code from the SD card. It skips Bambu\'s own calibration, so watch the first layer. With an AMS, the 3MF above is the better route.');
   if (P.drive === 'bowden' && $('#slFil').value === 'tpu') warn.push('TPU through a Bowden tube jams easily. It\'s set to 15 mm/s; PETG is the safer choice on this printer.');
   $('#slWarn').innerHTML = warn.join('<br><br>'); $('#slWarn').classList.toggle('hidden', !warn.length);
+}
+// AMS: every colour gets its own slot; Bambu Studio does the swapping
+function slRenderAms(P) {
+  const cols = [];
+  for (const l of printLayers()) { const c = l.kind === 'base' ? -1 : l.color; if (!cols.includes(c)) cols.push(c); }
+  const slots = P.multi === 'AMS lite' ? 4 : 4;
+  $('#slSlots').innerHTML = cols.map((c, i) => `<div class="pl"><i style="background:${rgb2hex(colorOf(c))}"></i><b>Slot ${i + 1}</b><span>${colourName(c)}${c === -1 ? ', the pad' : ''}</span></div>`).join('');
+  const warn = [];
+  const fil = $('#slFil').value;
+  if (fil === 'tpu') warn.push(`TPU 95A is too soft for the ${P.multi}. Pick <b>TPU for AMS (68D)</b> (stiffer, but it feeds), use PLA or PETG, or untick the AMS and print TPU 95A from the external spool with manual swaps.`);
+  if (fil === 'tpuams') warn.push('TPU for AMS is much stiffer than TPU 95A (68D vs 95A), so the pad grips less and flexes less with the board.');
+  if (cols.length > slots) warn.push(`This design uses ${cols.length} colours. One ${P.multi} holds ${slots}, so you'll need a second unit, or fewer colours in Customize.`);
+  $('#slAmsWarn').innerHTML = warn.join('<br><br>'); $('#slAmsWarn').classList.toggle('hidden', !warn.length);
 }
 async function slGo() {
   if (!S.result) return;
@@ -2586,6 +2627,8 @@ if (SL) {
   slInit();
   $('#slPrinter').addEventListener('change', () => { SLS.printer = $('#slPrinter').value; slSave(); slDefaults(); slRender(); });
   $('#slFil').addEventListener('change', () => { SLS.filament = $('#slFil').value; slSave(); slDefaults(); slRender(); });
+  $('#slAms').addEventListener('change', e => { SLS.ams = e.target.checked; slSave(); slRender(); });
+  $('#slAmsGo').addEventListener('click', () => $('#dl3mf').click());
   $('#slRaised').addEventListener('change', e => { S.slRaised = +e.target.value; slRender(); });
   $('#slInfill').addEventListener('input', e => { $('#slInfillOut').textContent = Math.round(e.target.value * 100) + '%'; });
   $('#slGo').addEventListener('click', slGo);
