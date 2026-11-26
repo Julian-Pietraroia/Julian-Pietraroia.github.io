@@ -6,7 +6,7 @@
 <title>Stomp Pad Studio — custom 3D-printable snowboard stomp pads</title>
 <meta name="description" content="Turn your snowboard's graphic, or any design, into a 3D-printable stomp pad sized to your board.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..100,400..900&family=Geist+Mono:wght@400;500;600&display=swap">
 <style>
 /* Stomp Pad Studio. A tool layout: top bar, docked settings, full-bleed preview.
    Geist for text, Geist Mono for every measurement. One accent (high-vis orange). 6px corners throughout. */
@@ -263,10 +263,97 @@ details.row .body{padding:0 0 18px}
 .panel::-webkit-scrollbar-thumb:hover{background:var(--faint)}
 @media (prefers-reduced-motion:no-preference){body,.topbar,.panel,.stage,.nav,.btn,.step,.opt,.seg,.result,details.row,.badge,.stagehint{transition:background-color .45s ease,border-color .45s ease,color .45s ease}}
 @media (prefers-color-scheme:dark){.sw,.sumdot,.swatches button,.filrow .dot{border-color:rgba(255,255,255,.16)}}
+
+/* ===== Burton-inspired variant: black page, rounded panels with gutters, white nav bar,
+   scrolling strip, extra-condensed uppercase headlines, pill buttons, halftone texture.
+   Always dark. Accent still comes from the board (default mint). ===== */
+:root,:root:root{
+  --sans:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --display:"Archivo","DejaVu Sans Condensed","Helvetica Neue",Arial,sans-serif;
+  --bg:#000;--panel:#121212;--stage:#0c0c0c;--ink:#f5f5f2;--mut:#9a9a96;--faint:#5a5a57;--line:#262626;--soft:#1c1c1c;
+  --brand:#a6f2c4;--brand-ink:#0a0a0a;--hi:#a6f2c4;--warn:#f5b36b;--r:10px;--R:16px;
+}
+body{background:#000;font-family:var(--sans);font-stretch:100%}
+.wrap{padding:0 8px 8px;gap:8px;height:100vh;height:100dvh;grid-template-rows:auto auto 1fr}
+/* scrolling strip */
+.ticker{margin:0 -8px;background:var(--brand);color:var(--brand-ink);overflow:hidden;white-space:nowrap;font-size:12.5px;font-weight:500;height:30px;display:flex;align-items:center}
+.ticker .track{display:inline-flex;gap:56px;padding-left:56px;animation:tick 38s linear infinite}
+.ticker b{font-weight:800}
+@keyframes tick{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.ticker .track{animation:none}}
+/* white nav bar */
+.topbar{background:#fff!important;color:#0a0a0a;border:0;border-radius:var(--R);height:60px;padding:0 22px;margin-top:0}
+.wordmark{font-weight:800;font-size:16px;letter-spacing:.28em;text-transform:uppercase;color:#0a0a0a}
+.steps{margin-left:auto;gap:6px}
+.step{color:#3a3a3a;font-size:14px;padding:0 10px}
+.step .n{display:none}
+.step:hover:not(:disabled){color:#000}
+.step.on{color:#000;font-weight:700}
+.step.on::after{left:10px;right:10px;bottom:14px;height:2px;background:#000}
+.step.done{color:#000}
+.themechip{background:#f1f1ef;border:0;color:#3a3a3a;border-radius:999px;margin-left:14px}
+.themechip:hover{color:#000}
+.by{color:#3a3a3a}.by:hover{color:#000}
+/* panels */
+.grid{gap:8px;grid-template-columns:400px 1fr}
+.panel{border:0;border-radius:var(--R);background:var(--panel)!important;padding:0 26px}
+.nav{background:var(--panel);border-top:1px solid var(--line)}
+.stage{border-radius:var(--R);overflow:hidden;background:var(--stage)!important}
+/* halftone dots in the board's colour, heaviest in the corners */
+.stage::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(circle, var(--brand) 0 1.3px, transparent 1.7px) 0 0/8px 8px;
+  opacity:.22;
+  -webkit-mask:radial-gradient(120% 90% at 50% 50%, transparent 45%, #000 100%);
+          mask:radial-gradient(120% 90% at 50% 50%, transparent 45%, #000 100%)}
+.view{z-index:1}
+.stagebar,.badge,.busy,.zoomctl,.stagehint,.empty{z-index:2}
+/* headlines */
+.panel h2{font-family:var(--display);font-stretch:62%;font-weight:900;text-transform:uppercase;font-size:50px;line-height:.88;letter-spacing:-.005em;color:var(--brand);margin:0 0 12px}
+.panel .lead{font-size:14.5px;color:var(--ink);opacity:.8}
+.sec h3,.colhead h3{font-family:var(--display);font-stretch:75%;font-weight:800;text-transform:uppercase;letter-spacing:.02em;font-size:15px}
+#emptyText{font-family:var(--display);font-stretch:62%;font-weight:900;text-transform:uppercase;font-size:64px;line-height:.88;color:var(--brand)}
+.empty>div{max-width:520px}
+/* pill buttons */
+.btn{border-radius:999px;font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.04em;padding:10px 18px;background:transparent;border-color:#3a3a3a}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.pri:disabled{background:#1c1c1c;border-color:#1c1c1c;color:#555}
+.btn.big{padding:13px 20px}
+.seg{border-radius:999px;background:#1a1a1a;border-color:#262626}
+.seg button{border-radius:999px;padding:6px 12px}
+.seg button.on{background:#fff;color:#000;box-shadow:none}
+#viewSeg{background:rgba(18,18,18,.85);backdrop-filter:blur(6px)}
+.opt,.variant{border-radius:var(--r);background:#181818;border-color:#262626}
+.opt.on,.variant.on{border-color:var(--brand);box-shadow:none;background:#1d1d1d}
+.drop{border-radius:var(--r);background:#181818;border-color:#262626}
+.num,.stepper,select.role{border-radius:999px}
+.num{background:#181818}
+.stepper{background:#181818}
+.stepper output{border-color:#262626}
+select.role{background-color:#181818}
+.badge,.busy,.zoomctl,.stagehint{border-radius:999px;background:rgba(18,18,18,.85);backdrop-filter:blur(6px)}
+.result .v{font-family:var(--display);font-stretch:62%;font-weight:900;font-size:40px;color:var(--brand)}
+.sw,.swatches button{border-radius:50%}
+.thumb{border-radius:var(--r)}
+input[type=range]::-webkit-slider-thumb{background:var(--brand);border-color:var(--brand)}
+input[type=range]::-moz-range-thumb{background:var(--brand);border-color:var(--brand)}
+@media (max-width:900px){
+  .wrap{padding:0 6px 6px;height:auto;display:block}
+  .topbar{height:52px;padding:0 14px;margin-bottom:6px;gap:10px}
+  .wordmark{letter-spacing:.16em;font-size:12.5px}
+  .steps{margin-left:auto}.step{font-size:13px;padding:0 6px}.step.on::after{bottom:12px;left:6px;right:6px}
+  .themechip{display:none}
+  .grid{display:flex;flex-direction:column;gap:6px}
+  .stage{height:58vh}
+  .panel h2{font-size:40px}#emptyText{font-size:40px}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="ticker" aria-hidden="true"><div class="track">
+    <span><b>Your board, your pad.</b> Measured from one photo</span><span>Shaped from your board's own art</span><span>Prints in TPU on any FDM printer</span><span>Colour 3MF that opens in Bambu Studio</span><span>Everything runs in your browser</span>
+    <span><b>Your board, your pad.</b> Measured from one photo</span><span>Shaped from your board's own art</span><span>Prints in TPU on any FDM printer</span><span>Colour 3MF that opens in Bambu Studio</span><span>Everything runs in your browser</span>
+  </div></div>
   <header class="topbar">
     <div class="wordmark">Stomp Pad Studio</div>
     <nav class="steps" id="steps">
@@ -1009,7 +1096,8 @@ function applyBoardTheme() {
   const t = Math.min(1, C / 60);                      // how strongly the greys lean toward the board's hue
   const bl = brand('light'), bd = brand('dark');
   const hi = rgb2hex(lch2rgb(Math.max(68, Math.min(88, a.L)), C, h));   // drawn over the photo: light enough for dark boards
-  el.textContent = `:root{--brand:${bl.c};--brand-ink:${bl.ink};--hi:${hi};--bg:${hx(97, 1.6 * t)};--stage:${hx(93, 3 * t)};--line:${hx(90.5, 3.5 * t)};--soft:${hx(95.5, 2.4 * t)};--mut:${hx(47, 5 * t)};--faint:${hx(68, 4 * t)};--ink:${hx(11, 3 * t)}}
+  const ALWAYS_DARK = true;
+  el.textContent = ALWAYS_DARK ? `:root:root{--brand:${bd.c};--brand-ink:${bd.ink};--hi:${hi}}` : `:root{--brand:${bl.c};--brand-ink:${bl.ink};--hi:${hi};--bg:${hx(97, 1.6 * t)};--stage:${hx(93, 3 * t)};--line:${hx(90.5, 3.5 * t)};--soft:${hx(95.5, 2.4 * t)};--mut:${hx(47, 5 * t)};--faint:${hx(68, 4 * t)};--ink:${hx(11, 3 * t)}}
 @media (prefers-color-scheme:dark){:root{--brand:${bd.c};--brand-ink:${bd.ink};--hi:${hi};--bg:${hx(5, 2.5 * t)};--panel:${hx(7.5, 3 * t)};--stage:${hx(3.5, 2.5 * t)};--line:${hx(16.5, 4 * t)};--soft:${hx(11.5, 4 * t)};--mut:${hx(61, 5 * t)};--faint:${hx(38, 4 * t)};--ink:${hx(93, 1.5 * t)}}}`;
   // background gradient: the accent, plus the board's second colour (or a neighbour of the accent's hue)
   // second colour: another vivid hue on the board, else its most colourful main colour (a navy base, say),
