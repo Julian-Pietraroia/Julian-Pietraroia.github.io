@@ -358,6 +358,19 @@ textarea.gc{width:100%;font:12px/1.45 var(--mono);background:#181818;color:var(-
 .slset{margin-top:12px}
 .slcanvas{width:100%;height:240px;display:block;margin-top:10px;border-radius:var(--r);background:#0b0b0b}
 code{font-family:var(--mono);font-size:.92em}
+
+/* filament recommendations */
+.recs{display:grid;gap:14px;margin-top:14px}
+.rec{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center}
+.rec .pair{display:flex;align-items:center;gap:6px;grid-row:span 2}
+.rec .pair i{width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,255,255,.16);display:block}
+.rec .pair em{font-style:normal;color:var(--faint);font-size:12px}
+.rec .top{font-size:13.5px;line-height:1.3}
+.rec .top b{font-weight:600}
+.rec .sub{font-size:12px;color:var(--mut);line-height:1.35}
+.rec .sub a{color:var(--ink)}
+.rec .q{font-size:11px;padding:1px 7px;border-radius:999px;background:#1c1c1c;color:var(--mut);margin-left:6px;white-space:nowrap}
+.rec .q.good{color:var(--brand)}
 </style>
 </head>
 <body>
@@ -725,8 +738,11 @@ code{font-family:var(--mono);font-size:.92em}
         </div>
 
         <div class="sec">
-          <h3>Filament colors</h3>
-          <div id="filaments"></div>
+          <h3>Filament to buy</h3>
+          <p class="hint">The closest real filament colours for your design, from the makers' published colour codes.</p>
+          <div class="seg" id="brandSeg"></div>
+          <div id="filaments" class="recs"></div>
+          <button class="btn block hidden" id="useFils" style="margin-top:12px">Preview with these filaments</button>
         </div>
 
         <div class="sec">
@@ -782,6 +798,7 @@ code{font-family:var(--mono);font-size:.92em}
 
 <script src="core.js?v=2026-11-26a"></script>
 <script src="slicer.js?v=2026-11-26b"></script>
+<script src="filaments.js?v=2026-11-26a"></script>
 <script>
 (() => {
 'use strict';
@@ -2481,19 +2498,58 @@ function renderStats() { $('#stats').innerHTML = statsHTML(); updateBadge(); upd
 // ============================================================ STEP 4
 function renderDownload() {
   $('#stats2').innerHTML = statsHTML();
-  const box = $('#filaments'); box.innerHTML = '';
-  if (!S.result) return;
-  const rows = [['Pad', S.baseColor]];
-  S.result.layers.filter(l => l.kind === 'raised').forEach(l => rows.push(['Raised grip', colorOf(l.color)]));
-  rows.forEach(([what, col]) => {
-    const f = nearestFil(col);
-    box.insertAdjacentHTML('beforeend', `<div class="filrow"><div class="dot" style="background:${rgb2hex(col)}"></div><div><b>${f[0]}</b> <span>· ${what}</span></div></div>`);
-  });
-  if (S.result.tape) box.insertAdjacentHTML('beforeend', `<div class="filrow"><div class="dot" style="background:linear-gradient(135deg,#e9edf2,#b9c0ca 60%,#eef1f5)"></div><div><b>Reflective tape</b> <span>· ${tapeCutText(S.result.tape)}</span></div></div>`);
+  renderFilRecs();
   $('#dlMulti').disabled = printLayers().length < 2;
   if (typeof slRender === 'function') { slRender(); if (S.sliced && S.slicedFor !== S.result) { S.sliced = null; $('#slOut').classList.add('hidden'); } S.slicedFor = S.result; }
   $('#dl3mf').querySelector('svg').nextSibling.textContent = printLayers().length > 1 ? 'Download 3MF with colours' : 'Download 3MF';
 }
+
+
+// ======================================================= filament recommendations
+function filType() { const v = window.PadSlicer && $('#slFil') ? $('#slFil').value : 'tpu'; return ['tpu', 'tpuams', 'pla', 'petg'].includes(v) ? v : 'tpu'; }
+function printColours() {
+  // every colour that gets printed, with what it's for
+  const out = [];
+  const add = (c, what) => { const e = out.find(o => o.c === c); if (e) { if (!e.what.includes(what)) e.what.push(what); } else out.push({ c, what: [what] }); };
+  for (const l of printLayers()) add(l.kind === 'base' ? -1 : l.color, l.kind === 'base' ? 'Pad' : l.color === -2 ? 'Grip pattern' : 'Raised art');
+  return out;
+}
+function renderFilRecs() {
+  const box = $('#filaments'); box.innerHTML = '';
+  if (!S.result || !window.Filaments) return;
+  const type = filType(), brands = Filaments.brands(type);
+  if (S.filBrand && !brands.includes(S.filBrand)) S.filBrand = null;
+  $('#brandSeg').innerHTML = ['Any', ...brands].map(b => `<button data-b="${b}" class="${(S.filBrand || 'Any') === b ? 'on' : ''}">${b}</button>`).join('');
+  $('#brandSeg').classList.toggle('hidden', brands.length < 2);
+  S.filPicks = {};
+  for (const { c, what } of printColours()) {
+    const rgb = colorOf(c), m = Filaments.match(rgb, type, S.filBrand);
+    if (!m.length) continue;
+    const best = m[0]; S.filPicks[c] = best;
+    // one alternative from a different brand or line, if it's reasonably close
+    const alt = m.find(x => x.line !== best.line && x.d < best.d + 10);
+    box.insertAdjacentHTML('beforeend', `<div class="rec">
+      <div class="pair" title="Your colour, then the filament"><i style="background:${rgb2hex(rgb)}"></i><em>→</em><i style="background:${best.hex}"></i></div>
+      <div class="top"><b>${best.line.brand} ${best.line.name}, ${best.name}</b><span class="q${best.d < 12 ? ' good' : ''}">${Filaments.quality(best.d)}</span></div>
+      <div class="sub">${what.join(' and ')} · <a href="${best.line.url}" target="_blank" rel="noopener">Shop</a>${alt ? ` · or ${alt.line.brand} ${alt.line.name}, ${alt.name}` : ''}</div>
+    </div>`);
+  }
+  if (S.result.tape) box.insertAdjacentHTML('beforeend', `<div class="rec"><div class="pair"><i style="background:linear-gradient(135deg,#e9edf2,#b9c0ca 60%,#eef1f5)"></i></div><div class="top"><b>Reflective tape</b></div><div class="sub">${tapeCutText(S.result.tape)}</div></div>`);
+  const anyOff = Object.entries(S.filPicks).some(([c, p]) => p.d > 2);
+  $('#useFils').classList.toggle('hidden', !anyOff);
+}
+$('#brandSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.filBrand = b.dataset.b === 'Any' ? null : b.dataset.b; renderFilRecs(); });
+// recolour the design with the recommended filaments so the preview shows what you'll actually get
+$('#useFils').addEventListener('click', () => {
+  if (!S.filPicks) return;
+  for (const [k, p] of Object.entries(S.filPicks)) {
+    const c = +k, rgb = Filaments.hex2rgb(p.hex);
+    if (c === -1) S.baseColor = rgb; else if (c === -2) S.patternColor = rgb; else S.colors[c] = rgb;
+  }
+  renderChips && renderChips();
+  rebuild(true);
+  setTimeout(() => { renderDownload(); }, 50);
+});
 
 // ======================================================= slicer
 const SL = window.PadSlicer;
@@ -2626,7 +2682,7 @@ function slDraw() {
 if (SL) {
   slInit();
   $('#slPrinter').addEventListener('change', () => { SLS.printer = $('#slPrinter').value; slSave(); slDefaults(); slRender(); });
-  $('#slFil').addEventListener('change', () => { SLS.filament = $('#slFil').value; slSave(); slDefaults(); slRender(); });
+  $('#slFil').addEventListener('change', () => { SLS.filament = $('#slFil').value; slSave(); slDefaults(); slRender(); renderFilRecs(); });
   $('#slAms').addEventListener('change', e => { SLS.ams = e.target.checked; slSave(); slRender(); });
   $('#slAmsGo').addEventListener('click', () => $('#dl3mf').click());
   $('#slRaised').addEventListener('change', e => { S.slRaised = +e.target.value; slRender(); });
