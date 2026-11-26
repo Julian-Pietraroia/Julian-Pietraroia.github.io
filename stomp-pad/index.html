@@ -346,6 +346,18 @@ input[type=range]::-moz-range-thumb{background:var(--brand);border-color:var(--b
   .stage{height:58vh}
   .panel h2{font-size:40px}#emptyText{font-size:40px}
 }
+
+/* slicer */
+select.role.wide{min-width:190px;max-width:220px}
+.plan{margin:10px 0 0;display:grid;gap:6px}
+.plan .pl{display:flex;align-items:center;gap:10px;font-size:13px}
+.plan .pl i{width:14px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,.15);flex:none}
+.plan .pl span{color:var(--mut)}
+.plan .pause{font-size:12.5px;color:var(--brand);padding-left:24px}
+textarea.gc{width:100%;font:12px/1.45 var(--mono);background:#181818;color:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;resize:vertical}
+.slset{margin-top:12px}
+.slcanvas{width:100%;height:240px;display:block;margin-top:10px;border-radius:var(--r);background:#0b0b0b}
+code{font-family:var(--mono);font-size:.92em}
 </style>
 </head>
 <body>
@@ -669,6 +681,35 @@ input[type=range]::-moz-range-thumb{background:var(--brand);border-color:var(--b
           <button class="btn block" id="dlMulti">Download per-colour STLs</button>
         </div>
 
+        <div class="sec" id="sliceSec">
+          <h3>Slice for your printer</h3>
+          <p class="hint">G-code ready to print, with a pause wherever you swap filament by hand.</p>
+          <div class="field"><label for="slPrinter">Printer</label><select id="slPrinter" class="role wide"></select></div>
+          <div class="field"><label for="slFil">Filament</label><select id="slFil" class="role wide"></select></div>
+          <div class="field hidden" id="slRaisedRow"><label for="slRaised">Raised colour<small>These parts share a height, so they print in one colour</small></label><select id="slRaised" class="role wide"></select></div>
+          <div id="slPlan" class="plan"></div>
+          <p class="note warn hidden" id="slWarn"></p>
+          <details class="slset">
+            <summary>Print settings</summary>
+            <div class="field"><label for="slLayer">Layer height</label><select id="slLayer" class="role"><option value="0.16">0.16 mm</option><option value="0.2" selected>0.20 mm</option><option value="0.24">0.24 mm</option><option value="0.28">0.28 mm</option></select></div>
+            <div class="field"><label for="slWalls">Walls</label><select id="slWalls" class="role"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div>
+            <div class="range"><div class="top"><span>Infill</span><output id="slInfillOut">25%</output></div><input type="range" id="slInfill" min="0.1" max="0.6" step="0.05" value="0.25"></div>
+            <div class="field"><label for="slNozzle">Nozzle temperature</label><div class="num"><input id="slNozzle" type="number" min="180" max="300" step="1"><span>°C</span></div></div>
+            <div class="field"><label for="slBed">Bed temperature</label><div class="num"><input id="slBed" type="number" min="0" max="110" step="1"><span>°C</span></div></div>
+            <div class="field"><label for="slSpeed">Print speed</label><div class="num"><input id="slSpeed" type="number" min="5" max="300" step="1"><span>mm/s</span></div></div>
+            <div class="field hidden" id="slBedRow"><label>Bed size</label><div style="display:flex;gap:6px"><div class="num"><input id="slBedX" type="number" min="100" max="500"><span>mm</span></div><div class="num"><input id="slBedY" type="number" min="100" max="500"><span>mm</span></div></div></div>
+            <label class="lbl" for="slStart">Start G-code</label><textarea id="slStart" class="gc" rows="6" spellcheck="false"></textarea>
+            <label class="lbl" for="slPause">Colour change G-code</label><textarea id="slPause" class="gc" rows="2" spellcheck="false"></textarea>
+            <p class="note">Use <code>{bed}</code> and <code>{nozzle}</code> for the temperatures.</p>
+          </details>
+          <button class="btn pri big block" id="slGo" style="margin-top:14px">Slice and download G-code</button>
+          <div id="slOut" class="hidden">
+            <p class="note" id="slSummary"></p>
+            <canvas id="slCanvas" class="slcanvas"></canvas>
+            <div class="range"><div class="top"><span>Layer</span><output id="slLayerOut"></output></div><input type="range" id="slLayerPick" min="1" max="1" value="1"></div>
+          </div>
+        </div>
+
         <div class="sec">
           <h3>Filament colors</h3>
           <div id="filaments"></div>
@@ -679,7 +720,7 @@ input[type=range]::-moz-range-thumb{background:var(--brand);border-color:var(--b
           <ul class="tips">
             <li><b>Material:</b> TPU 95A grips and flexes with the board. PETG works but is stiffer.</li>
             <li><b>Settings:</b> 0.2 mm layers, 3 walls, 25–40% infill, print slowly (about 25 mm/s for TPU).</li>
-            <li><b>Colours:</b> open the 3MF in Bambu Studio and accept the colour dialog. Each colour maps to an AMS slot. With no AMS, print in one colour, or pause at the top of the pad layer to swap filament for the raised grip.</li>
+            <li><b>Colours:</b> open the 3MF in Bambu Studio and accept the colour dialog. Each colour maps to an AMS slot. With no AMS, use <b>Slice for your printer</b> above: it adds the pauses for you.</li>
             <li><b>Reflective tape:</b> use a retroreflective vinyl tape (e.g. 3M Scotchlite or Oralite). Cut it to the size shown above, round the corners slightly, clean the recess with isopropyl alcohol and press it in firmly.</li>
             <li><b>Mounting:</b> back the pad with outdoor-rated double-sided tape (e.g. 3M VHB). Clean the topsheet with isopropyl alcohol, press hard, and let it cure for 24 hours before riding.</li>
           </ul>
@@ -725,7 +766,8 @@ input[type=range]::-moz-range-thumb{background:var(--brand);border-color:var(--b
   </div>
 </div>
 
-<script src="core.js?v=2026-11-19a"></script>
+<script src="core.js?v=2026-11-26a"></script>
+<script src="slicer.js?v=2026-11-26a"></script>
 <script>
 (() => {
 'use strict';
@@ -2435,8 +2477,121 @@ function renderDownload() {
   });
   if (S.result.tape) box.insertAdjacentHTML('beforeend', `<div class="filrow"><div class="dot" style="background:linear-gradient(135deg,#e9edf2,#b9c0ca 60%,#eef1f5)"></div><div><b>Reflective tape</b> <span>· ${tapeCutText(S.result.tape)}</span></div></div>`);
   $('#dlMulti').disabled = printLayers().length < 2;
+  if (typeof slRender === 'function') { slRender(); if (S.sliced && S.slicedFor !== S.result) { S.sliced = null; $('#slOut').classList.add('hidden'); } S.slicedFor = S.result; }
   $('#dl3mf').querySelector('svg').nextSibling.textContent = printLayers().length > 1 ? 'Download 3MF with colours' : 'Download 3MF';
 }
+
+// ======================================================= slicer
+const SL = window.PadSlicer;
+const SLS = (() => { try { return JSON.parse(localStorage.getItem('stompSlicer') || '{}'); } catch (e) { return {}; } })();
+const slSave = () => { try { localStorage.setItem('stompSlicer', JSON.stringify(SLS)); } catch (e) {} };
+const colourName = c => nearestFil(colorOf(c))[0];
+function slMeshes() { return printLayers().map(l => ({ pos: l.pos, color: l.kind === 'base' ? -1 : l.color, kind: l.kind })); }
+function slInit() {
+  const groups = {};
+  for (const [id, p] of Object.entries(SL.PRINTERS)) (groups[p.group] = groups[p.group] || []).push(`<option value="${id}">${p.name}</option>`);
+  $('#slPrinter').innerHTML = Object.entries(groups).map(([g, o]) => `<optgroup label="${g}">${o.join('')}</optgroup>`).join('');
+  $('#slFil').innerHTML = Object.entries(SL.FILAMENTS).map(([id, f]) => `<option value="${id}">${f.name}</option>`).join('');
+  $('#slPrinter').value = SLS.printer && SL.PRINTERS[SLS.printer] ? SLS.printer : 'prusa-mk4';
+  $('#slFil').value = SLS.filament && SL.FILAMENTS[SLS.filament] ? SLS.filament : 'tpu';
+  slDefaults();
+}
+function slDefaults() {
+  const P = SL.PRINTERS[$('#slPrinter').value], F = SL.FILAMENTS[$('#slFil').value];
+  $('#slNozzle').value = F.nozzle; $('#slBed').value = F.bed;
+  // TPU through a Bowden tube needs to go slowly
+  $('#slSpeed').value = F === SL.FILAMENTS.tpu && P.drive === 'bowden' ? 15 : F.speed;
+  $('#slStart').value = P.start; $('#slPause').value = P.pause;
+  $('#slBedRow').classList.toggle('hidden', !P.editable);
+  $('#slBedX').value = P.bed[0]; $('#slBedY').value = P.bed[1];
+}
+function slRender() {
+  if (!S.result || !SL) return;
+  const meshes = slMeshes();
+  // colours that share a height print as one: let the user choose which
+  const bands0 = SL.plan(meshes, null);
+  const merged = [...new Set(bands0.flatMap(b => b.merged || []))];
+  $('#slRaisedRow').classList.toggle('hidden', merged.length < 2);
+  if (merged.length > 1) {
+    if (!merged.includes(S.slRaised)) {
+      // default: the colour that covers the most area among them
+      const area = c => (S.result.raisedMasks.find(m => m.c === c) || { m: [] }).m.reduce((a, v) => a + v, 0);
+      S.slRaised = merged.slice().sort((a, b) => area(b) - area(a))[0];
+    }
+    $('#slRaised').innerHTML = merged.map(c => `<option value="${c}"${c === S.slRaised ? ' selected' : ''}>${colourName(c)}</option>`).join('');
+  }
+  const bands = SL.plan(meshes, S.slRaised);
+  const P = SL.PRINTERS[$('#slPrinter').value];
+  $('#slPlan').innerHTML = bands.map((b, k) => (k ? `<div class="pause">Pause at ${b.z0.toFixed(1)} mm: load ${colourName(b.color)}</div>` : '') +
+    `<div class="pl"><i style="background:${rgb2hex(colorOf(b.color))}"></i><b>${colourName(b.color)}</b><span>${b.z0.toFixed(1)}–${b.z1.toFixed(1)} mm${k ? '' : ', the pad'}</span></div>`).join('');
+  const warn = [];
+  if (S.surface === 'flush') warn.push('Flush art needs a multi-colour printer. On one nozzle it prints in the pad colour, so use Raised art, or the 3MF with an AMS.');
+  if (P.experimental) warn.push('Bambu printers print this plain G-code from the SD card. It skips Bambu\'s own calibration, so watch the first layer. With an AMS, the 3MF above is the better route.');
+  if (P.drive === 'bowden' && $('#slFil').value === 'tpu') warn.push('TPU through a Bowden tube jams easily. It\'s set to 15 mm/s; PETG is the safer choice on this printer.');
+  $('#slWarn').innerHTML = warn.join('<br><br>'); $('#slWarn').classList.toggle('hidden', !warn.length);
+}
+async function slGo() {
+  if (!S.result) return;
+  const btn = $('#slGo'), label = btn.textContent;
+  btn.disabled = true;
+  const opts = {
+    printer: $('#slPrinter').value, filament: $('#slFil').value, raisedColor: S.slRaised,
+    layerH: +$('#slLayer').value, walls: +$('#slWalls').value, infill: +$('#slInfill').value,
+    nozzleT: +$('#slNozzle').value, bedT: +$('#slBed').value, speed: +$('#slSpeed').value,
+    startGcode: $('#slStart').value, pauseGcode: $('#slPause').value,
+    bed: SL.PRINTERS[$('#slPrinter').value].editable ? [+$('#slBedX').value, +$('#slBedY').value] : null,
+  };
+  try {
+    const r = await SL.slice(slMeshes(), opts, colourName, f => { btn.textContent = `Slicing… ${Math.round(f * 100)}%`; });
+    S.sliced = r;
+    const P = SL.PRINTERS[opts.printer];
+    const name = 'stomp-pad-' + opts.printer + '.gcode';
+    const url = URL.createObjectURL(new Blob([r.gcode], { type: 'text/plain' }));
+    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    const h = Math.floor(r.minutes / 60), m = r.minutes % 60;
+    $('#slSummary').innerHTML = `<b>${name}</b> for the ${P.name}: ${r.nL} layers, about ${h ? h + ' h ' : ''}${m} min, ${r.metres.toFixed(1)} m of filament` +
+      (r.swaps.length ? `, ${r.swaps.length} colour change${r.swaps.length > 1 ? 's' : ''}` : '') + '.';
+    $('#slOut').classList.remove('hidden');
+    $('#slLayerPick').max = r.layers.length; $('#slLayerPick').value = r.layers.length;
+    slDraw();
+  } catch (e) {
+    $('#slWarn').textContent = e.message; $('#slWarn').classList.remove('hidden');
+  }
+  btn.disabled = false; btn.textContent = label;
+}
+// draw one layer's toolpaths (earlier layers faint underneath)
+function slDraw() {
+  const r = S.sliced; if (!r) return;
+  const cv = $('#slCanvas'), dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const x = cv.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, W, H);
+  const L = +$('#slLayerPick').value - 1, ly = r.layers[L];
+  $('#slLayerOut').textContent = `${L + 1} of ${r.layers.length}, ${ly.z.toFixed(2)} mm, ${colourName(ly.color)}`;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const loop of r.layers[0].walls[0] || []) for (const [a, b] of loop) { x0 = Math.min(x0, a); y0 = Math.min(y0, b); x1 = Math.max(x1, a); y1 = Math.max(y1, b); }
+  const k = Math.min((W - 20) / (x1 - x0), (H - 20) / (y1 - y0)), ox = (W - (x1 - x0) * k) / 2, oy = (H - (y1 - y0) * k) / 2;
+  const P = q => [ox + (q[0] - x0) * k, oy + (q[1] - y0) * k];
+  const drawLayer = (l, alpha) => {
+    x.strokeStyle = rgb2hex(colorOf(l.color)); x.globalAlpha = alpha; x.lineWidth = Math.max(0.6, l.w * k * 0.8); x.lineCap = 'round';
+    x.beginPath();
+    for (const set of l.walls) for (const loop of set) loop.forEach((q, i) => { const p = P(q); i ? x.lineTo(...p) : x.moveTo(...p); }), x.closePath();
+    for (const s of [...l.solid, ...l.sparse]) { x.moveTo(...P(s[0])); x.lineTo(...P(s[1])); }
+    x.stroke();
+  };
+  if (L > 0) drawLayer(r.layers[L - 1], 0.18);
+  drawLayer(ly, 1); x.globalAlpha = 1;
+}
+if (SL) {
+  slInit();
+  $('#slPrinter').addEventListener('change', () => { SLS.printer = $('#slPrinter').value; slSave(); slDefaults(); slRender(); });
+  $('#slFil').addEventListener('change', () => { SLS.filament = $('#slFil').value; slSave(); slDefaults(); slRender(); });
+  $('#slRaised').addEventListener('change', e => { S.slRaised = +e.target.value; slRender(); });
+  $('#slInfill').addEventListener('input', e => { $('#slInfillOut').textContent = Math.round(e.target.value * 100) + '%'; });
+  $('#slGo').addEventListener('click', slGo);
+  $('#slLayerPick').addEventListener('input', slDraw);
+} else $('#sliceSec').classList.add('hidden');
+
 function download(buf, name) {
   const url = URL.createObjectURL(new Blob([buf], { type: 'model/stl' }));
   const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
